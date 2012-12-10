@@ -44,7 +44,8 @@ dmgr.restart()
 
 # Getting started
 
-* checkout WDR from GitHub
+* Download WDR distribution from (https://github.com/mplonka/WDR/downloads)
+ * or clone the repository with `git clone https://github.com/mplonka/WDR.git` if you want to work with experimental features
 * run wsadmin with 
  - `-profile $WDR_HOME/profile.py`
  - `-javaoption "-Dpython.path=$WDR_HOME"`
