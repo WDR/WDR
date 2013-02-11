@@ -31,8 +31,8 @@ logger = logging.getLogger( 'wdrUtil' )
 def sync():
     # DMgr node can't be synchronized
     # this function requests synchronization only for nodes which contain a nodeagent
-    for node in wdr.config.list( 'Node' ):
-        for srv in node.list( 'Server' ):
+    for node in wdr.config.listConfigObjects( 'Node' ):
+        for srv in node.listConfigObjects( 'Server' ):
             if srv.serverType == 'NODE_AGENT':
                 for ns in wdr.control.queryMBeans( type = 'NodeSync', node = node.name ):
                     logger.info( 'synchronizing node %s', node.name )

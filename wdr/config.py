@@ -237,6 +237,10 @@ def getid1( criteriaString, parent = None ):
         return ConfigObject( _parseConfigId( objectList[0] ) )
 
 def list( type, scopeOrPattern = None ):
+    logger.warning( 'wdr.config.list function has been deprecated and will be removed in next version. Use wdr.config.listConfigObjects instead.' )
+    return listConfigObjects( type, scopeOrPattern )
+
+def listConfigObjects( type, scopeOrPattern = None ):
     v = None
     if scopeOrPattern:
         v = AdminConfig.list( type, str( scopeOrPattern ) )
@@ -336,6 +340,7 @@ class ConfigObject:
         if name == '__methods__':
             return {
                     'list':self.list,
+                    'listConfigObjects':self.listConfigObjects,
                     'create':self.create,
                     'modify':self.modify,
                     'remove':self.remove
@@ -453,6 +458,10 @@ class ConfigObject:
         return None
 
     def list( self, _type ):
+        logger.warning( 'list method in wdr.config.ConfigObject has been deprecated and will be removed in next version. Use listConfigObjects instead.' )
+        return self.listConfigObjects( _type )
+
+    def listConfigObjects( self, _type ):
         logger.debug( 'listing objects of type %s in scope of %s', _type, self )
         result = []
         for l in AdminConfig.list( _type, str( self ) ).splitlines():
@@ -510,7 +519,7 @@ class ConfigObject:
 
     def lookup( self, _type, _criteria, _propertyName = None ):
         result = []
-        for obj in self.list( _type ):
+        for obj in self.listConfigObjects( _type ):
             logger.debug( 'matching %s with %s', obj, _criteria )
             for ( k, v ) in _criteria.items():
                 if obj[k] != v:
