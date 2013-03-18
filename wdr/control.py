@@ -54,7 +54,7 @@ class JMXMBeanOperation:
         for t in info.signature:
             self._signature.append( t.type )
     def __call__( self, *arguments ):
-        logger.debug( 'invoking JMXMBeanOperation %s for JMXMBean %s with arguments: %s', self._info.name, self._mbean._id, arguments )
+        logger.debug( 'invoking JMXMBeanOperation %s for JMXMBean %s', self._info.name, self._mbean._id )
         return AdminControl.invoke_jmx( self._mbean._objectName, self._info.name, arguments, self._signature )
 
 class JMXMBean:
@@ -129,7 +129,7 @@ class MBeanOperation:
         for t in info.signature:
             self._signature.append( t.type )
     def __call__( self, *arguments ):
-        logger.debug( 'invoking MBeanOperation %s for MBean %s with arguments: %s', self._info.name, self._mbean._id, arguments )
+        logger.debug( 'invoking MBeanOperation %s for MBean %s', self._info.name, self._mbean._id )
         return self._buildResult( AdminControl.invoke( self._mbean._id, self._info.name, self._buildStringArgument( arguments ) ) )
     def _buildResult( self, value ):
         returnTypeName = self._info.returnType
@@ -160,17 +160,17 @@ class OperationGroup:
         if numberOfOperations == 1:
             # if the operation isn't overloaded, then let's just proceed with the call
             # without even looking at arguments
-            logger.debug( 'matched non-overloaded operation %s with arguments %s for MBean %s', self._name, arguments, self._mbean._id )
+            logger.debug( 'matched non-overloaded operation %s for MBean %s', self._name, self._mbean._id )
             return apply( self._operations.values()[0], arguments )
         elif numberOfOverloads == 1:
             # if the operation is overloaded and number of parameters matches number of call arguments,
             # then we proceed with the call without checking argument types
-            logger.debug( 'based on argument number matched operation %s with arguments %s for MBean %s', self._name, arguments, self._mbean._id )
+            logger.debug( 'based on argument number matched operation %s for MBean %s', self._name, self._mbean._id )
             return apply( self._overloads[len( arguments )][0], arguments )
         else:
             # otherwise the operation must be first looked up using it's signature: mbean.operationName[['int','int']]
-            logger.error( 'could not match operation %s and arguments %s for MBean %s', self._name, arguments, self._mbean._id )
-            raise Exception( 'Could not match operation %s and arguments %s for MBean %s' % ( self._name, arguments, self._mbean._id ) )
+            logger.error( 'could not match operation %s for MBean %s', self._name, self._mbean._id )
+            raise Exception( 'Could not match operation %s for MBean %s' % ( self._name, self._mbean._id ) )
     def __getitem__( self, signature ):
         return self._operations[repr( tuple( signature ) )]
     def addOperation( self, operation ):

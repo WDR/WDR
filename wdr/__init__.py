@@ -18,7 +18,7 @@
 import sys
 import logging
 
-__all__ = ['config', 'control', 'util']
+__all__ = ['config', 'control', 'manifest', 'util']
 
 logger = logging.getLogger( 'wdr' )
 
