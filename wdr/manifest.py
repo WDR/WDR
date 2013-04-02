@@ -266,7 +266,7 @@ class _AppOptionConsumer( _AppEventConsumer ):
             self.parentObject.options[name] = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], value )
             return [self, _AppEventConsumer()]
     def consumeExtraOption( self, filename, line, lineno, variables ):
-        mat = _appExtraOptionPattern.match( line )
+        mat = _appOptionPattern.match( line )
         name = mat.group( 'name' )
         value = mat.group( 'value' )
         self.parentObject.extras[name] = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], value )
@@ -284,7 +284,7 @@ class _AppOptionValueConsumer( _AppEventConsumer ):
 
 def processExtraAppOption( mo, name, value ):
     if name == 'startingWeight':
-        wdr.config.getid1('/Deployment:%s' % mo.name).deployedObject.startingWeight = value
+        getid1('/Deployment:%s' % mo.name).deployedObject.startingWeight = value
     else:
         logger.error( 'Extra option "%s" specified for %s is not supported', name, mo.name )
         raise Exception( 'Extra option "%s" specified for %s is not supported' % ( name, mo.name ) )
