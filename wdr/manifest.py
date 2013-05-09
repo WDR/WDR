@@ -292,7 +292,7 @@ def processExtraAppOption( mo, name, value ):
         logger.error( 'Extra option "%s" specified for %s is not supported', name, mo.name )
         raise Exception( 'Extra option "%s" specified for %s is not supported' % ( name, mo.name ) )
 
-def loadApplications( filename, variables = {} ):
+def _loadApplicationManifest( filename, variables ):
     logger.debug( 'loading file %s with variables %s', filename, variables )
     fi = open( filename, 'r' )
     logger.debug( 'file %s successfully opened', filename )
@@ -323,9 +323,12 @@ def loadApplications( filename, variables = {} ):
                 logger.error( 'invalid manifest statement in line %s', lineno )
                 raise LoadError( 'Not recognized', filename, line, lineno )
         logger.debug( 'file %s successfuly parsed', filename )
+        return manifestObjects
     finally:
         fi.close()
-    for mo in manifestObjects:
+
+def loadApplications( filename, variables = {} ):
+    for mo in _loadApplicationManifest( filename, variables):
         if mo.name in wdr.app.listApplications():
             deployment = wdr.config.getid1( '/Deployment:%s/' % mo.name )
             deployedChecksumProperties = deployment.deployedObject.lookup( 'Property', {'name':'wdr.checksum'} )
