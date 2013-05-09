@@ -212,7 +212,10 @@ class ApplicationObject:
             if isinstance( v, ListType ):
                 result += '\t%s\n' % k
                 for c in v:
-                    result += '\t\t%s\n' % c
+                    if isinstance( c, ListType ):
+                        result += '\t\t%s\n' % ';'.join(c)
+                    else:
+                        result += '\t\t%s\n' % c
             else:
                 result += '\t%s %s\n' % ( k, v )
         return result
