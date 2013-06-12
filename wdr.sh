@@ -51,7 +51,11 @@ USER_ROOT_PROPERTY="-Duser.root=${USER_ROOT}"
 WSADMIN_PROPERTIES_PROPERTY="-Dcom.ibm.ws.scripting.wsadminprops=${WSADMIN_PROPERTIES}"
 SOAP_PROPERTIES_PROPERTY="-Dcom.ibm.SOAP.ConfigURL=file://${SOAP_PROPERTIES}"
 SSL_CLIENT_PROPS_PROPERTY="-Dcom.ibm.SSL.ConfigURL=file://${SSL_CLIENT_PROPS}"
-WDR_PROFILE_PROPERTY="-Dcom.ibm.ws.scripting.profiles=${WDR_HOME}/profile.py"
+if [ "${CUSTOM_PROFILE}" == "" ]; then
+	WDR_PROFILE_PROPERTY="-Dcom.ibm.ws.scripting.profiles=${WDR_HOME}/profile.py"
+else
+	WDR_PROFILE_PROPERTY=${CUSTOM_PROFILE}
+fi
 
 # required to activate fix PM80400
 # see: http://www-01.ibm.com/support/docview.wss?uid=swg1PM80400
