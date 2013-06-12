@@ -54,7 +54,7 @@ SSL_CLIENT_PROPS_PROPERTY="-Dcom.ibm.SSL.ConfigURL=file://${SSL_CLIENT_PROPS}"
 if [ "${CUSTOM_PROFILE}" == "" ]; then
 	WDR_PROFILE_PROPERTY="-Dcom.ibm.ws.scripting.profiles=${WDR_HOME}/profile.py"
 else
-	WDR_PROFILE_PROPERTY=${CUSTOM_PROFILE}
+	WDR_PROFILE_PROPERTY="-Dcom.ibm.ws.scripting.profiles=${WDR_HOME}/profile.py:${CUSTOM_PROFILE}"
 fi
 
 # required to activate fix PM80400
