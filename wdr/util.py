@@ -16,13 +16,13 @@
 #
 
 from pprint import PrettyPrinter
-import string
-import logging
-import wdr
 import jarray
-import java.security
-import java.math
 import java.io
+import java.math
+import java.security
+import logging
+import string
+import wdr
 
 ( AdminApp, AdminConfig, AdminControl, AdminTask, Help ) = wdr.WsadminObjects().getObjects()
 

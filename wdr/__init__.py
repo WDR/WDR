@@ -15,8 +15,8 @@
 # limitations under the License.
 #
 
-import sys
 import logging
+import sys
 
 __all__ = ['config', 'control', 'manifest', 'util']
 

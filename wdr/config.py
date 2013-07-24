@@ -15,12 +15,12 @@
 # limitations under the License.
 #
 
-import logging
-import re
 from string import split, join
 from types import StringType
-import wdr
+import logging
+import re
 import time
+import wdr
 
 ( AdminApp, AdminConfig, AdminControl, AdminTask, Help ) = wdr.WsadminObjects().getObjects()
 

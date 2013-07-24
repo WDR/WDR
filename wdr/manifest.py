@@ -256,8 +256,8 @@ class _AppOptionConsumer( _AppEventConsumer ):
         name = mat.group( 'name' )
         value = mat.group( 'value' )
         if name == 'appname':
-            logger.error('The \'appname\' option is not allowed in application manifest')
-            raise LoadError('The \'appname\' option is not allowed in application manifest', filename, line, lineno)
+            logger.error( 'The \'appname\' option is not allowed in application manifest' )
+            raise LoadError( 'The \'appname\' option is not allowed in application manifest', filename, line, lineno )
         if value is None:
             values = []
             self.parentObject.options[name] = values
@@ -284,7 +284,7 @@ class _AppOptionValueConsumer( _AppEventConsumer ):
 
 def processExtraAppOption( mo, name, value ):
     if name == 'startingWeight':
-        wdr.config.getid1('/Deployment:%s' % mo.name).deployedObject.startingWeight = value
+        wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.startingWeight = value
     else:
         logger.error( 'Extra option "%s" specified for %s is not supported', name, mo.name )
         raise Exception( 'Extra option "%s" specified for %s is not supported' % ( name, mo.name ) )
