@@ -15,12 +15,12 @@
 # limitations under the License.
 #
 
-import logging
-import re
 from string import split, join
 from types import StringType
-import wdr
+import logging
+import re
 import time
+import wdr
 
 ( AdminApp, AdminConfig, AdminControl, AdminTask, Help ) = wdr.WsadminObjects().getObjects()
 
@@ -212,21 +212,15 @@ def _parseConfigIdList( configIdList ):
         logger.debug( 'ConfigID list regular expression matching failed for the string: "%s"', configIdList )
         raise Exception( 'Invalid configuration id list: %s' % configIdList )
 
-def getid( criteriaString, parent = None ):
-    if parent:
-        objectList = AdminConfig.getid( criteriaString, str( parent ) )
-    else:
-        objectList = AdminConfig.getid( criteriaString )
+def getid( criteriaString ):
+    objectList = AdminConfig.getid( criteriaString )
     result = []
     for l in objectList.splitlines():
         result.append( ConfigObject( _parseConfigId( l ) ) )
     return result
 
-def getid1( criteriaString, parent = None ):
-    if parent:
-        objectList = AdminConfig.getid( criteriaString, str( parent ) ).splitlines()
-    else:
-        objectList = AdminConfig.getid( criteriaString ).splitlines()
+def getid1( criteriaString ):
+    objectList = AdminConfig.getid( criteriaString ).splitlines()
     if len( objectList ) == 0:
         logger.debug( 'No configuration object matched criteria %s', criteriaString )
         raise Exception( 'No configuration object matched criteria %s' % criteriaString )
@@ -289,6 +283,11 @@ class ConfigId:
         self.xmlPath = xmlPath
         self.xmlDoc = xmlDoc
         self.xmlId = xmlId
+    def __eq__( self, other ):
+        if type( other ) == type( self ):
+            if str( self ) == str( other ):
+                return 1
+        return 0
     def __str__( self ):
         return "%s(%s|%s#%s)" % ( self.name, self.xmlPath, self.xmlDoc, self.xmlId )
     def __repr__( self ):
@@ -335,6 +334,12 @@ class ConfigObject:
 
     def __nonzero__( self ):
         return 1
+
+    def __eq__( self, other ):
+        if type( other ) == type( self ):
+            if str( self ) == str( other ):
+                return 1
+        return 0
 
     def __getattr__( self, name ):
         if name == '__methods__':
@@ -519,7 +524,18 @@ class ConfigObject:
 
     def lookup( self, _type, _criteria, _propertyName = None ):
         result = []
-        for obj in self.listConfigObjects( _type ):
+        candidates = self.listConfigObjects( _type )
+        logger.debug( 'lookup candidates are %s', candidates )
+        # exclude grandchildren
+        for parentType in parents( _type ):
+            if parentType != self._type:
+                for child in self.listConfigObjects( parentType ):
+                    for grandchild in child.listConfigObjects( _type ):
+                        logger.debug( 'grandchild %s of %s found', grandchild, self )
+                        if grandchild in candidates:
+                            candidates.remove( grandchild )
+                            logger.debug( 'grandchild %s of %s removed from list of lookup candidates', grandchild, self )
+        for obj in candidates:
             logger.debug( 'matching %s with %s', obj, _criteria )
             for ( k, v ) in _criteria.items():
                 if obj[k] != v:
@@ -528,6 +544,7 @@ class ConfigObject:
             else:
                 logger.debug( 'object %s matched criteria %s', obj, _criteria )
                 result.append( obj )
+        logger.debug( 'lookup for type %s, criteria %s, property %s returns %s', _type, _criteria, _propertyName, result )
         return result
 
     def assure( self, _type, _criteria, _propertyName = None, **_attributes ):

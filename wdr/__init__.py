@@ -15,15 +15,15 @@
 # limitations under the License.
 #
 
-import sys
 import logging
+import sys
 
 __all__ = ['config', 'control', 'manifest', 'util']
 
 logger = logging.getLogger( 'wdr' )
 
 MAJOR_VERSION = 0
-MINOR_VERSION = 1
+MINOR_VERSION = 2
 
 class WsadminObjects:
     __wsadminObjects = None

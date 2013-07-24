@@ -212,7 +212,10 @@ class ApplicationObject:
             if isinstance( v, ListType ):
                 result += '\t%s\n' % k
                 for c in v:
-                    result += '\t\t%s\n' % c
+                    if isinstance( c, ListType ):
+                        result += '\t\t%s\n' % ';'.join(c)
+                    else:
+                        result += '\t\t%s\n' % c
             else:
                 result += '\t%s %s\n' % ( k, v )
         return result
@@ -256,8 +259,8 @@ class _AppOptionConsumer( _AppEventConsumer ):
         name = mat.group( 'name' )
         value = mat.group( 'value' )
         if name == 'appname':
-            logger.error('The \'appname\' option is not allowed in application manifest')
-            raise LoadError('The \'appname\' option is not allowed in application manifest', filename, line, lineno)
+            logger.error( 'The \'appname\' option is not allowed in application manifest' )
+            raise LoadError( 'The \'appname\' option is not allowed in application manifest', filename, line, lineno )
         if value is None:
             values = []
             self.parentObject.options[name] = values
@@ -284,12 +287,12 @@ class _AppOptionValueConsumer( _AppEventConsumer ):
 
 def processExtraAppOption( mo, name, value ):
     if name == 'startingWeight':
-        wdr.config.getid1('/Deployment:%s' % mo.name).deployedObject.startingWeight = value
+        wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.startingWeight = value
     else:
         logger.error( 'Extra option "%s" specified for %s is not supported', name, mo.name )
         raise Exception( 'Extra option "%s" specified for %s is not supported' % ( name, mo.name ) )
 
-def loadApplications( filename, variables = {} ):
+def _loadApplicationManifest( filename, variables ):
     logger.debug( 'loading file %s with variables %s', filename, variables )
     fi = open( filename, 'r' )
     logger.debug( 'file %s successfully opened', filename )
@@ -320,9 +323,12 @@ def loadApplications( filename, variables = {} ):
                 logger.error( 'invalid manifest statement in line %s', lineno )
                 raise LoadError( 'Not recognized', filename, line, lineno )
         logger.debug( 'file %s successfuly parsed', filename )
+        return manifestObjects
     finally:
         fi.close()
-    for mo in manifestObjects:
+
+def loadApplications( filename, variables = {} ):
+    for mo in _loadApplicationManifest( filename, variables):
         if mo.name in wdr.app.listApplications():
             deployment = wdr.config.getid1( '/Deployment:%s/' % mo.name )
             deployedChecksumProperties = deployment.deployedObject.lookup( 'Property', {'name':'wdr.checksum'} )
