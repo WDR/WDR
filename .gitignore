@@ -2,4 +2,6 @@
 *$py.class
 *.pyc
 wdr.log
+/runtimes.sh
+/runtimes.bat
 
