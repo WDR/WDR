@@ -554,7 +554,7 @@ def _importManifestConfigObject( manifestObject, anchors, parentObject = None, p
             # parent attribute name not provided
             if manifestObject.reference:
                 raise Exception( 'Reference "%s" was not expected here' % manifestObject.reference )
-            matchingObjects = _findMatchingObjects( manifestObject, parentObject.listConfigObjects( typeName ) )
+            matchingObjects = _findMatchingObjects( manifestObject, parentObject.lookup( typeName, {} ) )
             if len( matchingObjects ) == 0:
                 configObject = _createConfigObject( manifestObject, parentObject )
                 _setAnchor( manifestObject, anchors, configObject )
