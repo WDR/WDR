@@ -35,7 +35,21 @@ class ManifestGenerationAdminApp:
                 continue
             if java.util.List.isAssignableFrom( e.value.__class__ ):
                 print '\t%s' % e.key
-                for v in e.value:
-                    print '\t\t%s' % ';'.join( v )
+                if e.key == 'MapWebModToVH':
+                    for v in e.value:
+                        values = [el for el in v]
+                        values[2] = '$[virtualHost]'
+                        print '\t\t%s' % ';'.join( values )
+                elif e.key == 'MapModulesToServers':
+                    for v in e.value:
+                        values = [el for el in v]
+                        if values[0].endswith(',WEB-INF/web.xml'):
+                            values[2] = '$[deploymentTargets]+$[webServers]'
+                        else:
+                            values[2] = '$[deploymentTargets]'
+                        print '\t\t%s' % ';'.join( values )
+                else:
+                    for v in e.value:
+                        print '\t\t%s' % ';'.join( v )
             else:
                 print '\t%s %s' % ( e.key, e.value )
