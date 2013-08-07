@@ -206,9 +206,15 @@ class ApplicationObject:
         self.extras = {}
     def __str__( self ):
         result = '%s %s\n' % ( self.name, self.archive )
-        for ( k, v ) in self.extras.items():
+        extraOptionNames = self.extras.keys()
+        extraOptionNames.sort()
+        for k in extraOptionNames:
+            v = self.extras[k]
             result += '\t*%s %s\n' % ( k, v )
-        for ( k, v ) in self.options.items():
+        optionNames = self.options.keys()
+        optionNames.sort()
+        for k in optionNames:
+            v = self.options[k]
             if isinstance( v, ListType ):
                 result += '\t%s\n' % k
                 for c in v:
@@ -337,10 +343,12 @@ def loadApplications( filename, variables = {} ):
             else:
                 deployedChecksum = ''
             fileChecksum = wdr.util.generateSHA512( mo.archive )
-            if deployedChecksum == fileChecksum:
-                logger.debug( 'skipping update of %s, due to matching checksum (%s)', mo.name, fileChecksum )
+            manifestChecksum = wdr.util.sha512( str(mo) )
+            calculatedChecksum = fileChecksum + ';' + manifestChecksum
+            if deployedChecksum == calculatedChecksum:
+                logger.debug( 'skipping update of %s, due to matching checksum (%s)', mo.name, calculatedChecksum )
             else:
-                logger.debug( 'application %s will be updated. deployedChecksum(%s), fileChecksum(%s)', mo.name, deployedChecksum, fileChecksum )
+                logger.debug( 'application %s will be updated. deployedChecksum(%s), calculatedChecksum(%s)', mo.name, deployedChecksum, calculatedChecksum )
                 action = wdr.app.UpdateApp()
                 for ( k, v ) in mo.options.items():
                     if v:
@@ -349,7 +357,7 @@ def loadApplications( filename, variables = {} ):
                         action[k] = None
                 action.contents = mo.archive
                 action( mo.name )
-            wdr.config.getid1( '/Deployment:%s/' % mo.name ).deployedObject.assure( 'Property', {'name':'wdr.checksum'}, 'properties', value = fileChecksum, description = 'Checksum of deployed EAR file' )
+            wdr.config.getid1( '/Deployment:%s/' % mo.name ).deployedObject.assure( 'Property', {'name':'wdr.checksum'}, 'properties', value = calculatedChecksum, description = 'Checksum of deployed EAR file and application manifest' )
         else:
             action = wdr.app.Install()
             for ( k, v ) in mo.options.items():
@@ -359,7 +367,10 @@ def loadApplications( filename, variables = {} ):
                     action[k] = None
             action['appname'] = mo.name
             action( mo.archive )
-            wdr.config.getid1( '/Deployment:%s/' % mo.name ).deployedObject.assure( 'Property', {'name':'wdr.checksum'}, 'properties', value = wdr.util.generateSHA512( mo.archive ), description = 'Checksum of deployed EAR file' )
+            fileChecksum = wdr.util.generateSHA512( mo.archive )
+            manifestChecksum = wdr.util.sha512( str(mo) )
+            calculatedChecksum = fileChecksum + ';' + manifestChecksum
+            wdr.config.getid1( '/Deployment:%s/' % mo.name ).deployedObject.assure( 'Property', {'name':'wdr.checksum'}, 'properties', value = calculatedChecksum, description = 'Checksum of deployed EAR file and application manifest' )
         for ( k, v ) in mo.extras.items():
             processExtraAppOption( mo, k, v )
 

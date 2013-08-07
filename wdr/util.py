@@ -18,6 +18,7 @@
 from pprint import PrettyPrinter
 import jarray
 import java.io
+import java.lang
 import java.math
 import java.security
 import logging
@@ -198,5 +199,30 @@ def generateSHA384( filename ):
 def generateSHA512( filename ):
     md = java.security.MessageDigest.getInstance( 'SHA512' )
     _digestFile( md, filename )
+    return _toHex( md.digest() )
+
+def md5( str ):
+    md = java.security.MessageDigest.getInstance( 'MD5' )
+    md.update( java.lang.String(str).getBytes('UTF-8') )
+    return _toHex( md.digest() )
+
+def sha1( str ):
+    md = java.security.MessageDigest.getInstance( 'SHA1' )
+    md.update( java.lang.String(str).getBytes('UTF-8') )
+    return _toHex( md.digest() )
+
+def sha256( str ):
+    md = java.security.MessageDigest.getInstance( 'SHA256' )
+    md.update( java.lang.String(str).getBytes('UTF-8') )
+    return _toHex( md.digest() )
+
+def sha384( str ):
+    md = java.security.MessageDigest.getInstance( 'SHA384' )
+    md.update( java.lang.String(str).getBytes('UTF-8') )
+    return _toHex( md.digest() )
+
+def sha512( str ):
+    md = java.security.MessageDigest.getInstance( 'SHA512' )
+    md.update( java.lang.String(str).getBytes('UTF-8') )
     return _toHex( md.digest() )
 
