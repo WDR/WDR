@@ -19,10 +19,10 @@ Jython library which aims at simplifying WebSphere scripting.
 
 ## Listing nodes and servers available in configuration
 
-```python
+{% highlight python %}
 for node in list('Node'):
     print node.name
     for server in node.list('Server'):
         print " " + server.name
-```
+{% endhighlight %}
 
