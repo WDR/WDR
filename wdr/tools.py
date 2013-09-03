@@ -31,7 +31,7 @@ class ManifestGenerationAdminApp:
     def _dump( self, appname, earfile, options ):
         print '%s %s' % ( appname, earfile )
         for e in options.entrySet():
-            if e.key in ( 'operation', 'contents', 'installed.ear.destination' ):
+            if e.key in ( 'operation', 'contents', 'installed.ear.destination', 'appname' ):
                 continue
             if java.util.List.isAssignableFrom( e.value.__class__ ):
                 print '\t%s' % e.key
