@@ -8,6 +8,7 @@ goto NOT_WAS_61
 
 set WAS_HOME=%WAS61_RUNTIME_HOME%
 set WSADMIN_CLASS_PATH=%WAS_HOME%\optionalLibraries\jython\jython.jar;%WAS_HOME%\plugins\com.ibm.ws.security.crypto_6.1.0.jar;%WAS_HOME%\runtimes\com.ibm.ws.admin.client_6.1.0.jar
+set JYTHON_VERSION=%WAS61_JYTHON_VERSION%
 set RUNTIME_NAME=was61
 
 goto RUNTIME_SET
@@ -24,6 +25,7 @@ goto NOT_WAS_7
 
 set WAS_HOME=%WAS70_RUNTIME_HOME%
 set WSADMIN_CLASS_PATH=%WAS_HOME%\optionalLibraries\jython\jython.jar;%WAS_HOME%\runtimes\com.ibm.ws.admin.client_7.0.0.jar;%WAS_HOME%\plugins\com.ibm.ws.security.crypto.jar
+set JYTHON_VERSION=%WAS70_JYTHON_VERSION%
 set RUNTIME_NAME=was7
 
 goto RUNTIME_SET
@@ -40,6 +42,7 @@ goto NOT_WAS_8
 
 set WAS_HOME=%WAS80_RUNTIME_HOME%
 set WSADMIN_CLASS_PATH=%WAS_HOME%\optionalLibraries\jython\jython.jar;%WAS_HOME%\runtimes\com.ibm.ws.admin.client_8.0.0.jar;%WAS_HOME%\plugins\com.ibm.ws.security.crypto.jar
+set JYTHON_VERSION=%WAS80_JYTHON_VERSION%
 set RUNTIME_NAME=was80
 
 goto RUNTIME_SET
@@ -50,6 +53,7 @@ goto NOT_WAS_85
 
 set WAS_HOME=%WAS85_RUNTIME_HOME%
 set WSADMIN_CLASS_PATH=%WAS_HOME%\optionalLibraries\jython\jython.jar;%WAS_HOME%\runtimes\com.ibm.ws.admin.client_8.5.0.jar;%WAS_HOME%\plugins\com.ibm.ws.security.crypto.jar
+set JYTHON_VERSION=%WAS85_JYTHON_VERSION%
 set RUNTIME_NAME=was85
 
 goto RUNTIME_SET

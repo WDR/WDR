@@ -78,12 +78,15 @@ set WDR_PROFILE_PROPERTY=-Dcom.ibm.ws.scripting.profiles=%WDR_HOME%profile.py:%C
 :: see: http://www-01.ibm.com/support/docview.wss?uid=swg1PM80400
 set WSADMIN_EXCEPTION_PROPAGATION=-Dcom.ibm.ws.scripting.exceptionPropagation=thrown
 
-if "%EXTRA_PYTHON_PATH%" == "" (
-set PYTHON_PATH=-Dpython.path=%WAS_HOME%\optionalLibraries\jython\Lib;%WDR_HOME%
-) else (
-set PYTHON_PATH=-Dpython.path=%WAS_HOME%\optionalLibraries\jython\Lib;%WDR_HOME%;%EXTRA_PYTHON_PATH%
+set PYTHON_PATH=-Dpython.path=%WAS_HOME%\optionalLibraries\jython\Lib;%WDR_HOME%\lib\common
+
+if "%JYTHON_VERSION%" == "2.1" (
+set PYTHON_PATH=-Dpython.path=%PYTHON_PATH%;%WDR_HOME%\lib\legacy
 )
 
+if not "%EXTRA_PYTHON_PATH%" == "" (
+set PYTHON_PATH=-Dpython.path=%WAS_HOME%\optionalLibraries\jython\Lib;%WDR_HOME%\lib\common;%WDR_HOME%\lib\legacy;%EXTRA_PYTHON_PATH%
+)
 
 if "%TARGET_ENV%" == "" goto usage
 if "%WDR_SCRIPT%" == "" goto interactive
