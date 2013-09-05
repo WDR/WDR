@@ -79,9 +79,9 @@ set WDR_PROFILE_PROPERTY=-Dcom.ibm.ws.scripting.profiles=%WDR_HOME%profile.py:%C
 set WSADMIN_EXCEPTION_PROPAGATION=-Dcom.ibm.ws.scripting.exceptionPropagation=thrown
 
 if "%EXTRA_PYTHON_PATH%" == "" (
-set PYTHON_PATH=-Dpython.path=%WAS_HOME%\optionalLibraries\jython\Lib;%WDR_HOME%
+set PYTHON_PATH=-Dpython.path=%WAS_HOME%\optionalLibraries\jython\Lib;%WDR_HOME%\lib\common;%WDR_HOME%\lib\legacy
 ) else (
-set PYTHON_PATH=-Dpython.path=%WAS_HOME%\optionalLibraries\jython\Lib;%WDR_HOME%;%EXTRA_PYTHON_PATH%
+set PYTHON_PATH=-Dpython.path=%WAS_HOME%\optionalLibraries\jython\Lib;%WDR_HOME%\lib\common;%WDR_HOME%\lib\legacy;%EXTRA_PYTHON_PATH%
 )
 
 
