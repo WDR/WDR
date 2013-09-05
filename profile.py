@@ -15,9 +15,18 @@
 # limitations under the License.
 #
 
+import sys, os
+
+def _findLogConfFile():
+    for dirname in sys.path:
+        candidate = os.path.join( dirname, 'logconf.ini' )
+        if os.path.isfile( candidate ):
+            return candidate
+    raise Exception( 'Cannot find logconf.ini' )
+
 import logging
 import logging.config
-logging.config.fileConfig( 'logconf.ini' )
+logging.config.fileConfig( _findLogConfFile() )
 
 import wdr
 from wdr.app import *
