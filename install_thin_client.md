@@ -218,7 +218,9 @@ On Linux/UNIX systems, if you have installed WDR in ``/opt/WDR``, issue this com
 
     /opt/WDR/wdr.sh was8 prod_was8
 
-Your WDR session should open allowing you to 
+The initial connection will require you to confirm signer certificate. The certificate will be saved in ``<HOME>/.wdr/environments/<ENVIRONMENT_NAME>/trust.p12``.
+
+WDR interactive session should open allowing you to type WDR/wsadmin commands:
 
     WASX7209I: Connected to process "dmgr" on node wdrDMgrNode using SOAP connector;  The type of process is: DeploymentManager
     2013-09-07 17:06:06,766 [INFO] using WDR version 0.3
@@ -227,4 +229,5 @@ Your WDR session should open allowing you to
     WASX7031I: For help, enter: "print Help.help()"
     wsadmin>print getJMXMBean1(type='Server',name='dmgr').state
     STARTED
-    wsadmin>
+    wsadmin>reset()
+    wsadmin>exit
