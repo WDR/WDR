@@ -29,22 +29,32 @@ import wdr
 
 logger = logging.getLogger( 'wdrUtil' )
 
-def sync():
+def sync(quiet=0):
     # DMgr node can't be synchronized
     # this function requests synchronization only for nodes which contain a nodeagent
+    totalNodes = 0.0
+    synchronizedNodes = 0.0
     for node in wdr.config.listConfigObjects( 'Node' ):
         for srv in node.listConfigObjects( 'Server' ):
             if srv.serverType == 'NODE_AGENT':
+                totalNodes += 1.0
                 for ns in wdr.control.queryMBeans( type = 'NodeSync', node = node.name ):
-                    logger.info( 'synchronizing node %s', node.name )
+                    if not quiet:
+                        logger.info( 'synchronizing node %s', node.name )
                     ns.sync()
+                    synchronizedNodes += 1.0
                     break
                 else:
-                    logger.warning( 'unable to contact node synchronization service on node %s', node.name )
+                    if not quiet:
+                        logger.warning( 'unable to contact node synchronization service on node %s', node.name )
     # we want to leave ConfigSession clean after sync in order to avoid
     # creation of garbage in WebSphere's temporary directories
     if not wdr.config.hasChanges():
         wdr.config.reset()
+    if totalNodes > 0.0:
+        return synchronizedNodes / totalNodes
+    else:
+        return 1.0
 
 # This utility function verifies WAS type registry. It may return some missing types.
 # For WAS 6.1:
