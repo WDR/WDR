@@ -49,6 +49,7 @@ dmgr.restart()
  - `-profile $WDR_HOME/profile.py`
  - `-javaoption "-Dpython.path=$WDR_HOME"`
 
-# Visit wiki for more...
+# Visit WDR home page for more...
 
-For more documentation and examples check the [wiki page](https://github.com/mplonka/WDR/wiki).
+For more documentation and examples check [WDR home page](http://wdr.github.io/WDR/). 
+
