@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="AdminClientPackaging" basedir="." default="usage">
+
+    <target name="usage">
+<echo>
+Targets appropriate for server-side execution:
+* pack
+Targets appropriate for client-side execution:
+* unpack
+</echo>
+    </target>
+
+    <target name="unpack">
+        <unzip src="was_admin_jars.zip" dest="${was.install.root}" />
+        <unzip src="was_jython.zip" dest="${was.install.root}" />
+    </target>
+    <target name="pack">
+        <zip destfile="was_admin_jars.zip">
+            <zipfileset
+                dir="${was.install.root}/runtimes"
+                includes="com.ibm.ws.admin.client_*.jar"
+                prefix="lib" />
+            <zipfileset
+                dir="${was.install.root}/plugins"
+                includes="com.ibm.ws.security.crypto.jar"
+                prefix="lib" />
+        </zip>
+        <zip destfile="was_jython.zip">
+            <zipfileset
+                dir="${was.install.root}/optionalLibraries/jython"
+                excludes="**/*.pyc,**/*$$py.class"
+                prefix="optionalLibraries/jython" />
+        </zip>
+    </target>
+</project>
+
