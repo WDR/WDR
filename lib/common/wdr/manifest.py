@@ -333,6 +333,7 @@ def _loadApplicationManifest( filename, variables ):
         fi.close()
 
 def loadApplications( filename, variables = {} ):
+    affectedApplications = []
     for mo in _loadApplicationManifest( filename, variables):
         if mo.name in wdr.app.listApplications():
             deployment = wdr.config.getid1( '/Deployment:%s/' % mo.name )
@@ -356,7 +357,8 @@ def loadApplications( filename, variables = {} ):
                         action[k] = None
                 action.contents = mo.archive
                 action( mo.name )
-            wdr.config.getid1( '/Deployment:%s/' % mo.name ).deployedObject.assure( 'Property', {'name':'wdr.checksum'}, 'properties', value = calculatedChecksum, description = 'Checksum of deployed EAR file and application manifest' )
+                wdr.config.getid1( '/Deployment:%s/' % mo.name ).deployedObject.assure( 'Property', {'name':'wdr.checksum'}, 'properties', value = calculatedChecksum, description = 'Checksum of deployed EAR file and application manifest' )
+                affectedApplications.append( mo.name )
         else:
             action = wdr.app.Install()
             for ( k, v ) in mo.options.items():
@@ -370,8 +372,10 @@ def loadApplications( filename, variables = {} ):
             manifestChecksum = wdr.util.sha512( str(mo) )
             calculatedChecksum = fileChecksum + ';' + manifestChecksum
             wdr.config.getid1( '/Deployment:%s/' % mo.name ).deployedObject.assure( 'Property', {'name':'wdr.checksum'}, 'properties', value = calculatedChecksum, description = 'Checksum of deployed EAR file and application manifest' )
+            affectedApplications.append( mo.name )
         for ( k, v ) in mo.extras.items():
             processExtraAppOption( mo, k, v )
+    return affectedApplications
 
 def loadConfiguration( filename, variables = {} ):
     logger.debug( 'loading file %s with variables %s', filename, variables )

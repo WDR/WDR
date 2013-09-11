@@ -48,7 +48,7 @@ class ManifestGenerationAdminApp:
                 elif e.key == 'MapModulesToServers':
                     for v in e.value:
                         values = [el for el in v]
-                        if values[0].endswith(',WEB-INF/web.xml'):
+                        if values[1].endswith(',WEB-INF/web.xml'):
                             values[2] = '$[deploymentTargets]+$[webServers]'
                         else:
                             values[2] = '$[deploymentTargets]'
