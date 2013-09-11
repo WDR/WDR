@@ -10,7 +10,7 @@ Returns 1 (true) if current WDR/wsadmin session has some unsaved configuration c
 
 #### Result
 
-1 (true) if there are any unsaved changes in current session, 0 otherwise.
+1 (true) if there are any unsaved changes in current session, 0 (false) otherwise.
 
 ### Examples
 

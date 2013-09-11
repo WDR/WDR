@@ -51,6 +51,11 @@ dmgr = getMBean1(type='Server', process='dmgr')
 dmgr.restart()
 {% endhighlight %}
 
+# Get the code
+
+The source code is hosted on [WDR GitHub page](https://github.com/WDR/WDR).
+You can clone the repository using Git client or download the [latest snapshot](https://github.com/WDR/WDR/archive/master.zip).
+
 # Documentation
 
 [Setting started](getting_started.html)
