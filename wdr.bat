@@ -83,11 +83,11 @@ set WSADMIN_TRACE_STRING="-Dcom.ibm.ws.scripting.traceString=com.ibm.*=all=disab
 set PYTHON_PATH=-Dpython.path=%WAS_HOME%\optionalLibraries\jython\Lib;%WDR_HOME%\lib\common
 
 if "%JYTHON_VERSION%" == "2.1" (
-set PYTHON_PATH=-Dpython.path=%PYTHON_PATH%;%WDR_HOME%\lib\legacy
+set PYTHON_PATH=%PYTHON_PATH%;%WDR_HOME%\lib\legacy
 )
 
 if not "%EXTRA_PYTHON_PATH%" == "" (
-set PYTHON_PATH=-Dpython.path=%WAS_HOME%\optionalLibraries\jython\Lib;%WDR_HOME%\lib\common;%WDR_HOME%\lib\legacy;%EXTRA_PYTHON_PATH%
+set PYTHON_PATH=%PYTHON_PATH%;%EXTRA_PYTHON_PATH%
 )
 
 if "%TARGET_ENV%" == "" goto usage
