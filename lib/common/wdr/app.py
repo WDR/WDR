@@ -1,4 +1,3 @@
-# vim: tabstop=4 expandtab shiftwidth=4 softtabstop=4
 #
 # Copyright 2012,2013 Marcin Plonka <mplonka@gmail.com>
 #
