@@ -13,8 +13,6 @@ title: WDR Reference
 
 [getObjectType](wdr.config.getObjectType.html)
 
-[getTypeInfo](wdr.config.getTypeInfo.html)
-
 [getid](wdr.config.getid.html)
 
 [getid1](wdr.config.getid1.html)
@@ -29,11 +27,23 @@ title: WDR Reference
 
 [hasChanges](wdr.config.hasChanges.html)
 
+[jmxmbean](wdr.control.jmxmbean.html)
+
+[jmxmbeans](wdr.control.jmxmbeans.html)
+
 [list](wdr.config.list.html) _deprecated_
 
 [listConfigObjects](wdr.config.listConfigObjects.html)
 
 [listApplications](wdr.app.listApplications.html)
+
+[loadApplications](wdr.manifest.loadApplications.html)
+
+[loadConfiguration](wdr.manifest.loadConfiguration.html)
+
+[mbean](wdr.control.mbean.html)
+
+[mbeans](wdr.control.mbeans.html)
 
 [parents](wdr.config.parents.html)
 
