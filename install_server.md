@@ -43,5 +43,6 @@ If everything goes well, you should get the output similar to the following one:
     WASX7031I: For help, enter: "print Help.help()"
     wsadmin>print getJMXMBean1(type='Server',name='dmgr').state
     STARTED
-    wsadmin>
+    wsadmin>reset()
+    wsadmin>exit
 
