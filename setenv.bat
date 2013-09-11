@@ -6,6 +6,8 @@ if "%WAS_RUNTIME%" == "was61" goto :WAS61
 if "%WAS_RUNTIME%" == "was61_client" goto :WAS61
 goto NOT_WAS_61
 
+:WAS61
+
 set WAS_HOME=%WAS61_RUNTIME_HOME%
 set WSADMIN_CLASS_PATH=%WAS_HOME%\optionalLibraries\jython\jython.jar;%WAS_HOME%\plugins\com.ibm.ws.security.crypto_6.1.0.jar;%WAS_HOME%\runtimes\com.ibm.ws.admin.client_6.1.0.jar
 set JYTHON_VERSION=%WAS61_JYTHON_VERSION%
