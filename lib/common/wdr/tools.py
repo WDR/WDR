@@ -15,12 +15,17 @@
 #
 
 import java.util.List
+import sys
 
 class ManifestGenerationAdminApp:
-    def __init__( self, adminApp ):
+    def __init__( self, adminApp, manifestFilename=None ):
         shellField = adminApp.__class__.getSuperclass().getDeclaredField( '_shell' )
         shellField.setAccessible( 1 )
         self.langUtils = shellField.get( adminApp ).getLangUtils()
+        if manifestFilename is None:
+            self.out = sys.stdout
+        else:
+            self.out = open( manifestFilename, 'w' )
     def install( self, earfile, options ):
         parsedOptions = self.langUtils.optionsToHashtable( options )
         self._dump( parsedOptions['appname'], earfile, parsedOptions )
@@ -28,17 +33,18 @@ class ManifestGenerationAdminApp:
         parsedOptions = self.langUtils.optionsToHashtable( options )
         self._dump( appname, parsedOptions['contents'], parsedOptions )
     def _dump( self, appname, earfile, options ):
-        print '%s %s' % ( appname, earfile )
+        f = self.out
+        f.write( '%s %s\n' % ( appname, earfile ) )
         for e in options.entrySet():
             if e.key in ( 'operation', 'contents', 'installed.ear.destination', 'appname' ):
                 continue
             if java.util.List.isAssignableFrom( e.value.__class__ ):
-                print '\t%s' % e.key
+                f.write( '\t%s\n' % e.key )
                 if e.key == 'MapWebModToVH':
                     for v in e.value:
                         values = [el for el in v]
                         values[2] = '$[virtualHost]'
-                        print '\t\t%s' % ';'.join( values )
+                        f.write( '\t\t%s\n' % ';'.join( values ) )
                 elif e.key == 'MapModulesToServers':
                     for v in e.value:
                         values = [el for el in v]
@@ -46,9 +52,14 @@ class ManifestGenerationAdminApp:
                             values[2] = '$[deploymentTargets]+$[webServers]'
                         else:
                             values[2] = '$[deploymentTargets]'
-                        print '\t\t%s' % ';'.join( values )
+                        f.write( '\t\t%s\n' % ';'.join( values ) )
                 else:
                     for v in e.value:
-                        print '\t\t%s' % ';'.join( v )
+                        f.write( '\t\t%s\n' % ';'.join( v ) )
             else:
-                print '\t%s %s' % ( e.key, e.value )
+                f.write( '\t%s %s\n' % ( e.key, e.value ) )
+        f.flush()
+    def close( self ):
+        self.out.flush()
+        if self.out != sys.stdout:
+            self.out.close()
