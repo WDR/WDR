@@ -1,7 +1,7 @@
 ---
 layout: page
 tagline: WDR Reference
-title: remove
+title: ConfigObject.remove
 ---
 
 Removes object from WebSphere configuration repository.
