@@ -1,7 +1,7 @@
 ---
 layout: page
 tagline: WDR Reference
-title: modify
+title: ConfigObject.modify
 ---
 
 Modifies several object attributes in one call.

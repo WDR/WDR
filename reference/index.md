@@ -31,8 +31,6 @@ title: WDR Reference
 
 [jmxmbeans](wdr.control.jmxmbeans.html)
 
-[list](wdr.config.list.html) _deprecated_
-
 [listConfigObjects](wdr.config.listConfigObjects.html)
 
 [listApplications](wdr.app.listApplications.html)
@@ -64,3 +62,5 @@ title: WDR Reference
 [wdr.control.MBean](wdr.control.MBean.class.html)
 
 [wdr.control.JMXMBean](wdr.control.JMXMBean.class.html)
+
+[wdr.tools.ManifestGenerationAdminApp](wdr.tools.ManifestGenerationAdminApp.class.html)

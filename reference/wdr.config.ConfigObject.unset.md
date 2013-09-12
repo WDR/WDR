@@ -1,7 +1,7 @@
 ---
 layout: page
 tagline: WDR Reference
-title: unset
+title: ConfigObject.unset
 ---
 
 'Unsets' specified attributes or sets them to default values.

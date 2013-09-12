@@ -231,3 +231,47 @@ WDR interactive session should open allowing you to type WDR/wsadmin commands:
     STARTED
     wsadmin>reset()
     wsadmin>exit
+
+# Part numbers of WebSphere Application Client for Linux x86 (32-bit)
+
+Linux x86 32-bit seems to be the most commonly used platform for running WDR + WebSphere Application Client.
+This section lists "part numbers" necessary to download from Passport Advantage for different releases of WebSphere Applicaiton Server.
+
+## Version 6.1
+
+[Download WebSphere Application Server Network Deployment Version 6.1 for the Linux operating system](http://www-01.ibm.com/support/docview.wss?uid=swg27007645)
+
+* C88T0ML - WebSphere Application Server Network Deployment V6.1 Supplements for Linux on x86
+
+## Version 7.0
+
+[Download WebSphere Application Server Version 7.0 for the Linux operating system](http://www-01.ibm.com/support/docview.wss?uid=swg27012960)
+
+* C1FZ7ML - WebSphere Application Server V7.0 Supplements for Linux on x86, 32-bit, Multilingual (1 of 2)
+* C1FZ8ML - WebSphere Application Server V7.0 Supplements for Linux on x86, 32-bit, Multilingual (2 of 2)
+
+## Version 8.0
+
+[How to download WebSphere Application Server Network Deployment V8.0 from Passport Advantage Online](http://www-01.ibm.com/support/docview.wss?uid=swg27021166#linux)
+
+* CZM91ML - IBM WebSphere Application Server V8.0 Supplements (1 of 4) for Multiplatform Multilingual
+* CZM94ML - IBM WebSphere Application Server V8.0 Supplements (2 of 4) for Multiplatform Multilingual
+* CZM95ML - IBM WebSphere Application Server V8.0 Supplements (3 of 4) for Multiplatform Multilingual
+* CZXR9ML - IBM WebSphere Application Server V8.0 Supplements (4 of 4) for Multiplatform Multilingual
+
+## Version 8.5
+
+[How to download WebSphere Application Server Network Deployment V8.5 from Passport Advantage Online](http://www-01.ibm.com/support/docview.wss?uid=swg27024154#linux)
+
+* CI6X0ML - IBM WebSphere Application Server V8.5 Supplements (1 of 3) for Multiplatform Multilingual
+* CI6X1ML - IBM WebSphere Application Server V8.5 Supplements (2 of 3) for Multiplatform Multilingual
+* CI6X2ML - IBM WebSphere Application Server V8.5 Supplements (3 of 3) for Multiplatform Multilingual
+
+## Version 8.5.5
+
+[How to download WebSphere Application Server Network Deployment V8.5.5 from Passport Advantage Online](http://www-01.ibm.com/support/docview.wss?uid=swg27038624#linux)
+
+* CIK1VML - IBM WebSphere Application Server V8.5.5 Supplements (1 of 3) for Multiplatform, Multilingual
+* CIK1WML - IBM WebSphere Application Server V8.5.5 Supplements (2 of 3) for Multiplatform, Multilingual
+* CIK1XML - IBM WebSphere Application Server V8.5.5 Supplements (3 of 3) for Multiplatform, Multilingual
+
