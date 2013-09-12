@@ -30,7 +30,6 @@ print AdminConfig.showAttribute(str(cell), 'name')
 * [assure](wdr.config.ConfigObject.assure.html)
 * [create](wdr.config.ConfigObject.create.html)
 * [getAllAttributes](wdr.config.ConfigObject.getAllAttributes.html)
-* [list](wdr.config.ConfigObject.list.html) _deprecated_
 * [listConfigObjects](wdr.config.ConfigObject.listConfigObjects.html)
 * [modify](wdr.config.ConfigObject.modify.html)
 * [remove](wdr.config.ConfigObject.remove.html)
