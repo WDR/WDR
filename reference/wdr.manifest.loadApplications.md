@@ -11,6 +11,8 @@ Loads application manifest and installs/updates application.
 Application manifests are simple tab-indented files describing application install/update options. They can be created manually or generated
 using [ManifestGenerationAdminApp](wdr.tools.ManifestGenerationAdminApp.class.html).
 
+The idea behind manifests is described [on a page dedicated to manifests](../manifests.html).
+
 The ``loadApplications`` function:
 
 * parses the input manifest file
@@ -32,11 +34,6 @@ print 'Checksum of %s is %s' % (appName, checksums)
 {% endhighlight %}
 
 _Installing or updating the application via AdminConsole, wsadmin ``AdminApp.install`` or ``AdminApp.update`` will not generate ``wdr.checksum`` property._
-
-> Application manifest MUST be tab-indented.
-> The design decision to not use YAML, JSON or other standard format was dictated by [Jython 2.1](../jython21.html) being installed with WAS by default.
-> The choice of supported text-processing libraries is very limited in that version of Jython.
-> > Actually, there is no choice at all. One must develop a parser from scratch in Jython 2.1.
 
 #### Arguments
 

@@ -3,13 +3,12 @@ layout: page
 title: WDR
 tagline: Simpler WebSphere Application Server Scripting
 ---
-{% include JB/setup %}
-
 Jython library which aims at simplifying WebSphere scripting.
 
 # Features
 
 * makes wsadmin scripts more "Pythonic" and readable and maintainable in result
+* improves environment consistency with [application and configuration manifests](manifests.html)
 * allows interoperability with "legacy" Jython scripts including mixing of classic wsadmin and WDR code
 * works with currently supported WSAS versions (6.1 and later)
 * Open Source, Apache License, Version 2.0
