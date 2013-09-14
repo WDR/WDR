@@ -44,7 +44,7 @@ dmgr.restart()
 
 # Getting started
 
-* Clone the latest repository with `git clone https://github.com/mplonka/WDR.git`
+* Clone the latest repository with `git clone https://github.com/WDR/WDR.git`
 * run wsadmin with 
  - `-profile $WDR_HOME/profile.py`
  - `-javaoption "-Dpython.path=$WDR_HOME"`
