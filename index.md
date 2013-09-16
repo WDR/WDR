@@ -57,7 +57,7 @@ You can clone the repository using Git client or download the [latest snapshot](
 
 # Documentation
 
-[Setting started](getting_started.html)
+[Getting started](getting_started.html)
 
 [Installing WDR](install.html)
 
