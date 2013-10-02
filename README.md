@@ -14,17 +14,17 @@ Jython library which aims to greatly simplify WebSphere scripting.
 ## Listing nodes and servers available in configuration
 
 ```python
-for node in list('Node'):
+for node in listConfigObjects('Node'):
     print node.name
-    for server in node.list('Server'):
+    for server in node.listConfigObjects('Server'):
         print " " + server.name
 ```
 
 The same code in wsadmin would look like as follows:
 ```python
-for node in AdminConfig.list('Node').splitlines():
+for node in AdminConfig.listConfigObjects('Node').splitlines():
     print AdminConfig.showAttribute(node, 'name')
-    for server in AdminConfig.list('Server', node).splitlines():
+    for server in AdminConfig.listConfigObjects('Server', node).splitlines():
         print ' ' + AdminConfig.showAttribute(server, 'name')
 ```
 ## Modifying configuration objects
