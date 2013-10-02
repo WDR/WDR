@@ -14,9 +14,9 @@ Jython library which aims to greatly simplify WebSphere scripting.
 ## Listing nodes and servers available in configuration
 
 ```python
-for node in list('Node'):
+for node in listConfigObjects('Node'):
     print node.name
-    for server in node.list('Server'):
+    for server in node.listConfigObjects('Server'):
         print " " + server.name
 ```
 
