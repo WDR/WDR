@@ -36,7 +36,7 @@ We are going to do some non-desctructive configuration operations first
 ### Finding objects and accessing their attributes
 
 {% highlight python %}
-firstProvider = list('JDBCProvider')[0]
+firstProvider = listConfigObjects('JDBCProvider')[0]
 print 'name: ' + firstProvider.name
 print 'description: ' + firstProvider.description
 reset()
@@ -58,7 +58,7 @@ Our next script will modify that provider.
 #### Modifying configuration object's attribute
 
 {% highlight python %}
-firstProvider = list('JDBCProvider')[0]
+firstProvider = listConfigObjects('JDBCProvider')[0]
 firstProvider.description = 'This description was modified with WDR script'
 save()
 sync()
@@ -71,7 +71,7 @@ The example is self-explanatory. You can check with AdminConsole if the descript
 This tiny script creates a new DataSource and configures maximum size of its connection pool:
 
 {% highlight python %}
-firstProvider = list('JDBCProvider')[0]
+firstProvider = listConfigObjects('JDBCProvider')[0]
 newds = firstProvider.create('DataSource', name='NewlyCreatedDataSource', jndiName='jdbc/NewDataSource', description='... a word of description ...')
 newds.connectionPool.maxConnections = 15
 save()
