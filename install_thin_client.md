@@ -21,8 +21,6 @@ The major installation steps include:
 
 * Installing WebSphere Application client (together with FixPacks)
 
-* Copying necessary JAR files from WebSphere Application Server package
-
 * Setting up Jython in Application Client by either of these two ways:
 
   * Copying Jython from WebSphere server binaries
@@ -41,9 +39,11 @@ If your environment consists of multiple releases of WebSphere Application Serve
 
 See official IBM documentation for detailed installation instructions.
 
-## Copying necessary JAR files
+## Getting the required files
 
-WebSphere Application Client installation can be extended with extra JAR files an Jython runtime extracted from WebSphere Application Server installation. Detailed instruction on currently supported releases of Administration Thin Client are available at folowing links:
+WebSphere Application Client installation can be extended with extra JAR files at install time with Installation Manager by selecting "Stand alone thin clients, resources adapters and embeddable containers" or after the installation by choosing to modify the product in Installation Manager and ensure that "Stand alone thin clients, resources adapters and embeddable containers" checkbox is checked and the changes are applied. This will leave you with all but a missing copy of Jython. You may copy it either from an existing Application Server or install a later version of Jython to the <APPCLIENT_HOME>/optionalLibraies folder.
+
+If you do not wish to install the Application Client and would like to build your own thin client, detailed instruction on currently supported releases of Administration Thin Client are available at folowing links:
 
 * [WAS v8.5 - Using the Administration Thin Client](http://pic.dhe.ibm.com/infocenter/wasinfo/v8r5/topic/com.ibm.websphere.nd.doc/ae/txml_adminclient.html)
 
