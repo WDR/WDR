@@ -29,7 +29,7 @@ _keyPattern = re.compile( r'^(?P<tabs>\t*)\*(?P<name>[A-Za-z][a-zA-Z0-9_]*)\s*(?
 _attPattern = re.compile( r'^(?P<tabs>\t*)-(?P<name>[A-Za-z][a-zA-Z0-9_]*)\s*(?P<value>.+?)?\s*$' )
 _variablePattern = re.compile( r'(?P<var>\$\[[a-zA-Z][a-zA-Z0-9]*\])' )
 _appNamePattern = re.compile( r'^(?P<name>\S+)\s+(?P<path>.+?)\s*$' )
-_appOptionPattern = re.compile( r'^(?P<tabs>\t)(?P<name>[a-zA-Z0-9_]+)\s*(?P<value>.+?)?\s*$' )
+_appOptionPattern = re.compile( r'^(?P<tabs>\t)(?P<name>[a-zA-Z0-9_\.]+)\s*(?P<value>.+?)?\s*$' )
 _appOptionValuePattern = re.compile( r'^(?P<tabs>\t\t)(?P<value>.+?)\s*$' )
 _appExtraOptionPattern = re.compile( r'^(?P<tabs>\t)\*(?P<name>[a-zA-Z0-9_]+)\s+(?P<value>.+?)\s*$' )
 
