@@ -22,9 +22,9 @@ for node in listConfigObjects('Node'):
 
 The same code in wsadmin would look like as follows:
 ```python
-for node in AdminConfig.listConfigObjects('Node').splitlines():
+for node in AdminConfig.list('Node').splitlines():
     print AdminConfig.showAttribute(node, 'name')
-    for server in AdminConfig.listConfigObjects('Server', node).splitlines():
+    for server in AdminConfig.list('Server', node).splitlines():
         print ' ' + AdminConfig.showAttribute(server, 'name')
 ```
 ## Modifying configuration objects
