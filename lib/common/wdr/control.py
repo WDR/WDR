@@ -95,6 +95,9 @@ class JMXMBean:
     def __str__( self ):
         return self._id
 
+    def __unicode__( self ):
+        return unicode(self._id)
+
     def __repr__( self ):
         return '%s("%s")' % ( self.__class__, self._id )
 
@@ -218,6 +221,9 @@ class MBean:
 
     def __str__( self ):
         return self._id
+
+    def __unicode__( self ):
+        return unicode(self._id)
 
     def __repr__( self ):
         return '%s("%s")' % ( self.__class__, self._id )
