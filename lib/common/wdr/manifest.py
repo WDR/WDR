@@ -29,7 +29,7 @@ _keyPattern = re.compile( r'^(?P<tabs>\t*)\*(?P<name>[A-Za-z][a-zA-Z0-9_]*)\s*(?
 _attPattern = re.compile( r'^(?P<tabs>\t*)-(?P<name>[A-Za-z][a-zA-Z0-9_]*)\s*(?P<value>.+?)?\s*$' )
 _variablePattern = re.compile( r'(?P<var>\$\[[a-zA-Z][a-zA-Z0-9]*\])' )
 _appNamePattern = re.compile( r'^(?P<name>\S+)\s+(?P<path>.+?)\s*$' )
-_appOptionPattern = re.compile( r'^(?P<tabs>\t)(?P<name>[a-zA-Z0-9_]+)\s*(?P<value>.+?)?\s*$' )
+_appOptionPattern = re.compile( r'^(?P<tabs>\t)(?P<name>[a-zA-Z0-9_\.]+)\s*(?P<value>.+?)?\s*$' )
 _appOptionValuePattern = re.compile( r'^(?P<tabs>\t\t)(?P<value>.+?)\s*$' )
 _appExtraOptionPattern = re.compile( r'^(?P<tabs>\t)\*(?P<name>[a-zA-Z0-9_]+)\s+(?P<value>.+?)\s*$' )
 
@@ -102,6 +102,8 @@ class ManifestConfigObject:
         return len( self.children ) == 0 and len( self.keys ) == 0 and len( self.attributes ) == 0
     def __str__( self ):
         return self._toString( 0 )
+    def __unicode__( self ):
+        return unicode(self._toString( 0 ))
     def _toString( self, indent ):
         result = ''
         if self.anchor:
@@ -134,7 +136,8 @@ class LoadError:
         self.lineno = lineno
     def __str__( self ):
         return '(%s:%d) %s: %s' % ( self.filename, self.lineno, self.message, self.line )
-
+    def __unicode__( self ):
+        return unicode(self.__str__())
 class _ConfigEventConsumer:
     def __init__( self ):
         pass
@@ -224,6 +227,8 @@ class ApplicationObject:
             else:
                 result += '\t%s %s\n' % ( k, v )
         return result
+    def __unicode__( self ):
+        return unicode(self.__str__())
 
 class _AppEventConsumer:
     def __init__( self ):
