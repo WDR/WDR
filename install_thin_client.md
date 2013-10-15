@@ -41,7 +41,7 @@ See official IBM documentation for detailed installation instructions.
 
 ## Getting the required files
 
-WebSphere Application Client installation can be extended with extra JAR files at install time with Installation Manager by selecting "Stand alone thin clients, resources adapters and embeddable containers" or after the installation by choosing to modify the product in Installation Manager and ensure that "Stand alone thin clients, resources adapters and embeddable containers" checkbox is checked and the changes are applied. This will leave you with all but a missing copy of Jython. You may copy it either from an existing Application Server or install a later version of Jython to the <APPCLIENT_HOME>/optionalLibraies folder.
+WebSphere Application Client installation can be extended with extra JAR files at install time with Installation Manager by selecting "Stand alone thin clients, resources adapters and embeddable containers" or after the installation by choosing to modify the product in Installation Manager and ensure that "Stand alone thin clients, resources adapters and embeddable containers" checkbox is checked and the changes are applied. This will leave you with all but a missing copy of Jython. You may copy it either from an existing Application Server or install a later version of Jython to the ``<APPCLIENT_HOME>/optionalLibraies`` folder.
 
 If you do not wish to install the Application Client and would like to build your own thin client, detailed instruction on currently supported releases of Administration Thin Client are available at folowing links:
 
