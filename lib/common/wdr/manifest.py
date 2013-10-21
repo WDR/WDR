@@ -465,7 +465,7 @@ def _updateConfigObjectSimpleAttributes( configObject, manifestObject ):
             if attributeTypeInfo.converter:
                 try:
                     if attributeInfo.list:
-                        configObject._modify( [[propName, propValue.split(';')]] )
+                        configObject._modify( [[propName, propValue.split( ';' )]] )
                     else:
                         configObject._modify( [[propName, propValue]] )
                 except com.ibm.ws.scripting.ScriptingException, ex:
@@ -485,7 +485,7 @@ def _updateConfigObjectKeys( configObject, manifestObject ):
             if attributeTypeInfo.converter:
                 try:
                     if attributeInfo.list:
-                        configObject._modify( [[propName, propValue.split(';')]] )
+                        configObject._modify( [[propName, propValue.split( ';' )]] )
                     else:
                         configObject._modify( [[propName, propValue]] )
                 except com.ibm.ws.scripting.ScriptingException, ex:
