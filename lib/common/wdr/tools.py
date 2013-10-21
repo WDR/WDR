@@ -18,7 +18,7 @@ import java.util.List
 import sys
 
 class ManifestGenerationAdminApp:
-    def __init__( self, adminApp, manifestFilename=None ):
+    def __init__( self, adminApp, manifestFilename = None ):
         shellField = adminApp.__class__.getSuperclass().getDeclaredField( '_shell' )
         shellField.setAccessible( 1 )
         self.langUtils = shellField.get( adminApp ).getLangUtils()
@@ -48,7 +48,7 @@ class ManifestGenerationAdminApp:
                 elif e.key == 'MapModulesToServers':
                     for v in e.value:
                         values = [el for el in v]
-                        if values[1].endswith(',WEB-INF/web.xml'):
+                        if values[1].endswith( ',WEB-INF/web.xml' ):
                             values[2] = '$[deploymentTargets]+$[webServers]'
                         else:
                             values[2] = '$[deploymentTargets]'
