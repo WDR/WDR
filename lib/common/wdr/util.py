@@ -28,7 +28,7 @@ import wdr
 
 logger = logging.getLogger( 'wdrUtil' )
 
-def sync(quiet=0):
+def sync( quiet = 0 ):
     # DMgr node can't be synchronized
     # this function requests synchronization only for nodes which contain a nodeagent
     totalNodes = 0.0
@@ -212,26 +212,26 @@ def generateSHA512( filename ):
 
 def md5( str ):
     md = java.security.MessageDigest.getInstance( 'MD5' )
-    md.update( java.lang.String(str).getBytes('UTF-8') )
+    md.update( java.lang.String( str ).getBytes( 'UTF-8' ) )
     return _toHex( md.digest() )
 
 def sha1( str ):
     md = java.security.MessageDigest.getInstance( 'SHA1' )
-    md.update( java.lang.String(str).getBytes('UTF-8') )
+    md.update( java.lang.String( str ).getBytes( 'UTF-8' ) )
     return _toHex( md.digest() )
 
 def sha256( str ):
     md = java.security.MessageDigest.getInstance( 'SHA256' )
-    md.update( java.lang.String(str).getBytes('UTF-8') )
+    md.update( java.lang.String( str ).getBytes( 'UTF-8' ) )
     return _toHex( md.digest() )
 
 def sha384( str ):
     md = java.security.MessageDigest.getInstance( 'SHA384' )
-    md.update( java.lang.String(str).getBytes('UTF-8') )
+    md.update( java.lang.String( str ).getBytes( 'UTF-8' ) )
     return _toHex( md.digest() )
 
 def sha512( str ):
     md = java.security.MessageDigest.getInstance( 'SHA512' )
-    md.update( java.lang.String(str).getBytes('UTF-8') )
+    md.update( java.lang.String( str ).getBytes( 'UTF-8' ) )
     return _toHex( md.digest() )
 

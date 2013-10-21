@@ -103,7 +103,7 @@ class ManifestConfigObject:
     def __str__( self ):
         return self._toString( 0 )
     def __unicode__( self ):
-        return unicode(self._toString( 0 ))
+        return unicode( self._toString( 0 ) )
     def _toString( self, indent ):
         result = ''
         if self.anchor:
@@ -137,7 +137,7 @@ class LoadError:
     def __str__( self ):
         return '(%s:%d) %s: %s' % ( self.filename, self.lineno, self.message, self.line )
     def __unicode__( self ):
-        return unicode(self.__str__())
+        return unicode( self.__str__() )
 class _ConfigEventConsumer:
     def __init__( self ):
         pass
@@ -221,14 +221,14 @@ class ApplicationObject:
                 result += '\t%s\n' % k
                 for c in v:
                     if isinstance( c, ListType ):
-                        result += '\t\t%s\n' % ';'.join(c)
+                        result += '\t\t%s\n' % ';'.join( c )
                     else:
                         result += '\t\t%s\n' % c
             else:
                 result += '\t%s %s\n' % ( k, v )
         return result
     def __unicode__( self ):
-        return unicode(self.__str__())
+        return unicode( self.__str__() )
 
 class _AppEventConsumer:
     def __init__( self ):
@@ -339,7 +339,7 @@ def _loadApplicationManifest( filename, variables ):
 
 def loadApplications( filename, variables = {} ):
     affectedApplications = []
-    for mo in _loadApplicationManifest( filename, variables):
+    for mo in _loadApplicationManifest( filename, variables ):
         if mo.name in wdr.app.listApplications():
             deployment = wdr.config.getid1( '/Deployment:%s/' % mo.name )
             deployedChecksumProperties = deployment.deployedObject.lookup( 'Property', {'name':'wdr.checksum'} )
@@ -348,7 +348,7 @@ def loadApplications( filename, variables = {} ):
             else:
                 deployedChecksum = ''
             fileChecksum = wdr.util.generateSHA512( mo.archive )
-            manifestChecksum = wdr.util.sha512( str(mo) )
+            manifestChecksum = wdr.util.sha512( str( mo ) )
             calculatedChecksum = fileChecksum + ';' + manifestChecksum
             if deployedChecksum == calculatedChecksum:
                 logger.debug( 'skipping update of %s, due to matching checksum (%s)', mo.name, calculatedChecksum )
@@ -374,7 +374,7 @@ def loadApplications( filename, variables = {} ):
             action['appname'] = mo.name
             action( mo.archive )
             fileChecksum = wdr.util.generateSHA512( mo.archive )
-            manifestChecksum = wdr.util.sha512( str(mo) )
+            manifestChecksum = wdr.util.sha512( str( mo ) )
             calculatedChecksum = fileChecksum + ';' + manifestChecksum
             wdr.config.getid1( '/Deployment:%s/' % mo.name ).deployedObject.assure( 'Property', {'name':'wdr.checksum'}, 'properties', value = calculatedChecksum, description = 'Checksum of deployed EAR file and application manifest' )
             affectedApplications.append( mo.name )

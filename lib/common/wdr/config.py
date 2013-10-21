@@ -286,7 +286,7 @@ class ConfigId:
     def __str__( self ):
         return "%s(%s|%s#%s)" % ( self.name, self.xmlPath, self.xmlDoc, self.xmlId )
     def __unicode__( self ):
-        return unicode(self.__str__())
+        return unicode( self.__str__() )
     def __repr__( self ):
         return "%s(%s|%s#%s)" % ( self.name, self.xmlPath, self.xmlDoc, self.xmlId )
 
@@ -311,7 +311,7 @@ class AttributeInfo:
         return '%s %s' % ( self.name, self.type )
 
     def __unicode__( self ):
-        return unicode(self.__str__())
+        return unicode( self.__str__() )
 
     def __repr__( self ):
         return '%s %s' % ( self.name, self.type )
@@ -327,7 +327,7 @@ class ConfigObject:
         return str( self._id )
 
     def __unicode__( self ):
-        return unicode(self.__str__())
+        return unicode( self.__str__() )
 
     def __repr__( self ):
         return repr( self._id )
