@@ -450,8 +450,12 @@ class ConfigObject:
                 v = str( value )
         logger.debug( 'writing value of %s to attribute %s of ConfigObject %s', v, name, self )
         if cnv and ai.list:
-            AdminConfig.modify( str( self ), [[name, []]] )
-        AdminConfig.modify( str( self ), [[name, v]] )
+            currentValue = AdminConfig.showAttribute( str( self ), name )
+            if currentValue != v:
+                AdminConfig.modify( str( self ), [[name, []]] )
+                AdminConfig.modify( str( self ), [[name, v]] )
+        else:
+            AdminConfig.modify( str( self ), [[name, v]] )
         v = self._getConfigAttribute( name )
         logger.debug( 'value of %s has been written to attribute %s of ConfigObject %s', v, name, self )
         return v
@@ -497,7 +501,8 @@ class ConfigObject:
     def _modify( self, attributes ):
         if len( attributes ) > 0:
             logger.debug( 'modifying object %s with attributes %s', self, attributes )
-            AdminConfig.modify( str( self ), attributes )
+            for ( n, v ) in attributes:
+                self._setConfigAttribute( n, v )
         return self
 
     def remove( self ):
