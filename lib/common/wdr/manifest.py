@@ -420,11 +420,12 @@ def loadConfiguration( filename, variables = {} ):
 def _findMatchingObjects( manifestObject, candidateList ):
     matchingList = []
     for o in candidateList:
-        for ( k, v ) in manifestObject.keys.items():
-            if o[k] != v:
-                break
-        else:
-            matchingList.append( o )
+        if o._type == manifestObject.type:
+            for ( k, v ) in manifestObject.keys.items():
+                if o[k] != v:
+                    break
+            else:
+                matchingList.append( o )
     return matchingList
 
 def _createConfigObject( manifestObject, parentObject, parentAttribute = None ):
