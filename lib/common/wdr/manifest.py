@@ -464,7 +464,10 @@ def _updateConfigObjectSimpleAttributes( configObject, manifestObject ):
             attributeTypeInfo = wdr.config.getTypeInfo( attributeInfo.type )
             if attributeTypeInfo.converter:
                 try:
-                    configObject._modify( [[propName, propValue]] )
+                    if attributeInfo.list:
+                        configObject._modify( [[propName, propValue.split(';')]] )
+                    else:
+                        configObject._modify( [[propName, propValue]] )
                 except com.ibm.ws.scripting.ScriptingException, ex:
                     msg = '' + ex.message
                     if msg.find( 'ADMG0014E' ) != -1:
@@ -481,7 +484,10 @@ def _updateConfigObjectKeys( configObject, manifestObject ):
             attributeTypeInfo = wdr.config.getTypeInfo( attributeInfo.type )
             if attributeTypeInfo.converter:
                 try:
-                    configObject._modify( [propName, propValue] )
+                    if attributeInfo.list:
+                        configObject._modify( [[propName, propValue.split(';')]] )
+                    else:
+                        configObject._modify( [[propName, propValue]] )
                 except com.ibm.ws.scripting.ScriptingException, ex:
                     msg = '' + ex.message
                     if msg.find( 'ADMG0014E' ) != -1:
