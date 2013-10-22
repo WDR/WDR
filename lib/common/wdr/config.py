@@ -535,7 +535,7 @@ class ConfigObject:
         name = _criteria.get( 'name', None )
         if _propertyName:
             if name:
-                candidates = [c for c in self._getConfigAttribute( _propertyName ) if c.name == name]
+                candidates = [c for c in self._getConfigAttribute( _propertyName ) if c._id.name == name]
             else:
                 candidates = self._getConfigAttribute( _propertyName )
         else:
@@ -543,15 +543,18 @@ class ConfigObject:
             if getTypeInfo( self._type ).attributes.has_key( 'name' ):
                 myName = self._getConfigAttribute( 'name' )
             allAncestors = self.listConfigObjects( _type )
-            if myName and name:
-                indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, myName, _type, name ) )
-            elif name:
-                indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, '', _type, name ) )
-            elif myName:
-                indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, myName, _type, '' ) )
+            if self._type in parents( _type ):
+                if myName and name:
+                    indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, myName, _type, name ) )
+                elif name:
+                    indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, '', _type, name ) )
+                elif myName:
+                    indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, myName, _type, '' ) )
+                else:
+                    indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, '', _type, '' ) )
+                candidates = [c for c in allAncestors if c in indexedCandidates]
             else:
-                indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, '', _type, '' ) )
-            candidates = [c for c in allAncestors if c in indexedCandidates]
+                candidates = allAncestors
             # exclude grandchildren
             for parentType in parents( _type ):
                 if parentType != self._type:
