@@ -431,31 +431,7 @@ class ConfigObject:
 
     def _setConfigAttribute( self, name, value ):
         logger.debug( 'assigning value of %s to attribute %s of ConfigObject %s', value, name, self )
-        if value is None:
-            AdminConfig.unsetAttributes( str( self ), [name] )
-            return None
-        ai = getTypeInfo( self._type ).attributes[name]
-        ti = getTypeInfo( ai.type )
-        cnv = ti.converter
-        v = None
-        if cnv:
-            if ai.list:
-                v = join( map( cnv.toAdminConfig, value ), ';' )
-            else:
-                v = cnv.toAdminConfig( value )
-        else:
-            if ai.list:
-                v = map( lambda e:str( e ), value )
-            else:
-                v = str( value )
-        logger.debug( 'writing value of %s to attribute %s of ConfigObject %s', v, name, self )
-        if cnv and ai.list:
-            currentValue = AdminConfig.showAttribute( str( self ), name )
-            if currentValue != v:
-                AdminConfig.modify( str( self ), [[name, []]] )
-                AdminConfig.modify( str( self ), [[name, v]] )
-        else:
-            AdminConfig.modify( str( self ), [[name, v]] )
+        self.modify( [[name, value]] )
         v = self._getConfigAttribute( name )
         logger.debug( 'value of %s has been written to attribute %s of ConfigObject %s', v, name, self )
         return v
@@ -501,8 +477,38 @@ class ConfigObject:
     def _modify( self, attributes ):
         if len( attributes ) > 0:
             logger.debug( 'modifying object %s with attributes %s', self, attributes )
-            for ( n, v ) in attributes:
-                self._setConfigAttribute( n, v )
+            emptyAttributes = []
+            atomicAttributes = []
+            listAttributes = []
+            for ( name, value ) in attributes:
+                if value is None:
+                    emptyAttributes.append( name )
+                else:
+                    ai = getTypeInfo( self._type ).attributes[name]
+                    ti = getTypeInfo( ai.type )
+                    cnv = ti.converter
+                    v = None
+                    if ai.list:
+                        if cnv:
+                            v = join( map( cnv.toAdminConfig, value ), ';' )
+                        else:
+                            v = map( lambda e:str( e ), value )
+                        listAttributes.append( [name, v] )
+                    else:
+                        if cnv:
+                            v = cnv.toAdminConfig( value )
+                        else:
+                            v = str( value )
+                        atomicAttributes.append( [name, v] )
+            if len( emptyAttributes ) > 0:
+                AdminConfig.unsetAttributes( str( self ), emptyAttributes )
+            if len( atomicAttributes ) > 0:
+                AdminConfig.modify( str( self ), atomicAttributes )
+            for ( n, v ) in listAttributes:
+                currentValue = AdminConfig.showAttribute( str( self ), n )
+                if currentValue != v:
+                    AdminConfig.modify( str( self ), [[n, []]] )
+                    AdminConfig.modify( str( self ), [[n, v]] )
         return self
 
     def remove( self ):
@@ -526,18 +532,36 @@ class ConfigObject:
         return result[0]
 
     def lookup( self, _type, _criteria, _propertyName = None ):
+        name = _criteria.get( 'name', None )
+        if _propertyName:
+            if name:
+                candidates = [c for c in self._getConfigAttribute( _propertyName ) if c.name == name]
+            else:
+                candidates = self._getConfigAttribute( _propertyName )
+        else:
+            myName = None
+            if getTypeInfo( self._type ).attributes.has_key( 'name' ):
+                myName = self._getConfigAttribute( 'name' )
+            allAncestors = self.listConfigObjects( _type )
+            if myName and name:
+                indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, myName, _type, name ) )
+            elif name:
+                indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, '', _type, name ) )
+            elif myName:
+                indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, myName, _type, '' ) )
+            else:
+                indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, '', _type, '' ) )
+            candidates = [c for c in allAncestors if c in indexedCandidates]
+            # exclude grandchildren
+            for parentType in parents( _type ):
+                if parentType != self._type:
+                    for child in self.listConfigObjects( parentType ):
+                        for grandchild in child.listConfigObjects( _type ):
+                            logger.debug( 'grandchild %s of %s found', grandchild, self )
+                            if grandchild in candidates:
+                                candidates.remove( grandchild )
+                                logger.debug( 'grandchild %s of %s removed from list of lookup candidates', grandchild, self )
         result = []
-        candidates = self.listConfigObjects( _type )
-        logger.debug( 'lookup candidates are %s', candidates )
-        # exclude grandchildren
-        for parentType in parents( _type ):
-            if parentType != self._type:
-                for child in self.listConfigObjects( parentType ):
-                    for grandchild in child.listConfigObjects( _type ):
-                        logger.debug( 'grandchild %s of %s found', grandchild, self )
-                        if grandchild in candidates:
-                            candidates.remove( grandchild )
-                            logger.debug( 'grandchild %s of %s removed from list of lookup candidates', grandchild, self )
         for obj in candidates:
             logger.debug( 'matching %s with %s', obj, _criteria )
             for ( k, v ) in _criteria.items():
