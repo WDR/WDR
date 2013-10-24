@@ -12,8 +12,8 @@ pygments: true
 title : WDR
 tagline: Jython framework aiming at simplifying WebSphere Application Server scripting
 author :
-  name : Marcin Płonka
-  email : mplonka@gmail.com
+  name : WDR contributors
+  #email : mplonka@gmail.com
   github : WDR
   #twitter : username
   #feedburner : feedname
