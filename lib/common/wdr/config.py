@@ -431,7 +431,7 @@ class ConfigObject:
 
     def _setConfigAttribute( self, name, value ):
         logger.debug( 'assigning value of %s to attribute %s of ConfigObject %s', value, name, self )
-        self.modify( [[name, value]] )
+        self._modify( [(name, value)] )
         v = self._getConfigAttribute( name )
         logger.debug( 'value of %s has been written to attribute %s of ConfigObject %s', v, name, self )
         return v
