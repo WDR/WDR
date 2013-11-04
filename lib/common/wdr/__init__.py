@@ -47,8 +47,8 @@ class WsadminObjects:
 def versionInfo():
     logger.info( 'using WDR version %d.%d', MAJOR_VERSION, MINOR_VERSION )
     if AdminControl.adminClient:
-        logger.info( 'the client is connected to host %s:%s using %s connector' % ( AdminControl.host, AdminControl.port, AdminControl.type ) )
-        logger.info( 'the target process is %s/%s/%s' % ( AdminControl.cell, AdminControl.node, AdminControl.processName ) )
+        logger.info( 'the client is connected to host %s:%s using %s connector', AdminControl.host, AdminControl.port, AdminControl.type )
+        logger.info( 'the target process is %s/%s/%s', AdminControl.cell, AdminControl.node, AdminControl.processName )
     else:
         logger.warning( 'the client is not connected to live server instance' )
 
