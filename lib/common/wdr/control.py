@@ -35,7 +35,8 @@ def mbeans( objectNames ):
 
 class JMXMBeanAttribute:
     def __init__( self, mbean, info ):
-        logger.debug( 'creating JMXMBeanAtribute %s for JMXMBean %s', info.name, mbean._id )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'creating JMXMBeanAtribute %s for JMXMBean %s', info.name, mbean._id )
         self.mbean = mbean
         self.info = info
     def getValue( self ):
@@ -46,28 +47,33 @@ class JMXMBeanAttribute:
 
 class JMXMBeanOperation:
     def __init__( self, mbean, info ):
-        logger.debug( 'creating JMXMBeanOperation %s for JMXMBean %s', info.name, mbean._id )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'creating JMXMBeanOperation %s for JMXMBean %s', info.name, mbean._id )
         self._mbean = mbean
         self._info = info
         self._signature = []
         for t in info.signature:
             self._signature.append( t.type )
     def __call__( self, *arguments ):
-        logger.debug( 'invoking JMXMBeanOperation %s for JMXMBean %s', self._info.name, self._mbean._id )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'invoking JMXMBeanOperation %s for JMXMBean %s', self._info.name, self._mbean._id )
         return AdminControl.invoke_jmx( self._mbean._objectName, self._info.name, arguments, self._signature )
 
 class JMXMBean:
     def __init__( self, _id ):
-        logger.debug( 'creating JMXMBean %s', _id )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'creating JMXMBean %s', _id )
         self._id = _id
         self._attributes = {}
         self._operations = {}
         self._objectName = AdminControl.makeObjectName( _id )
         mbeanInfo = AdminControl.getMBeanInfo_jmx( self._objectName )
-        logger.debug( 'retrieving list of attributes for JMXMBean %s', _id )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'retrieving list of attributes for JMXMBean %s', _id )
         for attr in mbeanInfo.attributes:
             self._attributes[attr.name] = JMXMBeanAttribute( self, attr )
-        logger.debug( 'retrieving list of operations for JMXMBean %s', _id )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'retrieving list of operations for JMXMBean %s', _id )
         for opr in mbeanInfo.operations:
             if not self._operations.has_key( opr.name ):
                 self._operations[opr.name] = OperationGroup( self, opr.name )
@@ -76,7 +82,8 @@ class JMXMBean:
 
     def __getattr__( self, name ):
         if self._attributes.has_key( name ):
-            logger.debug( 'retrieving attribute value %s for JMXMBean %s', name, self._id )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'retrieving attribute value %s for JMXMBean %s', name, self._id )
             return self._attributes[name].getValue()
         elif self._operations.has_key( name ):
             return self._operations[name]
@@ -87,7 +94,8 @@ class JMXMBean:
         if name in [ '_id', '_attributes', '_operations', '_objectName' ]:
             self.__dict__[name] = value
         elif self._attributes.has_key( name ):
-            logger.debug( 'changing attribute %s to value of %s for JMXMBean %s', name, value, self._id )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'changing attribute %s to value of %s for JMXMBean %s', name, value, self._id )
             return self._attributes[name].setValue( value )
         else:
             raise AttributeError, name
@@ -103,7 +111,8 @@ class JMXMBean:
 
 class MBeanAttribute:
     def __init__( self, mbean, info ):
-        logger.debug( 'creating MBeanAtribute %s for MBean %s', info.name, mbean._id )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'creating MBeanAtribute %s for MBean %s', info.name, mbean._id )
         self.mbean = mbean
         self.info = info
     def getValue( self ):
@@ -124,14 +133,16 @@ class MBeanAttribute:
 
 class MBeanOperation:
     def __init__( self, mbean, info ):
-        logger.debug( 'creating MBeanOperation %s for MBean %s', info.name, mbean._id )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'creating MBeanOperation %s for MBean %s', info.name, mbean._id )
         self._mbean = mbean
         self._info = info
         self._signature = []
         for t in info.signature:
             self._signature.append( t.type )
     def __call__( self, *arguments ):
-        logger.debug( 'invoking MBeanOperation %s for MBean %s', self._info.name, self._mbean._id )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'invoking MBeanOperation %s for MBean %s', self._info.name, self._mbean._id )
         return self._buildResult( AdminControl.invoke( self._mbean._id, self._info.name, self._buildStringArgument( arguments ) ) )
     def _buildResult( self, value ):
         returnTypeName = self._info.returnType
@@ -162,12 +173,14 @@ class OperationGroup:
         if numberOfOperations == 1:
             # if the operation isn't overloaded, then let's just proceed with the call
             # without even looking at arguments
-            logger.debug( 'matched non-overloaded operation %s for MBean %s', self._name, self._mbean._id )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'matched non-overloaded operation %s for MBean %s', self._name, self._mbean._id )
             return apply( self._operations.values()[0], arguments )
         elif numberOfOverloads == 1:
             # if the operation is overloaded and number of parameters matches number of call arguments,
             # then we proceed with the call without checking argument types
-            logger.debug( 'based on argument number matched operation %s for MBean %s', self._name, self._mbean._id )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'based on argument number matched operation %s for MBean %s', self._name, self._mbean._id )
             return apply( self._overloads[len( arguments )][0], arguments )
         else:
             # otherwise the operation must be first looked up using it's signature: mbean.operationName[['int','int']]
@@ -186,15 +199,18 @@ class OperationGroup:
 
 class MBean:
     def __init__( self, _id ):
-        logger.debug( 'creating MBean %s', _id )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'creating MBean %s', _id )
         self._id = _id
         self._attributes = {}
         self._operations = {}
         mbeanInfo = AdminControl.getMBeanInfo_jmx( AdminControl.makeObjectName( _id ) )
-        logger.debug( 'retrieving list of attributes for MBean %s', _id )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'retrieving list of attributes for MBean %s', _id )
         for attr in mbeanInfo.attributes:
             self._attributes[attr.name] = MBeanAttribute( self, attr )
-        logger.debug( 'retrieving list of operations for MBean %s', _id )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'retrieving list of operations for MBean %s', _id )
         for opr in mbeanInfo.operations:
             if not self._operations.has_key( opr.name ):
                 self._operations[opr.name] = OperationGroup( self, opr.name )
@@ -203,7 +219,8 @@ class MBean:
 
     def __getattr__( self, name ):
         if self._attributes.has_key( name ):
-            logger.debug( 'retrieving attribute value %s for MBean %s', name, self._id )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'retrieving attribute value %s for MBean %s', name, self._id )
             return self._attributes[name].getValue()
         elif self._operations.has_key( name ):
             return self._operations[name]
@@ -214,7 +231,8 @@ class MBean:
         if name in [ '_id', '_attributes', '_operations' ]:
             self.__dict__[name] = value
         elif self._attributes.has_key( name ):
-            logger.debug( 'changing attribute %s to value of %s for MBean %s', name, value, self._id )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'changing attribute %s to value of %s for MBean %s', name, value, self._id )
             return self._attributes[name].setValue( value )
         else:
             raise AttributeError, name
@@ -254,7 +272,8 @@ def getMBean( **attributes ):
     elif len( result ) == 0:
         return None
     else:
-        logger.debug( 'More than one MBean found matching query %s', queryString )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'More than one MBean found matching query %s', queryString )
         raise Exception( 'More than one MBean found matching query %s' % queryString )
 
 def getMBean1( **attributes ):
@@ -268,10 +287,12 @@ def getMBean1( **attributes ):
     if len( result ) == 1:
         return MBean( result[0] )
     elif len( result ) == 0:
-        logger.debug( 'No MBean found matching query %s', queryString )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'No MBean found matching query %s', queryString )
         raise Exception( 'No MBean found matching query %s' % queryString )
     else:
-        logger.debug( 'More than one MBean found matching query %s', queryString )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'More than one MBean found matching query %s', queryString )
         raise Exception( 'More than one MBean found matching query %s' % queryString )
 
 def queryJMXMBeans( **attributes ):
@@ -300,7 +321,8 @@ def getJMXMBean( **attributes ):
     elif len( result ) == 0:
         return None
     else:
-        logger.debug( 'More than one JMXMBean found matching query %s', queryString )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'More than one JMXMBean found matching query %s', queryString )
         raise Exception( 'More than one JMXMBean found matching query %s' % queryString )
 
 def getJMXMBean1( **attributes ):
@@ -314,10 +336,12 @@ def getJMXMBean1( **attributes ):
     if len( result ) == 1:
         return JMXMBean( result[0] )
     elif len( result ) == 0:
-        logger.debug( 'No JMXMBean found matching query %s', queryString )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'No JMXMBean found matching query %s', queryString )
         raise Exception( 'No JMXMBean found matching query %s' % queryString )
     else:
-        logger.debug( 'More than one JMXMBean found matching query %s', queryString )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'More than one JMXMBean found matching query %s', queryString )
         raise Exception( 'More than one JMXMBean found matching query %s' % queryString )
 
 class AttributeConverter:

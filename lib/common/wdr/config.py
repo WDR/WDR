@@ -115,7 +115,8 @@ def parseAttributeType( attName, attType ):
         if len( attTypeAndOptions ) > 2:
             attEnumValues = attTypeAndOptions[1:-1]
         else:
-            logger.debug( 'Enum values expected for attribute %s', attName )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'Enum values expected for attribute %s', attName )
             raise Exception( 'Enum values expected for attribute %s' % attName )
     elif len( attTypeAndOptions ) > 2:
         attSubTypes = attTypeAndOptions[1:-1]
@@ -126,9 +127,11 @@ def _pre7objectTypeRetriever( configId, configNameCache = [None] ):
         # a dirty hack for accessing non-public AdminConfig.nameCache member
         # hack is targeted for WAS pre-7
         # WAS 7 comes with AdminConfig.getObjectType which eliminates the need for such hack
-        logger.debug( 'accessing AdminConfig.nameCache field using reflection' )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'accessing AdminConfig.nameCache field using reflection' )
         configNameCache[0] = AdminConfig.__class__.getDeclaredField( 'nameCache' )
-        logger.debug( 'setting AdminConfig.nameCache field to accessible via reflection' )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'setting AdminConfig.nameCache field to accessible via reflection' )
         configNameCache[0].setAccessible( 1 )
     return configNameCache[0].get( AdminConfig ).getType( str( configId ) )
 
@@ -169,7 +172,8 @@ def _firstNonNone( *args ):
 
 def getTypeInfo( typeName ):
     if not _typeRegistry.has_key( typeName ):
-        logger.debug( 'introspecting type %s', typeName )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'introspecting type %s', typeName )
         attributes = {}
         for att in AdminConfig.attributes( typeName ).splitlines():
             ( attName, attType ) = att.split( ' ', 1 )
@@ -196,7 +200,8 @@ def _parseConfigId( configId ):
         xmlId = _firstNonNone( mat.group( 'qxmlId' ), mat.group( 'xmlId' ) )
         return ConfigId( name, xmlPath, xmlDoc, xmlId )
     else:
-        logger.debug( 'ConfigID regular expression matching failed for the string: "%s"', configId )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'ConfigID regular expression matching failed for the string: "%s"', configId )
         raise Exception( 'Invalid configuration id: %s' % configId )
 
 def _parseConfigIdList( configIdList ):
@@ -208,7 +213,8 @@ def _parseConfigIdList( configIdList ):
                 result.append( _parseConfigId( el[0] ) )
         return result
     else:
-        logger.debug( 'ConfigID list regular expression matching failed for the string: "%s"', configIdList )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'ConfigID list regular expression matching failed for the string: "%s"', configIdList )
         raise Exception( 'Invalid configuration id list: %s' % configIdList )
 
 def getid( criteriaString ):
@@ -221,10 +227,12 @@ def getid( criteriaString ):
 def getid1( criteriaString ):
     objectList = AdminConfig.getid( criteriaString ).splitlines()
     if len( objectList ) == 0:
-        logger.debug( 'No configuration object matched criteria %s', criteriaString )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'No configuration object matched criteria %s', criteriaString )
         raise Exception( 'No configuration object matched criteria %s' % criteriaString )
     elif len( objectList ) > 1:
-        logger.debug( 'More than one configuration object matched criteria %s', criteriaString )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'More than one configuration object matched criteria %s', criteriaString )
         raise Exception( 'More than one configuration object matched criteria %s' % criteriaString )
     else:
         return ConfigObject( _parseConfigId( objectList[0] ) )
@@ -246,7 +254,8 @@ def attributes( obj ):
     elif isinstance( obj, StringType ):
         type = obj
     else:
-        logger.debug( 'unexpected argument type: %s', type( obj ) )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'unexpected argument type: %s', type( obj ) )
         raise ValueError( 'unexpected argument type: %s' % type( obj ) )
     typeInfo = getTypeInfo( type )
     result = [a for a in typeInfo.attributes.keys()]
@@ -318,9 +327,11 @@ class AttributeInfo:
 
 class ConfigObject:
     def __init__( self, _id ):
-        logger.debug( 'creating ConfigObject with id: %s', _id )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'creating ConfigObject with id: %s', _id )
         self._id = _id
-        logger.debug( 'retrieving type information for ConfigObject %s', _id )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'retrieving type information for ConfigObject %s', _id )
         self._type = getObjectType( _id )
 
     def __str__( self ):
@@ -358,9 +369,11 @@ class ConfigObject:
             return self._getConfigAttribute( name )
 
     def _getConfigAttribute( self, name ):
-        logger.debug( 'retrieving attribute %s from ConfigObject %s', name, self )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'retrieving attribute %s from ConfigObject %s', name, self )
         v = AdminConfig.showAttribute( str( self ), name )
-        logger.debug( 'retrieved attribute %s from ConfigObject %s as value of %s', name, self, v )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'retrieved attribute %s from ConfigObject %s as value of %s', name, self, v )
         return self._processAttributeValue( name, v )
 
     def _processAttributeValue( self, name, v ):
@@ -410,12 +423,14 @@ class ConfigObject:
                 return ConfigObject( _parseConfigId( v ) )
 
     def getAllAttributes( self ):
-        logger.debug( 'retrieving all attributes ConfigObject %s', self )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'retrieving all attributes ConfigObject %s', self )
         showResult = AdminConfig.show( str( self ) )
         attributes = {}
         for l in showResult.splitlines():
             ( name, value ) = l[1:-1].split( ' ', 1 )
-            logger.debug( 'about to process attribute %s with value "%s"', name, value )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'about to process attribute %s with value "%s"', name, value )
             attributes[name] = self._processAttributeValueFromList( name, value )
         return attributes
 
@@ -430,10 +445,12 @@ class ConfigObject:
         return self._setConfigAttribute( item, value )
 
     def _setConfigAttribute( self, name, value ):
-        logger.debug( 'assigning value of %s to attribute %s of ConfigObject %s', value, name, self )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'assigning value of %s to attribute %s of ConfigObject %s', value, name, self )
         self._modify( [(name, value)] )
         v = self._getConfigAttribute( name )
-        logger.debug( 'value of %s has been written to attribute %s of ConfigObject %s', v, name, self )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'value of %s has been written to attribute %s of ConfigObject %s', v, name, self )
         return v
 
     def __delitem__( self, name ):
@@ -445,30 +462,35 @@ class ConfigObject:
         return None
 
     def listConfigObjects( self, _type ):
-        logger.debug( 'listing objects of type %s in scope of %s', _type, self )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'listing objects of type %s in scope of %s', _type, self )
         result = []
         for l in AdminConfig.list( _type, str( self ) ).splitlines():
             result.append( ConfigObject( _parseConfigId( l ) ) )
         return result
 
     def create( self, _type, _propertyName = None, **_attributes ):
-        logger.debug( 'creating object of type %s in scope %s with attributes %s', _type, self, _attributes )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'creating object of type %s in scope %s with attributes %s', _type, self, _attributes )
         createAttributes = []
         for ( k, v ) in _attributes.items():
             createAttributes.append( [k, v] )
         return self._create( _type, _propertyName, createAttributes )
 
     def _create( self, type, propertyName, attributes ):
-        logger.debug( 'creating object %s with attributes %s for property %s.%s', type, attributes, str( self ), propertyName )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'creating object %s with attributes %s for property %s.%s', type, attributes, str( self ), propertyName )
         if propertyName:
             newConfigId = AdminConfig.create( type, str( self ), attributes, propertyName )
         else:
             newConfigId = AdminConfig.create( type, str( self ), attributes )
-        logger.debug( 'created %s', newConfigId )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'created %s', newConfigId )
         return ConfigObject( _parseConfigId( newConfigId ) )
 
     def modify( self, **_attributes ):
-        logger.debug( 'modifying object %s with attributes %s', self, _attributes )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'modifying object %s with attributes %s', self, _attributes )
         modifyAttributes = []
         for ( k, v ) in _attributes.items():
             modifyAttributes.append( [k, v] )
@@ -476,7 +498,8 @@ class ConfigObject:
 
     def _modify( self, attributes ):
         if len( attributes ) > 0:
-            logger.debug( 'modifying object %s with attributes %s', self, attributes )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'modifying object %s with attributes %s', self, attributes )
             emptyAttributes = []
             atomicAttributes = []
             listAttributes = []
@@ -512,22 +535,26 @@ class ConfigObject:
         return self
 
     def remove( self ):
-        logger.debug( 'removing object %s', self )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'removing object %s', self )
         AdminConfig.remove( str( self ) )
         return self
 
     def unset( self, _attributes ):
-        logger.debug( 'unsetting attributes %s of ConfigObject %s', _attributes, self )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'unsetting attributes %s of ConfigObject %s', _attributes, self )
         AdminConfig.unsetAttributes( str( self ), _attributes )
         return self
 
     def lookup1( self, _type, _criteria, _propertyName = None ):
         result = self.lookup( _type, _criteria, _propertyName )
         if len( result ) == 0:
-            logger.debug( 'No configuration object matched criteria %s', _criteria )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'No configuration object matched criteria %s', _criteria )
             raise Exception( 'No configuration object matched criteria %s' % _criteria )
         elif len( result ) > 1:
-            logger.debug( 'More than one configuration object matched criteria %s', _criteria )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'More than one configuration object matched criteria %s', _criteria )
             raise Exception( 'More than one configuration object matched criteria %s' % _criteria )
         return result[0]
 
@@ -560,37 +587,47 @@ class ConfigObject:
                 if parentType != self._type:
                     for child in self.listConfigObjects( parentType ):
                         for grandchild in child.listConfigObjects( _type ):
-                            logger.debug( 'grandchild %s of %s found', grandchild, self )
+                            if logger.isEnabledFor( logging.DEBUG ):
+                                logger.debug( 'grandchild %s of %s found', grandchild, self )
                             if grandchild in candidates:
                                 candidates.remove( grandchild )
-                                logger.debug( 'grandchild %s of %s removed from list of lookup candidates', grandchild, self )
+                                if logger.isEnabledFor( logging.DEBUG ):
+                                    logger.debug( 'grandchild %s of %s removed from list of lookup candidates', grandchild, self )
         result = []
         for obj in candidates:
-            logger.debug( 'matching %s with %s', obj, _criteria )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'matching %s with %s', obj, _criteria )
             for ( k, v ) in _criteria.items():
                 if obj[k] != v:
-                    logger.debug( 'object %s did not match the criteria, attribute %s != "%s"', obj, k, v )
+                    if logger.isEnabledFor( logging.DEBUG ):
+                        logger.debug( 'object %s did not match the criteria, attribute %s != "%s"', obj, k, v )
                     break
             else:
-                logger.debug( 'object %s matched criteria %s', obj, _criteria )
+                if logger.isEnabledFor( logging.DEBUG ):
+                    logger.debug( 'object %s matched criteria %s', obj, _criteria )
                 result.append( obj )
-        logger.debug( 'lookup for type %s, criteria %s, property %s returns %s', _type, _criteria, _propertyName, result )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'lookup for type %s, criteria %s, property %s returns %s', _type, _criteria, _propertyName, result )
         return result
 
     def assure( self, _type, _criteria, _propertyName = None, **_attributes ):
         result = self.lookup( _type, _criteria, _propertyName )
         if len( result ) == 0:
-            logger.debug( 'no object match criteria %s', _criteria )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'no object match criteria %s', _criteria )
             allAttributes = {}
             allAttributes.update( _attributes )
             allAttributes.update( _criteria )
-            logger.debug( 'new object with attributes %s will be created', allAttributes )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'new object with attributes %s will be created', allAttributes )
             return self._create( _type, _propertyName, [[x, y] for ( x, y ) in allAttributes.items() ] )
         elif len( result ) > 1:
-            logger.debug( 'More than one configuration object matched criteria %s', _criteria )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'More than one configuration object matched criteria %s', _criteria )
             raise Exception( 'More than one configuration object matched criteria %s' % _criteria )
         else:
-            logger.debug( 'object %s match criteria %s', result[0], _criteria )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'object %s match criteria %s', result[0], _criteria )
             return result[0]._modify( [[x, y] for ( x, y ) in _attributes.items() ] )
 
 def initializeTypeRegistry():
