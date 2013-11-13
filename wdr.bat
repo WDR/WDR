@@ -24,6 +24,7 @@ set SHELL=com.ibm.ws.scripting.WasxShell
 set PERFJAVAOPTIONS=-Xms128m -Xmx512m -Xj9 -Xquickstart
 
 set JYTHON_CACHEDIR=-Dpython.cachedir=%USERPROFILE%\.wdr\cache\%RUNTIME_NAME%
+set TMPDIR_PROPERTY=-Djava.io.tmpdir=%USERPROFILE%\.wdr\tmp\%TARGET_ENV%
 
 set USER_ROOT=%USERPROFILE%\.wdr\environments\%TARGET_ENV%
 set WSADMIN_PROPERTIES=%USER_ROOT%\wsadmin.properties
