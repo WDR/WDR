@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-from string import split, join
+from string import split, join, upper
 from types import StringType
 import logging
 import re
@@ -51,8 +51,12 @@ class BooleanAttributeConverter( AttributeConverter ):
         return 0
     def toAdminConfig( self, value ):
         if value:
+            if isinstance( value, StringType ):
+                upperValue = upper( value )
+                if upperValue == 'TRUE' or upperValue == 'T' or upperValue == 'YES' or upperValue == 'Y':
             return 'true'
-        else:
+            elif value == 1:
+                return true
             return 'false'
 
 class IntegerAttributeConverter( AttributeConverter ):
