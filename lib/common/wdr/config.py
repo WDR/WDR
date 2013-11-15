@@ -54,7 +54,7 @@ class BooleanAttributeConverter( AttributeConverter ):
             if isinstance( value, StringType ):
                 upperValue = upper( value )
                 if upperValue == 'TRUE' or upperValue == 'T' or upperValue == 'YES' or upperValue == 'Y':
-            return 'true'
+                    return 'true'
             elif value == 1:
                 return true
             return 'false'
