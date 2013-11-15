@@ -234,7 +234,7 @@ class ApplicationObject:
 class _AppEventConsumer:
     def __init__( self ):
         pass
-    def consumeApp( self, filename, line, lineno ):
+    def consumeApp( self, filename, line, lineno, variables ):
         logger.error( 'manifest parsing error - unexpected application definition at line %d', lineno )
         raise LoadError( 'Unexpected application definition', filename, line, lineno )
     def consumeOption( self, filename, line, lineno, variables ):
@@ -254,10 +254,11 @@ class _AppConsumer( _AppEventConsumer ):
     def __init__( self, parentList ):
         _AppEventConsumer.__init__( self )
         self.parentList = parentList
-    def consumeApp( self, filename, line, lineno ):
+    def consumeApp( self, filename, line, lineno, variables ):
         mat = _appNamePattern.match( line )
         name = mat.group( 'name' )
         archive = mat.group( 'path' )
+        archive = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], archive )
         obj = ApplicationObject( name, archive )
         self.parentList.append( obj )
         return [self, _AppOptionConsumer( obj )]
@@ -324,7 +325,7 @@ def _loadApplicationManifest( filename, variables ):
             if len( stack ) < indent + 1:
                 return manifestObjects
             if _appNamePattern.match( line ):
-                stack = stack[0:indent] + stack[indent].consumeApp( filename, line, lineno )
+                stack = stack[0:indent] + stack[indent].consumeApp( filename, line, lineno, variables )
             elif _appOptionPattern.match( line ):
                 stack = stack[0:indent] + stack[indent].consumeOption( filename, line, lineno, variables )
             elif _appOptionValuePattern.match( line ):
