@@ -201,6 +201,16 @@ class _ObjectDataConsumer( _ConfigEventConsumer ):
         self.parentObject.children.append( obj )
         return [self, _ObjectDataConsumer( obj )]
 
+class ApplicationDeploymentListener:
+    def beforeInstall( appName, archivePath ):
+        pass
+    def beforeUpdate( appName, archivePath ):
+        pass
+    def afterInstall( appName, archivePath ):
+        pass
+    def afterUpdate( appName, archivePath ):
+        pass
+
 class ApplicationObject:
     def __init__( self, name, archive ):
         self.name = name
@@ -343,7 +353,9 @@ def _loadApplicationManifest( filename, variables ):
     finally:
         fi.close()
 
-def loadApplications( filename, variables = {} ):
+def loadApplications( filename, variables = {}, listener = None ):
+    if listener is None:
+        listener = ApplicationDeploymentListener()
     affectedApplications = []
     for mo in _loadApplicationManifest( filename, variables ):
         if mo.name in wdr.app.listApplications():
@@ -360,6 +372,7 @@ def loadApplications( filename, variables = {} ):
                 if logger.isEnabledFor( logging.DEBUG ):
                     logger.debug( 'skipping update of %s, due to matching checksum (%s)', mo.name, calculatedChecksum )
             else:
+                listener.beforeUpdate( mo.name, mo.archive )
                 logger.debug( 'application %s will be updated. deployedChecksum(%s), calculatedChecksum(%s)', mo.name, deployedChecksum, calculatedChecksum )
                 action = wdr.app.UpdateApp()
                 for ( k, v ) in mo.options.items():
@@ -371,7 +384,9 @@ def loadApplications( filename, variables = {} ):
                 action( mo.name )
                 wdr.config.getid1( '/Deployment:%s/' % mo.name ).deployedObject.assure( 'Property', {'name':'wdr.checksum'}, 'properties', value = calculatedChecksum, description = 'Checksum of deployed EAR file and application manifest' )
                 affectedApplications.append( mo.name )
+                listener.afterUpdate( mo.name, mo.archive )
         else:
+            listener.beforeInstall( mo.name, mo.archive )
             action = wdr.app.Install()
             for ( k, v ) in mo.options.items():
                 if v:
@@ -385,6 +400,7 @@ def loadApplications( filename, variables = {} ):
             calculatedChecksum = fileChecksum + ';' + manifestChecksum
             wdr.config.getid1( '/Deployment:%s/' % mo.name ).deployedObject.assure( 'Property', {'name':'wdr.checksum'}, 'properties', value = calculatedChecksum, description = 'Checksum of deployed EAR file and application manifest' )
             affectedApplications.append( mo.name )
+            listener.afterInstall( mo.name, mo.archive )
         for ( k, v ) in mo.extras.items():
             processExtraAppOption( mo, k, v )
     return affectedApplications
