@@ -201,13 +201,13 @@ class _ObjectDataConsumer( _ConfigEventConsumer ):
         return [self, _ObjectDataConsumer( obj )]
 
 class ApplicationDeploymentListener:
-    def beforeInstall( appName, archivePath ):
+    def beforeInstall( self, appName, archivePath ):
         pass
-    def beforeUpdate( appName, archivePath ):
+    def beforeUpdate( self, appName, archivePath ):
         pass
-    def afterInstall( appName, archivePath ):
+    def afterInstall( self, appName, archivePath ):
         pass
-    def afterUpdate( appName, archivePath ):
+    def afterUpdate( self, appName, archivePath ):
         pass
 
 class ApplicationObject:
