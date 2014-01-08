@@ -151,7 +151,8 @@ class _ConfigEventConsumer:
         logger.error( 'manifest parsing error - unexpected object attribute at line %d', lineno )
         raise LoadError( 'Unexpected attribute', filename, line, lineno )
     def consumeComment( self, filename, line, lineno ):
-        logger.debug( 'skipping comment [%d][%s]', lineno, line )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'skipping comment [%d][%s]', lineno, line )
 
 class _ObjectConsumer( _ConfigEventConsumer ):
     def __init__( self, parentList ):
@@ -253,7 +254,8 @@ class _AppEventConsumer:
         logger.error( 'manifest parsing error - unexpected option value at line %d', lineno )
         raise LoadError( 'Unexpected option value', filename, line, lineno )
     def consumeComment( self, filename, line, lineno ):
-        logger.debug( 'skipping comment [%d][%s]', lineno, line )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'skipping comment [%d][%s]', lineno, line )
     def consumeExtraOption( self, filename, line, lineno ):
         logger.error( 'manifest parsing error - unexpected extra option at line %d', lineno )
         raise LoadError( 'Unexpected extra option', filename, line, lineno )
@@ -314,9 +316,11 @@ def processExtraAppOption( mo, name, value ):
         raise Exception( 'Extra option "%s" specified for %s is not supported' % ( name, mo.name ) )
 
 def _loadApplicationManifest( filename, variables ):
-    logger.debug( 'loading file %s with variables %s', filename, variables )
+    if logger.isEnabledFor( logging.DEBUG ):
+        logger.debug( 'loading file %s with variables %s', filename, variables )
     fi = open( filename, 'r' )
-    logger.debug( 'file %s successfully opened', filename )
+    if logger.isEnabledFor( logging.DEBUG ):
+        logger.debug( 'file %s successfully opened', filename )
     try:
         manifestObjects = []
         stack = [_AppConsumer( manifestObjects )]
@@ -343,7 +347,8 @@ def _loadApplicationManifest( filename, variables ):
             else:
                 logger.error( 'invalid manifest statement in line %s', lineno )
                 raise LoadError( 'Not recognized', filename, line, lineno )
-        logger.debug( 'file %s successfuly parsed', filename )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'file %s successfuly parsed', filename )
         return manifestObjects
     finally:
         fi.close()
@@ -364,7 +369,8 @@ def loadApplications( filename, variables = {}, listener = None ):
             manifestChecksum = wdr.util.sha512( str( mo ) )
             calculatedChecksum = fileChecksum + ';' + manifestChecksum
             if deployedChecksum == calculatedChecksum:
-                logger.debug( 'skipping update of %s, due to matching checksum (%s)', mo.name, calculatedChecksum )
+                if logger.isEnabledFor( logging.DEBUG ):
+                    logger.debug( 'skipping update of %s, due to matching checksum (%s)', mo.name, calculatedChecksum )
             else:
                 listener.beforeUpdate( mo.name, mo.archive )
                 logger.debug( 'application %s will be updated. deployedChecksum(%s), calculatedChecksum(%s)', mo.name, deployedChecksum, calculatedChecksum )

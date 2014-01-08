@@ -79,7 +79,8 @@ class Install( AppAction ):
 
     def __call__( self, earFile ):
         options = self.getOptions()
-        logger.debug( 'installing application %s with options %s', earFile, options )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'installing application %s with options %s', earFile, options )
         AdminApp.install( earFile, options )
 
 class Uninstall( AppAction ):
@@ -87,7 +88,8 @@ class Uninstall( AppAction ):
         AppAction.__init__( self )
 
     def __call__( self, name ):
-        logger.debug( 'uninstalling application %s', name )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'uninstalling application %s', name )
         AdminApp.uninstall( name )
 
 class UpdateApp( AppAction ):
@@ -96,7 +98,8 @@ class UpdateApp( AppAction ):
 
     def __call__( self, name ):
         options = self.getOptions()
-        logger.debug( 'updating application %s with options %s', name, options )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'updating application %s with options %s', name, options )
         AdminApp.update( name, 'app', ['-operation', 'update'] + options )
 
 class UpdateFile( AppAction ):
@@ -105,7 +108,8 @@ class UpdateFile( AppAction ):
 
     def __call__( self, name ):
         options = self.getOptions()
-        logger.debug( 'file updating application %s with options %s', name, options )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'file updating application %s with options %s', name, options )
         AdminApp.update( name, 'file', options )
 
 class UpdateModulefile( AppAction ):
@@ -114,7 +118,8 @@ class UpdateModulefile( AppAction ):
 
     def __call__( self, name ):
         options = self.getOptions()
-        logger.debug( 'file updating application %s with options %s', name, options )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'file updating application %s with options %s', name, options )
         AdminApp.update( name, 'file', options )
 
 class UpdatePartialapp( AppAction ):
@@ -123,7 +128,8 @@ class UpdatePartialapp( AppAction ):
 
     def __call__( self, name ):
         options = self.getOptions()
-        logger.debug( 'partial updating application %s with options %s', name, options )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'partial updating application %s with options %s', name, options )
         AdminApp.update( name, 'partial', options )
 
 class Edit( AppAction ):
@@ -132,7 +138,8 @@ class Edit( AppAction ):
 
     def __call__( self, name ):
         options = self.getOptions()
-        logger.debug( 'editing application %s with options %s', name, options )
+        if logger.isEnabledFor( logging.DEBUG ):
+            logger.debug( 'editing application %s with options %s', name, options )
         AdminApp.update( name, options )
 
 class View( AppAction ):
@@ -142,9 +149,11 @@ class View( AppAction ):
     def __call__( self, name ):
         options = self.getOptions()
         if len( options ):
-            logger.debug( 'viewing application %s with options %s', name, options )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'viewing application %s with options %s', name, options )
             return AdminApp.view( name, options )
         else:
-            logger.debug( 'viewing application %s', name )
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'viewing application %s', name )
             return AdminApp.view( name )
 
