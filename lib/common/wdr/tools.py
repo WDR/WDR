@@ -97,8 +97,6 @@ class Task:
                 self.data.append( d )
                 for i in range( 0, len( task.columnNames ) ):
                     value = td[i]
-                    if value is None:
-                        value = ''
                     d[task.columnNames[i]] = {
                             'name': task.columnNames[i],
                             'mutable': task.mutableColumns[i],
@@ -152,7 +150,16 @@ def processGenericDeploymentOptions( task, manifest, columnNames ):
             row = []
             rows.append( row )
             for columnName in columnNames:
-                row.append( '%s' % data[columnName]['value'] )
+                value = data[columnName]['value']
+                mutable = data[columnName]['mutable']
+                if value is None:
+                    if mutable:
+                        value = ''
+                    else:
+                        value = 'null'
+                else:
+                    value = '%s' % value
+                row.append( value )
         if rows:
             manifest.options[task.name] = rows
 
