@@ -377,7 +377,6 @@ def generateManifest( appName, customTaskProcessors = {} ):
     deployment = getid1( '/Deployment:%s/' % appName )
     appDeployment = deployment.deployedObject
     manifest.extras['startingWeight'] = '%d' % appDeployment.startingWeight
-    classLoadingMode support will be added soon
     manifest.extras['classLoadingMode'] = '%s' % appDeployment.classloader.mode
     webModuleClassLoadingModes = []
     for module in appDeployment.modules:
