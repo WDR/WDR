@@ -313,6 +313,16 @@ def processExtraAppOption( mo, name, value ):
         wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.startingWeight = value
     elif name == 'classLoadingMode':
         wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.classloader.mode = value
+    elif name == 'webModuleClassLoadingMode':
+        ( uri, mode ) = value.split( ';' )
+        applied = 0
+        for module in wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.modules:
+            if module._type == 'WebModuleDeployment' and module.uri == uri:
+                module.classloaderMode = mode
+                applied = 1
+        if not applied:
+            logger.error( 'webModuleClassLoadingMode option could not match module %s', uri )
+            raise Exception( 'webModuleClassLoadingMode option could not match module %s', uri )
     else:
         logger.error( 'Extra option "%s" specified for %s is not supported', name, mo.name )
         raise Exception( 'Extra option "%s" specified for %s is not supported' % ( name, mo.name ) )
