@@ -311,6 +311,8 @@ class _AppOptionValueConsumer( _AppEventConsumer ):
 def processExtraAppOption( mo, name, value ):
     if name == 'startingWeight':
         wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.startingWeight = value
+    elif name == 'classLoadingMode':
+        wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.classloader.mode = value
     else:
         logger.error( 'Extra option "%s" specified for %s is not supported', name, mo.name )
         raise Exception( 'Extra option "%s" specified for %s is not supported' % ( name, mo.name ) )
