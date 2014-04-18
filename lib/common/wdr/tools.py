@@ -377,8 +377,13 @@ def generateManifest( appName, customTaskProcessors = {} ):
     deployment = getid1( '/Deployment:%s/' % appName )
     appDeployment = deployment.deployedObject
     manifest.extras['startingWeight'] = '%d' % appDeployment.startingWeight
-    #classLoadingMode support will be added soon
-    #manifest.extras['classLoadingMode'] = '%s' % appDeployment.classloader.mode
+    manifest.extras['classLoadingMode'] = '%s' % appDeployment.classloader.mode
+    webModuleClassLoadingModes = []
+    for module in appDeployment.modules:
+        if module._type == 'WebModuleDeployment':
+            webModuleClassLoadingModes.append( '%s;%s' % ( module.uri, module.classloaderMode ) )
+    if webModuleClassLoadingModes:
+        manifest.extras['webModuleClassLoadingMode'] = webModuleClassLoadingModes
     for task in appManagement.getApplicationInfo( appName, prefs, None ):
         taskProcessor = taskProcessors.get(task.name)
         if taskProcessor:

@@ -29,9 +29,8 @@ _keyPattern = re.compile( r'^(?P<tabs>\t*)\*(?P<name>[A-Za-z][a-zA-Z0-9_]*)\s*(?
 _attPattern = re.compile( r'^(?P<tabs>\t*)-(?P<name>[A-Za-z][a-zA-Z0-9_]*)\s*(?P<value>.+?)?\s*$' )
 _variablePattern = re.compile( r'(?P<var>\$\[[a-zA-Z][a-zA-Z0-9]*\])' )
 _appNamePattern = re.compile( r'^(?P<name>\S+)\s+(?P<path>.+?)\s*$' )
-_appOptionPattern = re.compile( r'^(?P<tabs>\t)(?P<name>[a-zA-Z0-9_\.]+)\s*(?P<value>.+?)?\s*$' )
+_appOptionPattern = re.compile( r'^(?P<tabs>\t)(?P<name>\*?[a-zA-Z0-9_\.]+)\s*(?P<value>.+?)?\s*$' )
 _appOptionValuePattern = re.compile( r'^(?P<tabs>\t\t)(?P<value>.+?)\s*$' )
-_appExtraOptionPattern = re.compile( r'^(?P<tabs>\t)\*(?P<name>[a-zA-Z0-9_]+)\s+(?P<value>.+?)\s*$' )
 
 _defaultDumpConfig = {
                       'Server':{
@@ -223,7 +222,15 @@ class ApplicationObject:
         extraOptionNames.sort()
         for k in extraOptionNames:
             v = self.extras[k]
-            result += '\t*%s %s\n' % ( k, v )
+            if isinstance( v, ListType ):
+                result += '\t*%s\n' % k
+                for c in v:
+                    if isinstance( c, ListType ):
+                        result += '\t\t%s\n' % ';'.join( c )
+                    else:
+                        result += '\t\t%s\n' % c
+            else:
+                result += '\t*%s %s\n' % ( k, v )
         optionNames = self.options.keys()
         optionNames.sort()
         for k in optionNames:
@@ -256,9 +263,6 @@ class _AppEventConsumer:
     def consumeComment( self, filename, line, lineno ):
         if logger.isEnabledFor( logging.DEBUG ):
             logger.debug( 'skipping comment [%d][%s]', lineno, line )
-    def consumeExtraOption( self, filename, line, lineno ):
-        logger.error( 'manifest parsing error - unexpected extra option at line %d', lineno )
-        raise LoadError( 'Unexpected extra option', filename, line, lineno )
 
 class _AppConsumer( _AppEventConsumer ):
     def __init__( self, parentList ):
@@ -284,19 +288,24 @@ class _AppOptionConsumer( _AppEventConsumer ):
         if name == 'appname':
             logger.error( 'The \'appname\' option is not allowed in application manifest' )
             raise LoadError( 'The \'appname\' option is not allowed in application manifest', filename, line, lineno )
-        if value is None:
-            values = []
-            self.parentObject.options[name] = values
-            return [self, _AppOptionValueConsumer( values )]
+        if name.startswith( '*' ):
+            name = name[1:]
+            if value is None:
+                values = []
+                self.parentObject.extras[name] = values
+                return [self, _AppOptionValueConsumer( values )]
+            else:
+                self.parentObject.extras[name] = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], value )
+                return [self, _AppEventConsumer()]
+            pass
         else:
-            self.parentObject.options[name] = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], value )
-            return [self, _AppEventConsumer()]
-    def consumeExtraOption( self, filename, line, lineno, variables ):
-        mat = _appExtraOptionPattern.match( line )
-        name = mat.group( 'name' )
-        value = mat.group( 'value' )
-        self.parentObject.extras[name] = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], value )
-        return [self, _AppEventConsumer()]
+            if value is None:
+                values = []
+                self.parentObject.options[name] = values
+                return [self, _AppOptionValueConsumer( values )]
+            else:
+                self.parentObject.options[name] = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], value )
+                return [self, _AppEventConsumer()]
 
 class _AppOptionValueConsumer( _AppEventConsumer ):
     def __init__( self, parentList ):
@@ -311,6 +320,19 @@ class _AppOptionValueConsumer( _AppEventConsumer ):
 def processExtraAppOption( mo, name, value ):
     if name == 'startingWeight':
         wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.startingWeight = value
+    elif name == 'classLoadingMode':
+        wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.classloader.mode = value
+    elif name == 'webModuleClassLoadingMode':
+        for uriMode in value:
+            ( uri, mode ) = uriMode
+            applied = 0
+            for module in wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.modules:
+                if module._type == 'WebModuleDeployment' and module.uri == uri:
+                    module.classloaderMode = mode
+                    applied = 1
+            if not applied:
+                logger.error( 'webModuleClassLoadingMode option could not match module %s', uri )
+                raise Exception( 'webModuleClassLoadingMode option could not match module %s', uri )
     else:
         logger.error( 'Extra option "%s" specified for %s is not supported', name, mo.name )
         raise Exception( 'Extra option "%s" specified for %s is not supported' % ( name, mo.name ) )
@@ -340,8 +362,6 @@ def _loadApplicationManifest( filename, variables ):
                 stack = stack[0:indent] + stack[indent].consumeOption( filename, line, lineno, variables )
             elif _appOptionValuePattern.match( line ):
                 stack = stack[0:indent] + stack[indent].consumeOptionValue( filename, line, lineno, variables )
-            elif _appExtraOptionPattern.match( line ):
-                stack = stack[0:indent] + stack[indent].consumeExtraOption( filename, line, lineno, variables )
             elif _commentPattern.match( line ):
                 stack[indent].consumeComment( filename, line, lineno )
             else:
