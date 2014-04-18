@@ -324,7 +324,7 @@ def processExtraAppOption( mo, name, value ):
         wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.classloader.mode = value
     elif name == 'webModuleClassLoadingMode':
         for uriMode in value:
-            ( uri, mode ) = uriMode.split( ';' )
+            ( uri, mode ) = uriMode
             applied = 0
             for module in wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.modules:
                 if module._type == 'WebModuleDeployment' and module.uri == uri:
