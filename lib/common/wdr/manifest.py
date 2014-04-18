@@ -223,7 +223,7 @@ class ApplicationObject:
         for k in extraOptionNames:
             v = self.extras[k]
             if isinstance( v, ListType ):
-                result += '\t%s\n' % k
+                result += '\t*%s\n' % k
                 for c in v:
                     if isinstance( c, ListType ):
                         result += '\t\t%s\n' % ';'.join( c )
