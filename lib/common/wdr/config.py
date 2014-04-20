@@ -56,7 +56,7 @@ class BooleanAttributeConverter( AttributeConverter ):
                 if upperValue == 'TRUE' or upperValue == 'T' or upperValue == 'YES' or upperValue == 'Y':
                     return 'true'
             elif value == 1:
-                return true
+                return 'true'
             return 'false'
 
 class IntegerAttributeConverter( AttributeConverter ):
