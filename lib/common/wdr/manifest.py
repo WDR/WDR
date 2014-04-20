@@ -24,6 +24,7 @@ logger = logging.getLogger( 'wdrManifest' )
 
 _genericPattern = re.compile( r'^(?P<tabs>\t*).*$' )
 _commentPattern = re.compile( r'^(?:#\.*)|(?:\n)' )
+_directivePattern = re.compile( r'^(?P<tabs>\t*)@\s*(?P<name>[A-Za-z][a-zA-Z0-9_]*)(?P<values>(?:\s*(?P<value>.+?))*)?\s*$' )
 _typePattern = re.compile( r'^(?P<tabs>\t*)(?P<type>[A-Za-z][a-zA-Z0-9_]*)\s*(?P<linkage>[&#][a-zA-Z0-9_]+)?\s*$' )
 _keyPattern = re.compile( r'^(?P<tabs>\t*)\*(?P<name>[A-Za-z][a-zA-Z0-9_]*)\s*(?P<value>.+?)?\s*$' )
 _attPattern = re.compile( r'^(?P<tabs>\t*)-(?P<name>[A-Za-z][a-zA-Z0-9_]*)\s*(?P<value>.+?)?\s*$' )
@@ -137,6 +138,7 @@ class LoadError:
         return '(%s:%d) %s: %s' % ( self.filename, self.lineno, self.message, self.line )
     def __unicode__( self ):
         return unicode( self.__str__() )
+
 class _ConfigEventConsumer:
     def __init__( self ):
         pass
@@ -149,6 +151,9 @@ class _ConfigEventConsumer:
     def consumeAttribute( self, filename, line, lineno, variables ):
         logger.error( 'manifest parsing error - unexpected object attribute at line %d', lineno )
         raise LoadError( 'Unexpected attribute', filename, line, lineno )
+    def consumeDirective( self, filename, line, lineno, variables ):
+        logger.error( 'manifest parsing error - unexpected directive at line %d', lineno )
+        raise LoadError( 'Unexpected directive', filename, line, lineno )
     def consumeComment( self, filename, line, lineno ):
         if logger.isEnabledFor( logging.DEBUG ):
             logger.debug( 'skipping comment [%d][%s]', lineno, line )
@@ -199,6 +204,15 @@ class _ObjectDataConsumer( _ConfigEventConsumer ):
         obj = ManifestConfigObject( name )
         self.parentObject.children.append( obj )
         return [self, _ObjectDataConsumer( obj )]
+    def consumeDirective( self, filename, line, lineno, variables ):
+        mat = _directivePattern.match( line )
+        name = mat.group( 'name' )
+        values = mat.group( 'values' ).split()
+        if 'include' == name:
+            self.parentObject.children.extend( _loadConfigurationManifest( values[0], variables ) )
+            return [self]
+        logger.error( 'manifest parsing error - unexpected directive at line %d', lineno )
+        raise LoadError( 'Unexpected directive', filename, line, lineno )
 
 class ApplicationDeploymentListener:
     def beforeInstall( self, appName, archivePath ):
@@ -425,7 +439,7 @@ def loadApplications( filename, variables = {}, listener = None ):
             processExtraAppOption( mo, k, v )
     return affectedApplications
 
-def loadConfiguration( filename, variables = {} ):
+def _loadConfigurationManifest( filename, variables ):
     logger.debug( 'loading file %s with variables %s', filename, variables )
     fi = open( filename, 'r' )
     logger.debug( 'file %s successfully opened', filename )
@@ -448,6 +462,8 @@ def loadConfiguration( filename, variables = {} ):
                 stack = stack[0:indent] + stack[indent].consumeKey( filename, line, lineno, variables )
             elif _attPattern.match( line ):
                 stack = stack[0:indent] + stack[indent].consumeAttribute( filename, line, lineno, variables )
+            elif _directivePattern.match( line ):
+                stack = stack[0:indent] + stack[indent].consumeDirective( filename, line, lineno, variables )
             elif _commentPattern.match( line ):
                 stack[indent].consumeComment( filename, line, lineno )
             else:
@@ -456,9 +472,13 @@ def loadConfiguration( filename, variables = {} ):
         logger.debug( 'file %s successfuly parsed', filename )
     finally:
         fi.close()
-    for mo in manifestObjects:
+    return manifestObjects
+
+def loadConfiguration( filename, variables = {} ):
+    for mo in _loadConfigurationManifest( filename, variables ):
         anchors = {}
         _importManifestConfigObject( mo, anchors )
+        #print mo
 
 def _findMatchingObjects( manifestObject, candidateList ):
     matchingList = []
