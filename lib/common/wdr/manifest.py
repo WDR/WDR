@@ -32,7 +32,7 @@ _appNamePattern = re.compile( r'^(?P<name>\S+)\s+(?P<path>.+?)\s*$' )
 _appOptionPattern = re.compile( r'^(?P<tabs>\t)(?P<name>\*?[a-zA-Z0-9_\.]+)\s*(?P<value>.+?)?\s*$' )
 _appOptionValuePattern = re.compile( r'^(?P<tabs>\t\t)(?P<value>.+?)\s*$' )
 
-_defaultDumpConfig = {
+_defaultExportConfig = {
                       'Server':{
                                 'keys':['name'],
                                 'attributes':['processDefinitions'],
@@ -651,28 +651,28 @@ def _importManifestConfigObject( manifestObject, anchors, parentObject = None, p
         else:
             raise Exception( 'Multiple %s objects matched criteria' % typeName )
 
-def dumpConfiguration( configObjects, filename, dumpConfig = None ):
-    if not dumpConfig:
-        dumpConfig = _defaultDumpConfig
+def exportConfiguration( configObjects, filename, exportConfig = None ):
+    if not exportConfig:
+        exportConfig = _defaultExportConfig
     logger.debug( 'opening file %s for writing', filename )
     fi = open( filename, 'w' )
     logger.debug( 'file %s successfully opened for writing', filename )
     try:
-        fi.write( reduce( lambda x, y: x + str( y ), [_dumpConfiguration( co, dumpConfig ) for co in configObjects], '' ) )
+        fi.write( reduce( lambda x, y: x + str( y ), [_exportConfiguration( co, exportConfig ) for co in configObjects], '' ) )
     finally:
         fi.close()
 
-def _dumpConfiguration( configObject, dumpConfig ):
+def _exportConfiguration( configObject, exportConfig ):
     typeName = configObject._type
-    typeDumpConfig = None
+    typeExportConfig = None
     typeInfo = wdr.config.getTypeInfo( typeName )
     result = ManifestConfigObject( typeName )
-    if dumpConfig.has_key( typeName ):
-        typeDumpConfig = dumpConfig[typeName]
+    if exportConfig.has_key( typeName ):
+        typeExportConfig = exportConfig[typeName]
     else:
         return result
     attributes = configObject.getAllAttributes()
-    for n in typeDumpConfig['keys']:
+    for n in typeExportConfig['keys']:
         if attributes.has_key( n ):
             attInfo = typeInfo.attributes[n]
             attTypeInfo = wdr.config.getTypeInfo( attInfo.type )
@@ -682,7 +682,7 @@ def _dumpConfiguration( configObject, dumpConfig ):
                     result.keys[n] = ';'.join( [attTypeInfo.converter.toAdminConfig( e ) for e in v] )
                 else:
                     result.keys[n] = attTypeInfo.converter.toAdminConfig( v )
-    for n in typeDumpConfig['attributes']:
+    for n in typeExportConfig['attributes']:
         if attributes.has_key( n ):
             attInfo = typeInfo.attributes[n]
             attTypeInfo = wdr.config.getTypeInfo( attInfo.type )
@@ -694,12 +694,12 @@ def _dumpConfiguration( configObject, dumpConfig ):
                     result.attributes[n] = attTypeInfo.converter.toAdminConfig( v )
             else:
                 if attInfo.list:
-                    result.attributes[n] = [_dumpConfiguration( e, dumpConfig ) for e in v]
+                    result.attributes[n] = [_exportConfiguration( e, exportConfig ) for e in v]
                 else:
-                    result.attributes[n] = _dumpConfiguration( v, dumpConfig )
+                    result.attributes[n] = _exportConfiguration( v, exportConfig )
     childTypes = []
-    if typeDumpConfig.has_key( 'children' ):
-        childTypes = typeDumpConfig['children']
+    if typeExportConfig.has_key( 'children' ):
+        childTypes = typeExportConfig['children']
     for c in childTypes:
-        result.children.extend( [_dumpConfiguration( co, dumpConfig ) for co in configObject.listConfigObjects( c )] )
+        result.children.extend( [_exportConfiguration( co, exportConfig ) for co in configObject.listConfigObjects( c )] )
     return result
