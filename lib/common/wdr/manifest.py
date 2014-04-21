@@ -701,5 +701,5 @@ def _exportConfiguration( configObject, exportConfig ):
     if typeExportConfig.has_key( 'children' ):
         childTypes = typeExportConfig['children']
     for c in childTypes:
-        result.children.extend( [_exportConfiguration( co, exportConfig ) for co in configObject.listConfigObjects( c )] )
+        result.children.extend( [_exportConfiguration( co, exportConfig ) for co in configObject.lookup( c, {} )] )
     return result
