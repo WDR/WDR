@@ -337,7 +337,7 @@ def processExtraAppOption( mo, name, value ):
         logger.error( 'Extra option "%s" specified for %s is not supported', name, mo.name )
         raise Exception( 'Extra option "%s" specified for %s is not supported' % ( name, mo.name ) )
 
-def _loadApplicationManifest( filename, variables ):
+def _importApplicationManifest( filename, variables ):
     if logger.isEnabledFor( logging.DEBUG ):
         logger.debug( 'loading file %s with variables %s', filename, variables )
     fi = open( filename, 'r' )
@@ -374,6 +374,10 @@ def _loadApplicationManifest( filename, variables ):
         fi.close()
 
 def loadApplications( filename, variables = {}, listener = None ):
+    logger.warning( 'wdr.manifest.loadApplications is deprecated and will be removed in next version. Use importApplicationManifest instead' )
+    return importApplicationManifest( filename, variables, listener )
+
+def importApplicationManifest( filename, variables = {}, listener = None ):
     if listener is None:
         listener = ApplicationDeploymentListener()
     affectedApplications = []
@@ -426,6 +430,10 @@ def loadApplications( filename, variables = {}, listener = None ):
     return affectedApplications
 
 def loadConfiguration( filename, variables = {} ):
+    logger.warning( 'wdr.manifest.loadConfiguration is deprecated and will be removed in next version. Use importConfigurationManifest instead' )
+    return importConfigurationManifest( filename, variables )
+
+def importConfigurationManifest( filename, variables = {} ):
     logger.debug( 'loading file %s with variables %s', filename, variables )
     fi = open( filename, 'r' )
     logger.debug( 'file %s successfully opened', filename )
@@ -654,18 +662,18 @@ def _importManifestConfigObject( manifestObject, anchors, parentObject = None, p
         else:
             raise Exception( 'Multiple %s objects matched criteria' % typeName )
 
-def exportConfiguration( configObjects, filename, exportConfig = None ):
+def exportConfigurationManifest( configObjects, filename, exportConfig = None ):
     if not exportConfig:
         exportConfig = _defaultExportConfig
     logger.debug( 'opening file %s for writing', filename )
     fi = open( filename, 'w' )
     logger.debug( 'file %s successfully opened for writing', filename )
     try:
-        fi.write( reduce( lambda x, y: x + str( y ), [_exportConfiguration( co, exportConfig ) for co in configObjects], '' ) )
+        fi.write( reduce( lambda x, y: x + str( y ), [_exportConfigurationManifest( co, exportConfig ) for co in configObjects], '' ) )
     finally:
         fi.close()
 
-def _exportConfiguration( configObject, exportConfig ):
+def _exportConfigurationManifest( configObject, exportConfig ):
     typeName = configObject._type
     typeExportConfig = None
     typeInfo = wdr.config.getTypeInfo( typeName )
@@ -697,13 +705,13 @@ def _exportConfiguration( configObject, exportConfig ):
                     result.attributes[n] = attTypeInfo.converter.toAdminConfig( v )
             else:
                 if attInfo.list:
-                    result.attributes[n] = [_exportConfiguration( e, exportConfig ) for e in v]
+                    result.attributes[n] = [_exportConfigurationManifest( e, exportConfig ) for e in v]
                 else:
-                    result.attributes[n] = _exportConfiguration( v, exportConfig )
+                    result.attributes[n] = _exportConfigurationManifest( v, exportConfig )
             result._orderedAttributeNames.append( n )
     childTypes = []
     if typeExportConfig.has_key( 'children' ):
         childTypes = typeExportConfig['children']
     for c in childTypes:
-        result.children.extend( [_exportConfiguration( co, exportConfig ) for co in configObject.lookup( c, {} )] )
+        result.children.extend( [_exportConfigurationManifest( co, exportConfig ) for co in configObject.lookup( c, {} )] )
     return result

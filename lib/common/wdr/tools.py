@@ -368,6 +368,10 @@ defaultTaskProcessors = {
         }
 
 def generateManifest( appName, customTaskProcessors = {} ):
+    logger.warning( 'wdr.tools.generateManifest is deprecated and will be removed in next version. Use exportApplicationManifest instead' )
+    return exportApplicationManifest( appName, customTaskProcessors )
+
+def exportApplicationManifest( appName, customTaskProcessors = {} ):
     taskProcessors = {}
     taskProcessors.update( defaultTaskProcessors )
     taskProcessors.update( customTaskProcessors )
