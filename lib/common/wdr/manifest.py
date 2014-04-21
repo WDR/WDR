@@ -46,7 +46,17 @@ _defaultExportConfig = {
                       'Cell':{
                                 'keys':['name'],
                                 'attributes':['processDefinitions'],
-                                'children':['Node', 'JDBCProvider']
+                                'children':['Node', 'ServerCluster', 'JDBCProvider']
+                                },
+                      'ServerCluster':{
+                                'keys':['name'],
+                                'attributes':['description', 'preferLocal', 'nodeGroupName', 'enableHA', 'serverType', 'jsfProvider', 'clusterAddress', 'prefetchDWLMTable', 'members'],
+                                'children':['JDBCProvider']
+                                },
+                      'ClusterMember':{
+                                'keys':['nodeName', 'memberName'],
+                                'attributes':['weight', 'uniqueId'],
+                                'children':[]
                                 },
                       'JDBCProvider':{
                                       'keys':['name'],
