@@ -57,7 +57,7 @@ class BooleanAttributeConverter( AttributeConverter ):
                     return 'true'
             elif value == 1:
                 return 'true'
-            return 'false'
+        return 'false'
 
 class IntegerAttributeConverter( AttributeConverter ):
     def __init__( self ):
