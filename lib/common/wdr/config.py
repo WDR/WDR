@@ -532,7 +532,14 @@ class ConfigObject:
             if len( atomicAttributes ) > 0:
                 AdminConfig.modify( str( self ), atomicAttributes )
             for ( n, v ) in listAttributes:
-                currentValue = AdminConfig.showAttribute( str( self ), n )
+                currentValue = self._getConfigAttribute( n )
+                ai = getTypeInfo( self._type ).attributes[n]
+                ti = getTypeInfo( ai.type )
+                cnv = ti.converter
+                if cnv:
+                    currentValue = join( map( cnv.toAdminConfig, currentValue ), ';' )
+                else:
+                    currentValue = map( lambda e:str( e ), currentValue )
                 if currentValue != v:
                     AdminConfig.modify( str( self ), [[n, []]] )
                     AdminConfig.modify( str( self ), [[n, v]] )
