@@ -697,6 +697,7 @@ def _exportConfiguration( configObject, exportConfig ):
                     result.attributes[n] = [_exportConfiguration( e, exportConfig ) for e in v]
                 else:
                     result.attributes[n] = _exportConfiguration( v, exportConfig )
+            result._orderedAttributeNames.append( n )
     childTypes = []
     if typeExportConfig.has_key( 'children' ):
         childTypes = typeExportConfig['children']
