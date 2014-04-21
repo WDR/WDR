@@ -116,13 +116,13 @@ class ManifestConfigObject:
         for k in self._orderedAttributeNames:
             v = self.attributes[k]
             if isinstance( v, ListType ):
-                result += "%s%s\n" % ( "\t"*( indent + 1 ), k )
+                result += "%s-%s\n" % ( "\t"*( indent + 1 ), k )
                 for c in v:
                     result += c._toString( indent + 2 )
             elif isinstance( v, ManifestConfigObject ):
                 result += v._toString( indent + 1 )
             else:
-                result += "%s%s %s\n" % ( "\t"*( indent + 1 ), k, v )
+                result += "%s-%s %s\n" % ( "\t"*( indent + 1 ), k, v )
         for c in self.children:
             result += c._toString( indent + 1 )
         return result
