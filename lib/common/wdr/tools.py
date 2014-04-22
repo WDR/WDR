@@ -371,6 +371,15 @@ def generateManifest( appName, customTaskProcessors = {} ):
     logger.warning( 'wdr.tools.generateManifest is deprecated and will be removed in v0.5. Use exportApplicationManifest instead' )
     return exportApplicationManifest( appName, customTaskProcessors )
 
+def exportApplicationManifestToFile( appName, filename, customTaskProcessors = {} ):
+    logger.debug( 'opening file %s for writing', filename )
+    fi = open( filename, 'w' )
+    logger.debug( 'file %s successfully opened for writing', filename )
+    try:
+        fi.write( str( exportApplicationManifest( appName, customTaskProcessors ) ) )
+    finally:
+        fi.close()
+
 def exportApplicationManifest( appName, customTaskProcessors = {} ):
     taskProcessors = {}
     taskProcessors.update( defaultTaskProcessors )
