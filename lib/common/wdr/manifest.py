@@ -700,18 +700,18 @@ def _importManifestConfigObject( manifestObject, anchors, parentObject = None, p
         else:
             raise Exception( 'Multiple %s objects matched criteria' % typeName )
 
-def exportConfigurationManifest( configObjects, filename, exportConfig = None ):
+def exportConfigurationManifestToFile( configObjects, filename, exportConfig = None ):
     if not exportConfig:
         exportConfig = _defaultExportConfig
     logger.debug( 'opening file %s for writing', filename )
     fi = open( filename, 'w' )
     logger.debug( 'file %s successfully opened for writing', filename )
     try:
-        fi.write( reduce( lambda x, y: x + str( y ), [_exportConfigurationManifest( co, exportConfig ) for co in configObjects], '' ) )
+        fi.write( reduce( lambda x, y: x + str( y ), [exportConfigurationManifest( co, exportConfig ) for co in configObjects], '' ) )
     finally:
         fi.close()
 
-def _exportConfigurationManifest( configObject, exportConfig ):
+def exportConfigurationManifest( configObject, exportConfig ):
     typeName = configObject._type
     typeExportConfig = None
     typeInfo = wdr.config.getTypeInfo( typeName )
@@ -743,13 +743,13 @@ def _exportConfigurationManifest( configObject, exportConfig ):
                     result.attributes[n] = attTypeInfo.converter.toAdminConfig( v )
             else:
                 if attInfo.list:
-                    result.attributes[n] = [_exportConfigurationManifest( e, exportConfig ) for e in v]
+                    result.attributes[n] = [exportConfigurationManifest( e, exportConfig ) for e in v]
                 else:
-                    result.attributes[n] = _exportConfigurationManifest( v, exportConfig )
+                    result.attributes[n] = exportConfigurationManifest( v, exportConfig )
             result._orderedAttributeNames.append( n )
     childTypes = []
     if typeExportConfig.has_key( 'children' ):
         childTypes = typeExportConfig['children']
     for c in childTypes:
-        result.children.extend( [_exportConfigurationManifest( co, exportConfig ) for co in configObject.lookup( c, {} )] )
+        result.children.extend( [exportConfigurationManifest( co, exportConfig ) for co in configObject.lookup( c, {} )] )
     return result
