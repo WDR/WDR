@@ -184,6 +184,15 @@ class _ObjectConsumer( _ConfigEventConsumer ):
                 obj.reference = linkage[1:]
         self.parentList.append( obj )
         return [self, _ObjectDataConsumer( obj )]
+    def consumeDirective( self, filename, line, lineno, variables ):
+        mat = _directivePattern.match( line )
+        name = mat.group( 'name' )
+        values = mat.group( 'values' ).split()
+        if 'include' == name:
+            self.parentList.extend( _loadConfigurationManifest( values[0], variables ) )
+            return [self]
+        logger.error( 'manifest parsing error - unexpected directive at line %d', lineno )
+        raise LoadError( 'Unexpected directive', filename, line, lineno )
 
 class _ObjectDataConsumer( _ConfigEventConsumer ):
     def __init__( self, parentObject ):
