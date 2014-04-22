@@ -384,7 +384,7 @@ def _importApplicationManifest( filename, variables ):
         fi.close()
 
 def loadApplications( filename, variables = {}, listener = None ):
-    logger.warning( 'wdr.manifest.loadApplications is deprecated and will be removed in next version. Use importApplicationManifest instead' )
+    logger.warning( 'wdr.manifest.loadApplications is deprecated and will be removed in v0.5. Use importApplicationManifest instead' )
     return importApplicationManifest( filename, variables, listener )
 
 def importApplicationManifest( filename, variables = {}, listener = None ):
@@ -440,7 +440,7 @@ def importApplicationManifest( filename, variables = {}, listener = None ):
     return affectedApplications
 
 def loadConfiguration( filename, variables = {} ):
-    logger.warning( 'wdr.manifest.loadConfiguration is deprecated and will be removed in next version. Use importConfigurationManifest instead' )
+    logger.warning( 'wdr.manifest.loadConfiguration is deprecated and will be removed in v0.5. Use importConfigurationManifest instead' )
     return importConfigurationManifest( filename, variables )
 
 def importConfigurationManifest( filename, variables = {} ):
