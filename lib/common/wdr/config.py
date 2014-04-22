@@ -1,5 +1,5 @@
 #
-# Copyright 2012,2013 Marcin Plonka <mplonka@gmail.com>
+# Copyright 2012,2014 Marcin Plonka <mplonka@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -56,8 +56,8 @@ class BooleanAttributeConverter( AttributeConverter ):
                 if upperValue == 'TRUE' or upperValue == 'T' or upperValue == 'YES' or upperValue == 'Y':
                     return 'true'
             elif value == 1:
-                return true
-            return 'false'
+                return 'true'
+        return 'false'
 
 class IntegerAttributeConverter( AttributeConverter ):
     def __init__( self ):
@@ -532,7 +532,14 @@ class ConfigObject:
             if len( atomicAttributes ) > 0:
                 AdminConfig.modify( str( self ), atomicAttributes )
             for ( n, v ) in listAttributes:
-                currentValue = AdminConfig.showAttribute( str( self ), n )
+                currentValue = self._getConfigAttribute( n )
+                ai = getTypeInfo( self._type ).attributes[n]
+                ti = getTypeInfo( ai.type )
+                cnv = ti.converter
+                if cnv:
+                    currentValue = join( map( cnv.toAdminConfig, currentValue ), ';' )
+                else:
+                    currentValue = map( lambda e:str( e ), currentValue )
                 if currentValue != v:
                     AdminConfig.modify( str( self ), [[n, []]] )
                     AdminConfig.modify( str( self ), [[n, v]] )

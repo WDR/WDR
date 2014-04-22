@@ -1,5 +1,5 @@
 #
-# Copyright 2012,2013 Marcin Plonka <mplonka@gmail.com>
+# Copyright 2012,2014 Marcin Plonka <mplonka@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ __all__ = ['config', 'control', 'manifest', 'util']
 logger = logging.getLogger( 'wdr' )
 
 MAJOR_VERSION = 0
-MINOR_VERSION = 3
+MINOR_VERSION = 4
 
 class WsadminObjects:
     __wsadminObjects = None

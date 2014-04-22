@@ -1,5 +1,5 @@
 #
-# Copyright 2012,2013 Marcin Plonka <mplonka@gmail.com>
+# Copyright 2012,2014 Marcin Plonka <mplonka@gmail.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ logger = logging.getLogger( 'wdrManifest' )
 
 _genericPattern = re.compile( r'^(?P<tabs>\t*).*$' )
 _commentPattern = re.compile( r'^(?:#\.*)|(?:\n)' )
+_directivePattern = re.compile( r'^(?P<tabs>\t*)@\s*(?P<name>[A-Za-z][a-zA-Z0-9_]*)(?P<values>(?:\s*(?P<value>.+?))*)?\s*$' )
 _typePattern = re.compile( r'^(?P<tabs>\t*)(?P<type>[A-Za-z][a-zA-Z0-9_]*)\s*(?P<linkage>[&#][a-zA-Z0-9_]+)?\s*$' )
 _keyPattern = re.compile( r'^(?P<tabs>\t*)\*(?P<name>[A-Za-z][a-zA-Z0-9_]*)\s*(?P<value>.+?)?\s*$' )
 _attPattern = re.compile( r'^(?P<tabs>\t*)-(?P<name>[A-Za-z][a-zA-Z0-9_]*)\s*(?P<value>.+?)?\s*$' )
@@ -32,7 +33,7 @@ _appNamePattern = re.compile( r'^(?P<name>\S+)\s+(?P<path>.+?)\s*$' )
 _appOptionPattern = re.compile( r'^(?P<tabs>\t)(?P<name>\*?[a-zA-Z0-9_\.]+)\s*(?P<value>.+?)?\s*$' )
 _appOptionValuePattern = re.compile( r'^(?P<tabs>\t\t)(?P<value>.+?)\s*$' )
 
-_defaultDumpConfig = {
+_defaultExportConfig = {
                       'Server':{
                                 'keys':['name'],
                                 'attributes':['processDefinitions'],
@@ -46,7 +47,17 @@ _defaultDumpConfig = {
                       'Cell':{
                                 'keys':['name'],
                                 'attributes':['processDefinitions'],
-                                'children':['Node', 'JDBCProvider']
+                                'children':['Node', 'ServerCluster', 'JDBCProvider']
+                                },
+                      'ServerCluster':{
+                                'keys':['name'],
+                                'attributes':['description', 'preferLocal', 'nodeGroupName', 'enableHA', 'serverType', 'jsfProvider', 'clusterAddress', 'prefetchDWLMTable', 'members'],
+                                'children':['JDBCProvider']
+                                },
+                      'ClusterMember':{
+                                'keys':['nodeName', 'memberName'],
+                                'attributes':['weight', 'uniqueId'],
+                                'children':[]
                                 },
                       'JDBCProvider':{
                                       'keys':['name'],
@@ -116,13 +127,13 @@ class ManifestConfigObject:
         for k in self._orderedAttributeNames:
             v = self.attributes[k]
             if isinstance( v, ListType ):
-                result += "%s%s\n" % ( "\t"*( indent + 1 ), k )
+                result += "%s-%s\n" % ( "\t"*( indent + 1 ), k )
                 for c in v:
                     result += c._toString( indent + 2 )
             elif isinstance( v, ManifestConfigObject ):
                 result += v._toString( indent + 1 )
             else:
-                result += "%s%s %s\n" % ( "\t"*( indent + 1 ), k, v )
+                result += "%s-%s %s\n" % ( "\t"*( indent + 1 ), k, v )
         for c in self.children:
             result += c._toString( indent + 1 )
         return result
@@ -137,6 +148,7 @@ class LoadError:
         return '(%s:%d) %s: %s' % ( self.filename, self.lineno, self.message, self.line )
     def __unicode__( self ):
         return unicode( self.__str__() )
+
 class _ConfigEventConsumer:
     def __init__( self ):
         pass
@@ -149,6 +161,9 @@ class _ConfigEventConsumer:
     def consumeAttribute( self, filename, line, lineno, variables ):
         logger.error( 'manifest parsing error - unexpected object attribute at line %d', lineno )
         raise LoadError( 'Unexpected attribute', filename, line, lineno )
+    def consumeDirective( self, filename, line, lineno, variables ):
+        logger.error( 'manifest parsing error - unexpected directive at line %d', lineno )
+        raise LoadError( 'Unexpected directive', filename, line, lineno )
     def consumeComment( self, filename, line, lineno ):
         if logger.isEnabledFor( logging.DEBUG ):
             logger.debug( 'skipping comment [%d][%s]', lineno, line )
@@ -169,6 +184,15 @@ class _ObjectConsumer( _ConfigEventConsumer ):
                 obj.reference = linkage[1:]
         self.parentList.append( obj )
         return [self, _ObjectDataConsumer( obj )]
+    def consumeDirective( self, filename, line, lineno, variables ):
+        mat = _directivePattern.match( line )
+        name = mat.group( 'name' )
+        values = mat.group( 'values' ).split()
+        if 'include' == name:
+            self.parentList.extend( _loadConfigurationManifest( values[0], variables ) )
+            return [self]
+        logger.error( 'manifest parsing error - unexpected directive at line %d', lineno )
+        raise LoadError( 'Unexpected directive', filename, line, lineno )
 
 class _ObjectDataConsumer( _ConfigEventConsumer ):
     def __init__( self, parentObject ):
@@ -199,6 +223,15 @@ class _ObjectDataConsumer( _ConfigEventConsumer ):
         obj = ManifestConfigObject( name )
         self.parentObject.children.append( obj )
         return [self, _ObjectDataConsumer( obj )]
+    def consumeDirective( self, filename, line, lineno, variables ):
+        mat = _directivePattern.match( line )
+        name = mat.group( 'name' )
+        values = mat.group( 'values' ).split()
+        if 'include' == name:
+            self.parentObject.children.extend( _loadConfigurationManifest( values[0], variables ) )
+            return [self]
+        logger.error( 'manifest parsing error - unexpected directive at line %d', lineno )
+        raise LoadError( 'Unexpected directive', filename, line, lineno )
 
 class ApplicationDeploymentListener:
     def beforeInstall( self, appName, archivePath ):
@@ -337,7 +370,7 @@ def processExtraAppOption( mo, name, value ):
         logger.error( 'Extra option "%s" specified for %s is not supported', name, mo.name )
         raise Exception( 'Extra option "%s" specified for %s is not supported' % ( name, mo.name ) )
 
-def _loadApplicationManifest( filename, variables ):
+def _importApplicationManifest( filename, variables ):
     if logger.isEnabledFor( logging.DEBUG ):
         logger.debug( 'loading file %s with variables %s', filename, variables )
     fi = open( filename, 'r' )
@@ -374,6 +407,10 @@ def _loadApplicationManifest( filename, variables ):
         fi.close()
 
 def loadApplications( filename, variables = {}, listener = None ):
+    logger.warning( 'wdr.manifest.loadApplications is deprecated and will be removed in v0.5. Use importApplicationManifest instead' )
+    return importApplicationManifest( filename, variables, listener )
+
+def importApplicationManifest( filename, variables = {}, listener = None ):
     if listener is None:
         listener = ApplicationDeploymentListener()
     affectedApplications = []
@@ -426,6 +463,10 @@ def loadApplications( filename, variables = {}, listener = None ):
     return affectedApplications
 
 def loadConfiguration( filename, variables = {} ):
+    logger.warning( 'wdr.manifest.loadConfiguration is deprecated and will be removed in v0.5. Use importConfigurationManifest instead' )
+    return importConfigurationManifest( filename, variables )
+
+def _loadConfigurationManifest( filename, variables ):
     logger.debug( 'loading file %s with variables %s', filename, variables )
     fi = open( filename, 'r' )
     logger.debug( 'file %s successfully opened', filename )
@@ -448,6 +489,8 @@ def loadConfiguration( filename, variables = {} ):
                 stack = stack[0:indent] + stack[indent].consumeKey( filename, line, lineno, variables )
             elif _attPattern.match( line ):
                 stack = stack[0:indent] + stack[indent].consumeAttribute( filename, line, lineno, variables )
+            elif _directivePattern.match( line ):
+                stack = stack[0:indent] + stack[indent].consumeDirective( filename, line, lineno, variables )
             elif _commentPattern.match( line ):
                 stack[indent].consumeComment( filename, line, lineno )
             else:
@@ -456,7 +499,10 @@ def loadConfiguration( filename, variables = {} ):
         logger.debug( 'file %s successfuly parsed', filename )
     finally:
         fi.close()
-    for mo in manifestObjects:
+    return manifestObjects
+
+def importConfigurationManifest( filename, variables = {} ):
+    for mo in _loadConfigurationManifest( filename, variables ):
         anchors = {}
         _importManifestConfigObject( mo, anchors )
 
@@ -508,7 +554,10 @@ def _updateConfigObjectSimpleAttributes( configObject, manifestObject ):
             if attributeTypeInfo.converter:
                 try:
                     if attributeInfo.list:
-                        configObject._modify( [[propName, propValue.split( ';' )]] )
+                        if propValue == []:
+                            configObject._modify( [[propName, propValue]] )
+                        else:
+                            configObject._modify( [[propName, propValue.split( ';' )]] )
                     else:
                         configObject._modify( [[propName, propValue]] )
                 except com.ibm.ws.scripting.ScriptingException, ex:
@@ -651,28 +700,28 @@ def _importManifestConfigObject( manifestObject, anchors, parentObject = None, p
         else:
             raise Exception( 'Multiple %s objects matched criteria' % typeName )
 
-def dumpConfiguration( configObjects, filename, dumpConfig = None ):
-    if not dumpConfig:
-        dumpConfig = _defaultDumpConfig
+def exportConfigurationManifest( configObjects, filename, exportConfig = None ):
+    if not exportConfig:
+        exportConfig = _defaultExportConfig
     logger.debug( 'opening file %s for writing', filename )
     fi = open( filename, 'w' )
     logger.debug( 'file %s successfully opened for writing', filename )
     try:
-        fi.write( reduce( lambda x, y: x + str( y ), [_dumpConfiguration( co, dumpConfig ) for co in configObjects], '' ) )
+        fi.write( reduce( lambda x, y: x + str( y ), [_exportConfigurationManifest( co, exportConfig ) for co in configObjects], '' ) )
     finally:
         fi.close()
 
-def _dumpConfiguration( configObject, dumpConfig ):
+def _exportConfigurationManifest( configObject, exportConfig ):
     typeName = configObject._type
-    typeDumpConfig = None
+    typeExportConfig = None
     typeInfo = wdr.config.getTypeInfo( typeName )
     result = ManifestConfigObject( typeName )
-    if dumpConfig.has_key( typeName ):
-        typeDumpConfig = dumpConfig[typeName]
+    if exportConfig.has_key( typeName ):
+        typeExportConfig = exportConfig[typeName]
     else:
         return result
     attributes = configObject.getAllAttributes()
-    for n in typeDumpConfig['keys']:
+    for n in typeExportConfig['keys']:
         if attributes.has_key( n ):
             attInfo = typeInfo.attributes[n]
             attTypeInfo = wdr.config.getTypeInfo( attInfo.type )
@@ -682,7 +731,7 @@ def _dumpConfiguration( configObject, dumpConfig ):
                     result.keys[n] = ';'.join( [attTypeInfo.converter.toAdminConfig( e ) for e in v] )
                 else:
                     result.keys[n] = attTypeInfo.converter.toAdminConfig( v )
-    for n in typeDumpConfig['attributes']:
+    for n in typeExportConfig['attributes']:
         if attributes.has_key( n ):
             attInfo = typeInfo.attributes[n]
             attTypeInfo = wdr.config.getTypeInfo( attInfo.type )
@@ -694,12 +743,13 @@ def _dumpConfiguration( configObject, dumpConfig ):
                     result.attributes[n] = attTypeInfo.converter.toAdminConfig( v )
             else:
                 if attInfo.list:
-                    result.attributes[n] = [_dumpConfiguration( e, dumpConfig ) for e in v]
+                    result.attributes[n] = [_exportConfigurationManifest( e, exportConfig ) for e in v]
                 else:
-                    result.attributes[n] = _dumpConfiguration( v, dumpConfig )
+                    result.attributes[n] = _exportConfigurationManifest( v, exportConfig )
+            result._orderedAttributeNames.append( n )
     childTypes = []
-    if typeDumpConfig.has_key( 'children' ):
-        childTypes = typeDumpConfig['children']
+    if typeExportConfig.has_key( 'children' ):
+        childTypes = typeExportConfig['children']
     for c in childTypes:
-        result.children.extend( [_dumpConfiguration( co, dumpConfig ) for co in configObject.listConfigObjects( c )] )
+        result.children.extend( [_exportConfigurationManifest( co, exportConfig ) for co in configObject.lookup( c, {} )] )
     return result
