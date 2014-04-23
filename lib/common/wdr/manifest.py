@@ -747,7 +747,11 @@ def exportConfigurationManifest( configObject, exportConfig ):
                     result.attributes[n] = attTypeInfo.converter.toAdminConfig( v )
             else:
                 if attInfo.list:
-                    result.attributes[n] = [exportConfigurationManifest( e, exportConfig ) for e in v]
+                    values = result.attributes.get( n, [] )
+                    result.attributes[n] = values
+                    for e in v:
+                        if exportConfig.has_key( e._type ):
+                            values.append( exportConfigurationManifest( e, exportConfig ) )
                 else:
                     result.attributes[n] = exportConfigurationManifest( v, exportConfig )
             result._orderedAttributeNames.append( n )
