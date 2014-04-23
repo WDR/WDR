@@ -414,7 +414,7 @@ def importApplicationManifest( filename, variables = {}, listener = None ):
     if listener is None:
         listener = ApplicationDeploymentListener()
     affectedApplications = []
-    for mo in _loadApplicationManifest( filename, variables ):
+    for mo in _importApplicationManifest( filename, variables ):
         if mo.name in wdr.app.listApplications():
             deployment = wdr.config.getid1( '/Deployment:%s/' % mo.name )
             deployedChecksumProperties = deployment.deployedObject.lookup( 'Property', {'name':'wdr.checksum'} )
@@ -552,18 +552,20 @@ def _updateConfigObjectSimpleAttributes( configObject, manifestObject ):
             attributeInfo = typeInfo.attributes[propName]
             attributeTypeInfo = wdr.config.getTypeInfo( attributeInfo.type )
             if attributeTypeInfo.converter:
-                try:
-                    if attributeInfo.list:
-                        if propValue == []:
-                            configObject._modify( [[propName, propValue]] )
-                        else:
-                            configObject._modify( [[propName, propValue.split( ';' )]] )
+                if attributeInfo.list:
+                    if propValue == []:
+                        newPropValue = propValue
                     else:
-                        configObject._modify( [[propName, propValue]] )
+                        newPropValue = propValue.split( ';' )
+                else:
+                    newPropValue = propValue
+                try:
+                    configObject._modify( [[propName, newPropValue]] )
                 except com.ibm.ws.scripting.ScriptingException, ex:
                     msg = '' + ex.message
                     if msg.find( 'ADMG0014E' ) != -1:
-                        logger.warning( 'read-only attribute %s.%s could not be modified', typeName, propName )
+                        if configObject._getConfigAttribute( propName ) != newPropValue:
+                            logger.warning( 'read-only attribute %s.%s could not be modified', typeName, propName )
                     else:
                         raise
 
