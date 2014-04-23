@@ -414,7 +414,7 @@ def importApplicationManifest( filename, variables = {}, listener = None ):
     if listener is None:
         listener = ApplicationDeploymentListener()
     affectedApplications = []
-    for mo in _loadApplicationManifest( filename, variables ):
+    for mo in _importApplicationManifest( filename, variables ):
         if mo.name in wdr.app.listApplications():
             deployment = wdr.config.getid1( '/Deployment:%s/' % mo.name )
             deployedChecksumProperties = deployment.deployedObject.lookup( 'Property', {'name':'wdr.checksum'} )
