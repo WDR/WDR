@@ -714,6 +714,8 @@ def exportConfigurationManifestToFile( configObjects, filename, exportConfig = N
         fi.close()
 
 def exportConfigurationManifest( configObject, exportConfig ):
+    if logger.isEnabledFor( logging.DEBUG ):
+        logger.debug( 'exporting %s', configObject )
     typeName = configObject._type
     typeExportConfig = None
     typeInfo = wdr.config.getTypeInfo( typeName )
