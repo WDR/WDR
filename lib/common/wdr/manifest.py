@@ -242,6 +242,8 @@ class ApplicationDeploymentListener:
         pass
     def afterUpdate( self, appName, archivePath ):
         pass
+    def skippedUpdate( self, appName, archivePath ):
+        pass
 
 class ApplicationObject:
     def __init__( self, name, archive ):
@@ -428,6 +430,7 @@ def importApplicationManifest( filename, variables = {}, listener = None ):
             if deployedChecksum == calculatedChecksum:
                 if logger.isEnabledFor( logging.DEBUG ):
                     logger.debug( 'skipping update of %s, due to matching checksum (%s)', mo.name, calculatedChecksum )
+                listener.skippedUpdate( mo.name, mo.archive )
             else:
                 listener.beforeUpdate( mo.name, mo.archive )
                 logger.debug( 'application %s will be updated. deployedChecksum(%s), calculatedChecksum(%s)', mo.name, deployedChecksum, calculatedChecksum )
