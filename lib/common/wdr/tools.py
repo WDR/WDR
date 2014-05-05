@@ -259,7 +259,7 @@ defaultTaskProcessors = {
             },
         'MapEnvEntryForEJBMod': {
             'function': processGenericDeploymentOptions,
-            'columns': ['EJBModule', 'uri', 'EJB', 'prop.name', 'prop.type', 'prop.description', 'prop.value', 'injection.requested']
+            'columns': ['EJBModule', 'uri', 'EJB', 'prop.name', 'prop.type', 'prop.description', 'prop.value']
             },
         'MapEnvEntryForWebMod': {
             'function': processGenericDeploymentOptions,

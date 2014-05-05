@@ -242,6 +242,8 @@ class ApplicationDeploymentListener:
         pass
     def afterUpdate( self, appName, archivePath ):
         pass
+    def skippedUpdate( self, appName, archivePath ):
+        pass
 
 class ApplicationObject:
     def __init__( self, name, archive ):
@@ -428,6 +430,7 @@ def importApplicationManifest( filename, variables = {}, listener = None ):
             if deployedChecksum == calculatedChecksum:
                 if logger.isEnabledFor( logging.DEBUG ):
                     logger.debug( 'skipping update of %s, due to matching checksum (%s)', mo.name, calculatedChecksum )
+                listener.skippedUpdate( mo.name, mo.archive )
             else:
                 listener.beforeUpdate( mo.name, mo.archive )
                 logger.debug( 'application %s will be updated. deployedChecksum(%s), calculatedChecksum(%s)', mo.name, deployedChecksum, calculatedChecksum )
@@ -714,6 +717,8 @@ def exportConfigurationManifestToFile( configObjects, filename, exportConfig = N
         fi.close()
 
 def exportConfigurationManifest( configObject, exportConfig ):
+    if logger.isEnabledFor( logging.DEBUG ):
+        logger.debug( 'exporting %s', configObject )
     typeName = configObject._type
     typeExportConfig = None
     typeInfo = wdr.config.getTypeInfo( typeName )
@@ -745,7 +750,11 @@ def exportConfigurationManifest( configObject, exportConfig ):
                     result.attributes[n] = attTypeInfo.converter.toAdminConfig( v )
             else:
                 if attInfo.list:
-                    result.attributes[n] = [exportConfigurationManifest( e, exportConfig ) for e in v]
+                    values = result.attributes.get( n, [] )
+                    result.attributes[n] = values
+                    for e in v:
+                        if exportConfig.has_key( e._type ):
+                            values.append( exportConfigurationManifest( e, exportConfig ) )
                 else:
                     result.attributes[n] = exportConfigurationManifest( v, exportConfig )
             result._orderedAttributeNames.append( n )
