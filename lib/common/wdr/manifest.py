@@ -316,6 +316,8 @@ class _AppConsumer( _AppEventConsumer ):
         name = mat.group( 'name' )
         archive = mat.group( 'path' )
         archive = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], archive )
+        dirname = os.path.dirname( os.path.normpath( os.path.abspath( filename ) ) )
+        archive = os.path.normpath( os.path.join( dirname, archive ) )
         obj = ApplicationObject( name, archive )
         self.parentList.append( obj )
         return [self, _AppOptionConsumer( obj )]
