@@ -422,11 +422,16 @@ def loadApplications( filename, variables = {}, listener = None ):
     logger.warning( 'wdr.manifest.loadApplications is deprecated and will be removed in v0.5. Use importApplicationManifest instead' )
     return importApplicationManifest( filename, variables, listener )
 
-def importApplicationManifest( filename, variables = {}, listener = None ):
+def importApplicationManifest( filename, variables = {}, listener = None, manifestPath = None ):
     if listener is None:
         listener = ApplicationDeploymentListener()
+    if manifestPath is None:
+        manifestPath = ['.']
+        sysPathReversed = sys.path[:]
+        sysPathReversed.reverse()
+        manifestPath.extend( sysPathReversed )
     affectedApplications = []
-    for mo in _importApplicationManifest( filename, variables ):
+    for mo in _importApplicationManifest( _locateManifestFile( filename, manifestPath ), variables ):
         if mo.name in wdr.app.listApplications():
             deployment = wdr.config.getid1( '/Deployment:%s/' % mo.name )
             deployedChecksumProperties = deployment.deployedObject.lookup( 'Property', {'name':'wdr.checksum'} )
