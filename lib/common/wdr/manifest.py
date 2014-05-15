@@ -306,6 +306,7 @@ class _AppConsumer( _AppEventConsumer ):
     def consumeApp( self, filename, line, lineno, variables ):
         mat = _appNamePattern.match( line )
         name = mat.group( 'name' )
+        name = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], name )
         archive = mat.group( 'path' )
         archive = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], archive )
         obj = ApplicationObject( name, archive )
