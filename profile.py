@@ -16,9 +16,11 @@
 
 import sys, os
 
-def _findLogConfFile():
-    for dirname in sys.path:
-        candidate = os.path.join( dirname, 'logconf.ini' )
+def _findLogConfFile( logconfFile = 'logconf.ini' ):
+    logconfPath = sys.path
+    logconfPath.reverse()
+    for dirname in logconfPath:
+        candidate = os.path.join( dirname, logconfFile )
         if os.path.isfile( candidate ):
             return candidate
     raise Exception( 'Cannot find logconf.ini' )
