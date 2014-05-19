@@ -401,4 +401,12 @@ def exportApplicationManifest( appName, customTaskProcessors = {} ):
         taskProcessor = taskProcessors.get(task.name)
         if taskProcessor:
             taskProcessor['function']( Task( task ), manifest, taskProcessor.get('columns') )
+    for n in manifest.options.keys():
+        v = manifest.options[n]
+        if isinstance(v, ListType):
+            v.sort()
+    for n in manifest.extras.keys():
+        v = manifest.extras[n]
+        if isinstance(v, ListType):
+            v.sort()
     return manifest
