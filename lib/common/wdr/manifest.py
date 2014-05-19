@@ -29,7 +29,7 @@ _typePattern = re.compile( r'^(?P<tabs>\t*)(?P<type>[A-Za-z][a-zA-Z0-9_]*)\s*(?P
 _keyPattern = re.compile( r'^(?P<tabs>\t*)\*(?P<name>[A-Za-z][a-zA-Z0-9_]*)\s*(?P<value>.+?)?\s*$' )
 _attPattern = re.compile( r'^(?P<tabs>\t*)-(?P<name>[A-Za-z][a-zA-Z0-9_]*)\s*(?P<value>.+?)?\s*$' )
 _variablePattern = re.compile( r'(?P<var>\$\[[a-zA-Z][a-zA-Z0-9]*\])' )
-_appNamePattern = re.compile( r'^(?P<name>\S+)\s+(?P<path>.+?)\s*$' )
+_appNamePattern = re.compile( r'^(?:(?:"(?P<qname>[^"]+)")|(?P<name>\S+))\s+(?:(?:"(?P<qpath>[^"]+)")|(?P<path>.+?))\s*$' )
 _appOptionPattern = re.compile( r'^(?P<tabs>\t)(?P<name>\*?[a-zA-Z0-9_\.]+)\s*(?P<value>.+?)?\s*$' )
 _appOptionValuePattern = re.compile( r'^(?P<tabs>\t\t)(?P<value>.+?)\s*$' )
 
@@ -252,7 +252,15 @@ class ApplicationObject:
         self.options = {}
         self.extras = {}
     def __str__( self ):
-        result = '%s %s\n' % ( self.name, self.archive )
+        result = ''
+        if self.name.find( ' ' ) == -1:
+            result += '%s ' % self.name
+        else:
+            result += '"%s" ' % self.name
+        if self.archive.find( ' ' ) == -1:
+            result += '%s\n' % self.archive
+        else:
+            result += '"%s"\n' % self.archive
         extraOptionNames = self.extras.keys()
         extraOptionNames.sort()
         for k in extraOptionNames:
@@ -306,8 +314,12 @@ class _AppConsumer( _AppEventConsumer ):
     def consumeApp( self, filename, line, lineno, variables ):
         mat = _appNamePattern.match( line )
         name = mat.group( 'name' )
+        if name is None:
+            name = mat.group( 'qname' )
         name = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], name )
         archive = mat.group( 'path' )
+        if archive is None:
+            archive = mat.group( 'qpath' )
         archive = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], archive )
         obj = ApplicationObject( name, archive )
         self.parentList.append( obj )
