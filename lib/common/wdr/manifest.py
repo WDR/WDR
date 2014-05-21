@@ -220,7 +220,13 @@ class _ObjectDataConsumer( _ConfigEventConsumer ):
     def consumeObject( self, filename, line, lineno ):
         mat = _typePattern.match( line )
         name = mat.group( 'type' )
+        linkage = mat.group( 'linkage' )
         obj = ManifestConfigObject( name )
+        if linkage:
+            if linkage[0] == '#':
+                obj.anchor = linkage[1:]
+            else:
+                obj.reference = linkage[1:]
         self.parentObject.children.append( obj )
         return [self, _ObjectDataConsumer( obj )]
     def consumeDirective( self, filename, line, lineno, variables ):
@@ -518,8 +524,8 @@ def _loadConfigurationManifest( filename, variables ):
     return manifestObjects
 
 def importConfigurationManifest( filename, variables = {} ):
+    anchors = {}
     for mo in _loadConfigurationManifest( filename, variables ):
-        anchors = {}
         _importManifestConfigObject( mo, anchors )
 
 def _findMatchingObjects( manifestObject, candidateList ):
