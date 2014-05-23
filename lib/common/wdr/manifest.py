@@ -17,7 +17,9 @@
 from types import ListType
 import com.ibm.ws.scripting
 import logging
+import os
 import re
+import sys
 import wdr.config
 
 logger = logging.getLogger( 'wdrManifest' )
@@ -152,19 +154,19 @@ class LoadError:
 class _ConfigEventConsumer:
     def __init__( self ):
         pass
-    def consumeObject( self, filename, line, lineno ):
+    def consumeObject( self, filename, line, lineno, manifestPath ):
         logger.error( 'manifest parsing error - unexpected object definition at line %d', lineno )
         raise LoadError( 'Unexpected object definition', filename, line, lineno )
-    def consumeKey( self, filename, line, lineno, variables ):
+    def consumeKey( self, filename, line, lineno, variables, manifestPath ):
         logger.error( 'manifest parsing error - unexpected object key at line %d', lineno )
         raise LoadError( 'Unexpected key', filename, line, lineno )
-    def consumeAttribute( self, filename, line, lineno, variables ):
+    def consumeAttribute( self, filename, line, lineno, variables, manifestPath ):
         logger.error( 'manifest parsing error - unexpected object attribute at line %d', lineno )
         raise LoadError( 'Unexpected attribute', filename, line, lineno )
-    def consumeDirective( self, filename, line, lineno, variables ):
+    def consumeDirective( self, filename, line, lineno, variables, manifestPath ):
         logger.error( 'manifest parsing error - unexpected directive at line %d', lineno )
         raise LoadError( 'Unexpected directive', filename, line, lineno )
-    def consumeComment( self, filename, line, lineno ):
+    def consumeComment( self, filename, line, lineno, manifestPath ):
         if logger.isEnabledFor( logging.DEBUG ):
             logger.debug( 'skipping comment [%d][%s]', lineno, line )
 
@@ -172,7 +174,7 @@ class _ObjectConsumer( _ConfigEventConsumer ):
     def __init__( self, parentList ):
         _ConfigEventConsumer.__init__( self )
         self.parentList = parentList
-    def consumeObject( self, filename, line, lineno ):
+    def consumeObject( self, filename, line, lineno, manifestPath ):
         mat = _typePattern.match( line )
         name = mat.group( 'type' )
         linkage = mat.group( 'linkage' )
@@ -184,12 +186,15 @@ class _ObjectConsumer( _ConfigEventConsumer ):
                 obj.reference = linkage[1:]
         self.parentList.append( obj )
         return [self, _ObjectDataConsumer( obj )]
-    def consumeDirective( self, filename, line, lineno, variables ):
+    def consumeDirective( self, filename, line, lineno, variables, manifestPath ):
         mat = _directivePattern.match( line )
         name = mat.group( 'name' )
         values = mat.group( 'values' ).split()
         if 'include' == name:
-            self.parentList.extend( _loadConfigurationManifest( values[0], variables ) )
+            self.parentList.extend( _loadConfigurationManifest( _locateManifestFile( values[0], [os.path.dirname( filename )] ), variables, manifestPath ) )
+            return [self]
+        elif 'import' == name:
+            self.parentList.extend( _loadConfigurationManifest( _locateManifestFile( values[0], manifestPath ), variables, manifestPath ) )
             return [self]
         logger.error( 'manifest parsing error - unexpected directive at line %d', lineno )
         raise LoadError( 'Unexpected directive', filename, line, lineno )
@@ -198,13 +203,13 @@ class _ObjectDataConsumer( _ConfigEventConsumer ):
     def __init__( self, parentObject ):
         _ConfigEventConsumer.__init__( self )
         self.parentObject = parentObject
-    def consumeKey( self, filename, line, lineno, variables ):
+    def consumeKey( self, filename, line, lineno, variables, manifestPath ):
         mat = _keyPattern.match( line )
         name = mat.group( 'name' )
         value = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], mat.group( 'value' ) )
         self.parentObject.keys[name] = value
         return [self]
-    def consumeAttribute( self, filename, line, lineno, variables ):
+    def consumeAttribute( self, filename, line, lineno, variables, manifestPath ):
         mat = _attPattern.match( line )
         name = mat.group( 'name' )
         value = mat.group( 'value' )
@@ -217,7 +222,7 @@ class _ObjectDataConsumer( _ConfigEventConsumer ):
             self.parentObject.attributes[name] = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], value )
             self.parentObject._orderedAttributeNames.append( name )
             return [self, _ConfigEventConsumer()]
-    def consumeObject( self, filename, line, lineno ):
+    def consumeObject( self, filename, line, lineno, manifestPath ):
         mat = _typePattern.match( line )
         name = mat.group( 'type' )
         linkage = mat.group( 'linkage' )
@@ -229,12 +234,15 @@ class _ObjectDataConsumer( _ConfigEventConsumer ):
                 obj.reference = linkage[1:]
         self.parentObject.children.append( obj )
         return [self, _ObjectDataConsumer( obj )]
-    def consumeDirective( self, filename, line, lineno, variables ):
+    def consumeDirective( self, filename, line, lineno, variables, manifestPath ):
         mat = _directivePattern.match( line )
         name = mat.group( 'name' )
         values = mat.group( 'values' ).split()
         if 'include' == name:
-            self.parentObject.children.extend( _loadConfigurationManifest( values[0], variables ) )
+            self.parentObject.children.extend( _loadConfigurationManifest( _locateManifestFile( values[0], [os.path.dirname( filename )] ), variables, manifestPath ) )
+            return [self]
+        elif 'import' == name:
+            self.parentObject.children.extend( _loadConfigurationManifest( _locateManifestFile( values[0], manifestPath ), variables, manifestPath ) )
             return [self]
         logger.error( 'manifest parsing error - unexpected directive at line %d', lineno )
         raise LoadError( 'Unexpected directive', filename, line, lineno )
@@ -327,6 +335,8 @@ class _AppConsumer( _AppEventConsumer ):
         if archive is None:
             archive = mat.group( 'qpath' )
         archive = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], archive )
+        dirname = os.path.dirname( os.path.normpath( os.path.abspath( filename ) ) )
+        archive = os.path.normpath( os.path.join( dirname, archive ) )
         obj = ApplicationObject( name, archive )
         self.parentList.append( obj )
         return [self, _AppOptionConsumer( obj )]
@@ -431,11 +441,16 @@ def loadApplications( filename, variables = {}, listener = None ):
     logger.warning( 'wdr.manifest.loadApplications is deprecated and will be removed in v0.5. Use importApplicationManifest instead' )
     return importApplicationManifest( filename, variables, listener )
 
-def importApplicationManifest( filename, variables = {}, listener = None ):
+def importApplicationManifest( filename, variables = {}, listener = None, manifestPath = None ):
     if listener is None:
         listener = ApplicationDeploymentListener()
+    if manifestPath is None:
+        manifestPath = ['.']
+        sysPathReversed = sys.path[:]
+        sysPathReversed.reverse()
+        manifestPath.extend( sysPathReversed )
     affectedApplications = []
-    for mo in _importApplicationManifest( filename, variables ):
+    for mo in _importApplicationManifest( _locateManifestFile( filename, manifestPath ), variables ):
         if mo.name in wdr.app.listApplications():
             deployment = wdr.config.getid1( '/Deployment:%s/' % mo.name )
             deployedChecksumProperties = deployment.deployedObject.lookup( 'Property', {'name':'wdr.checksum'} )
@@ -488,7 +503,25 @@ def loadConfiguration( filename, variables = {} ):
     logger.warning( 'wdr.manifest.loadConfiguration is deprecated and will be removed in v0.5. Use importConfigurationManifest instead' )
     return importConfigurationManifest( filename, variables )
 
-def _loadConfigurationManifest( filename, variables ):
+def _locateManifestFile( filename, manifestPath ):
+    if logger.isEnabledFor( logging.DEBUG ):
+        logger.debug( 'Locating manifest file %s in %s', filename, manifestPath )
+    for dirname in manifestPath:
+        dirname = os.path.abspath( dirname )
+        candidate = os.path.normpath( os.path.join( dirname, filename ) )
+        if os.path.isfile( candidate ):
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'Manifest file %s found in %s as %s', filename, dirname, candidate )
+            return candidate
+        else:
+            if logger.isEnabledFor( logging.DEBUG ):
+                logger.debug( 'Manifest file %s not found in %s', filename, dirname )
+    if logger.isEnabledFor( logging.DEBUG ):
+        logger.debug( 'Manifest file %s not found in %s', filename, manifestPath )
+    raise Exception( 'Manifest file %s not found' % filename )
+
+def _loadConfigurationManifest( filename, variables, manifestPath ):
+    filename = os.path.normpath( os.path.abspath( filename ) )
     logger.debug( 'loading file %s with variables %s', filename, variables )
     fi = open( filename, 'r' )
     logger.debug( 'file %s successfully opened', filename )
@@ -506,15 +539,15 @@ def _loadConfigurationManifest( filename, variables ):
             if len( stack ) < indent + 1:
                 return manifestObjects
             if _typePattern.match( line ):
-                stack = stack[0:indent] + stack[indent].consumeObject( filename, line, lineno )
+                stack = stack[0:indent] + stack[indent].consumeObject( filename, line, lineno, manifestPath )
             elif _keyPattern.match( line ):
-                stack = stack[0:indent] + stack[indent].consumeKey( filename, line, lineno, variables )
+                stack = stack[0:indent] + stack[indent].consumeKey( filename, line, lineno, variables, manifestPath )
             elif _attPattern.match( line ):
-                stack = stack[0:indent] + stack[indent].consumeAttribute( filename, line, lineno, variables )
+                stack = stack[0:indent] + stack[indent].consumeAttribute( filename, line, lineno, variables , manifestPath)
             elif _directivePattern.match( line ):
-                stack = stack[0:indent] + stack[indent].consumeDirective( filename, line, lineno, variables )
+                stack = stack[0:indent] + stack[indent].consumeDirective( filename, line, lineno, variables, manifestPath )
             elif _commentPattern.match( line ):
-                stack[indent].consumeComment( filename, line, lineno )
+                stack[indent].consumeComment( filename, line, lineno, manifestPath )
             else:
                 logger.error( 'invalid manifest statement in line %s', lineno )
                 raise LoadError( 'Not recognized', filename, line, lineno )
@@ -523,9 +556,14 @@ def _loadConfigurationManifest( filename, variables ):
         fi.close()
     return manifestObjects
 
-def importConfigurationManifest( filename, variables = {} ):
+def importConfigurationManifest( filename, variables = {}, manifestPath = None ):
+    if manifestPath is None:
+        manifestPath = ['.']
+        sysPathReversed = sys.path[:]
+        sysPathReversed.reverse()
+        manifestPath.extend( sysPathReversed )
     anchors = {}
-    for mo in _loadConfigurationManifest( filename, variables ):
+    for mo in _loadConfigurationManifest( _locateManifestFile( filename, manifestPath ), variables, manifestPath ):
         _importManifestConfigObject( mo, anchors )
 
 def _findMatchingObjects( manifestObject, candidateList ):
