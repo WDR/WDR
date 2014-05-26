@@ -31,6 +31,71 @@ logger = logging.getLogger( 'wdr.tools' )
 
 _diagnosticComments = 0
 
+_defaultExportConfig = {
+                      'Server':{
+                                'keys':['name'],
+                                'attributes':['processDefinitions'],
+                                'children':['JDBCProvider']
+                                },
+                      'Node':{
+                                'keys':['name'],
+                                'attributes':['processDefinitions'],
+                                'children':['Server', 'JDBCProvider']
+                                },
+                      'Cell':{
+                                'keys':['name'],
+                                'attributes':['processDefinitions'],
+                                'children':['Node', 'ServerCluster', 'JDBCProvider']
+                                },
+                      'ServerCluster':{
+                                'keys':['name'],
+                                'attributes':['description', 'preferLocal', 'nodeGroupName', 'enableHA', 'serverType', 'jsfProvider', 'clusterAddress', 'prefetchDWLMTable', 'members'],
+                                'children':['JDBCProvider']
+                                },
+                      'ClusterMember':{
+                                'keys':['nodeName', 'memberName'],
+                                'attributes':['weight', 'uniqueId'],
+                                'children':[]
+                                },
+                      'JDBCProvider':{
+                                      'keys':['name'],
+                                      'attributes':['description', 'classpath', 'nativepath', 'providerType', 'propertySet', 'implementationClassName', 'xa'],
+                                      'children':['DataSource']
+                                      },
+                      'J2EEResourcePropertySet':{
+                                                 'keys':[],
+                                                 'attributes':['resourceProperties'],
+                                                 'children':[]
+                                                 },
+                      'J2EEResourceProperty':{
+                                              'keys':['name'],
+                                              'attributes':['type', 'value', 'description'],
+                                              'children':[]
+                                              },
+                      'DataSource':{
+                                    'keys':['name'],
+                                    'attributes':['jnidName', 'statementCacheSize', 'logMissingTransactionContext', 'properties', 'datasourceHelperClassname', 'authDataAlias', 'xaRecoveryAuthAlias', 'connectionPool'],
+                                    'children':[]
+                                    },
+                      'ConnectionPool':{
+                                        'keys':[],
+                                        'attributes':['connectionTimeout', 'maxConnections', 'minConnections', 'reapTime', 'unusedTimeout', 'agedTimeout', 'purgePolicy', 'numberOfSharedPoolPartitions', 'numberOfUnsharedPoolPartitions', 'numberOfFreePoolPartitions', 'freePoolDistributionTableSize', 'surgeThreshold', 'surgeCreationInterval', 'testConnection', 'testConnectionInterval', 'stuckTimerTime', 'stuckTime', 'stuckThreshold', 'properties'],
+                                        'children':[]
+                                        },
+                      'JavaProcessDef':{
+                                        'keys':[],
+                                        'attributes':['jvmEntries'],
+                                        'children':[]
+                                        },
+                      'JavaVirtualMachine':{
+                                            'keys':[],
+                                            'attributes':['initialHeapSize', 'maximumHeapSize', 'genericJvmArguments', 'bootClasspath', 'classpath', 'systemProperties', 'verboseModeClass', 'verboseModeGarbageCollection', 'verboseModeJNI', 'runHProf', 'hprofArguments', 'debugMode', 'debugArgs', 'disableJIT', 'internalClassAccessMode']
+                                            },
+                      'Property':{
+                                  'keys':['name'],
+                                  'attributes':['value', 'description']
+                                  }
+                      }
 
 class ManifestGenerationAdminApp:
     def __init__( self, adminApp, manifestFilename = None ):
@@ -410,3 +475,63 @@ def exportApplicationManifest( appName, customTaskProcessors = {} ):
         if isinstance(v, ListType):
             v.sort()
     return manifest
+
+def exportConfigurationManifestToFile( configObjects, filename, exportConfig = None ):
+    if not exportConfig:
+        exportConfig = _defaultExportConfig
+    logger.debug( 'opening file %s for writing', filename )
+    fi = open( filename, 'w' )
+    logger.debug( 'file %s successfully opened for writing', filename )
+    try:
+        fi.write( reduce( lambda x, y: x + str( y ), [exportConfigurationManifest( co, exportConfig ) for co in configObjects], '' ) )
+    finally:
+        fi.close()
+
+def exportConfigurationManifest( configObject, exportConfig ):
+    if logger.isEnabledFor( logging.DEBUG ):
+        logger.debug( 'exporting %s', configObject )
+    typeName = configObject._type
+    typeExportConfig = None
+    typeInfo = wdr.config.getTypeInfo( typeName )
+    result = wdr.manifest.ManifestConfigObject( typeName )
+    if exportConfig.has_key( typeName ):
+        typeExportConfig = exportConfig[typeName]
+    else:
+        return result
+    attributes = configObject.getAllAttributes()
+    for n in typeExportConfig['keys']:
+        if attributes.has_key( n ):
+            attInfo = typeInfo.attributes[n]
+            attTypeInfo = wdr.config.getTypeInfo( attInfo.type )
+            v = attributes[n]
+            if attTypeInfo.converter:
+                if attInfo.list:
+                    result.keys[n] = ';'.join( [attTypeInfo.converter.toAdminConfig( e ) for e in v] )
+                else:
+                    result.keys[n] = attTypeInfo.converter.toAdminConfig( v )
+    for n in typeExportConfig['attributes']:
+        if attributes.has_key( n ):
+            attInfo = typeInfo.attributes[n]
+            attTypeInfo = wdr.config.getTypeInfo( attInfo.type )
+            v = attributes[n]
+            if attTypeInfo.converter:
+                if attInfo.list:
+                    result.attributes[n] = ';'.join( [attTypeInfo.converter.toAdminConfig( e ) for e in v] )
+                else:
+                    result.attributes[n] = attTypeInfo.converter.toAdminConfig( v )
+            else:
+                if attInfo.list:
+                    values = result.attributes.get( n, [] )
+                    result.attributes[n] = values
+                    for e in v:
+                        if exportConfig.has_key( e._type ):
+                            values.append( exportConfigurationManifest( e, exportConfig ) )
+                else:
+                    result.attributes[n] = exportConfigurationManifest( v, exportConfig )
+            result._orderedAttributeNames.append( n )
+    childTypes = []
+    if typeExportConfig.has_key( 'children' ):
+        childTypes = typeExportConfig['children']
+    for c in childTypes:
+        result.children.extend( [exportConfigurationManifest( co, exportConfig ) for co in configObject.lookup( c, {} )] )
+    return result
