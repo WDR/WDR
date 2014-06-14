@@ -74,7 +74,7 @@ _defaultExportConfig = {
                                               },
                       'DataSource':{
                                     'keys':['name'],
-                                    'attributes':['jnidName', 'statementCacheSize', 'logMissingTransactionContext', 'properties', 'datasourceHelperClassname', 'authDataAlias', 'xaRecoveryAuthAlias', 'connectionPool'],
+                                    'attributes':['jndiName', 'statementCacheSize', 'logMissingTransactionContext', 'properties', 'datasourceHelperClassname', 'authDataAlias', 'xaRecoveryAuthAlias', 'connectionPool'],
                                     'children':[]
                                     },
                       'ConnectionPool':{
