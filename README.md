@@ -47,7 +47,7 @@ dmgr.restart()
 * Clone the latest repository with `git clone https://github.com/WDR/WDR.git`
 * run wsadmin with 
  - `-profile $WDR_HOME/profile.py`
- - `-javaoption "-Dpython.path=$WDR_HOME"`
+ - `-javaoption "-Dpython.path=$WDR_HOME/lib/common:$WDR_HOME/lib/legacy"`
 
 # Visit WDR home page for more...
 
