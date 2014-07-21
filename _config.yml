@@ -14,7 +14,7 @@ tagline: Jython framework aiming at simplifying WebSphere Application Server scr
 author :
   name : WDR contributors
   #email : mplonka@gmail.com
-  github : WDR
+  github : WDR/WDR
   #twitter : username
   #feedburner : feedname
 
