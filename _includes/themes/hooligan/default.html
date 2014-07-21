@@ -24,6 +24,15 @@
     <link href="{{ ASSET_PATH }}/css/darkstrap.css" rel="stylesheet" type="text/css" media="all">    
     <link href="{{ ASSET_PATH }}/css/style.css?body=1" rel="stylesheet" type="text/css" media="all">
 
+    <style>
+        .right-bottom .github-fork-ribbon {
+            background-color: #090;
+        }
+    </style>
+    <link rel="stylesheet" href="/assets/css/gh-fork-ribbon.css">
+    <!--[if lt IE 9]>
+        <link rel="stylesheet" href="/assets/css/gh-fork-ribbon.ie.css">
+    <![endif]-->
     
     <!-- fav and touch icons -->
   <!-- Update these with your own images
@@ -108,6 +117,12 @@
     <div class="container">
       <div class="content">
         {{ content }}
+      </div>
+
+      <div class="github-fork-ribbon-wrapper right-bottom">
+        <div class="github-fork-ribbon">
+          <a href="https://github.com/WDR/WDR">Fork me on GitHub</a>
+        </div>
       </div>
 
       <footer>
