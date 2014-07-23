@@ -33,6 +33,7 @@ import wdr
 from wdr.app import *
 from wdr.config import *
 from wdr.control import *
+from wdr.task import *
 from wdr.manifest import *
 from wdr.util import *
 
