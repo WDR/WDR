@@ -37,3 +37,17 @@ def adminTaskAsDictList( adminTaskListOfLists ):
         if listMatcher:
             result.append( adminTaskAsDict( listMatcher.group( 1 ) ) )
     return result
+
+def adminTaskAsListOfLists( adminTaskList ):
+    result = []
+    for ( key, valueQuoted, valueNotQuoted ) in _itemPattern.findall( adminTaskList ):
+        result.append( [key, valueQuoted or valueNotQuoted] )
+    return result
+
+def adminTaskAsListOfListsList( adminTaskListOfLists ):
+    result = []
+    for l in adminTaskListOfLists.splitlines():
+        listMatcher = _listPattern.match( l )
+        if listMatcher:
+            result.append( adminTaskAsListOfLists( listMatcher.group( 1 ) ) )
+    return result
