@@ -315,22 +315,29 @@ class _AppOptionValueConsumer( _AppEventConsumer ):
         self.parentList.append( re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], value ).split( ';' ) )
         return [self, _AppEventConsumer()]
 
+def _extraOptionProcessor_webModuleClassLoadingMode( mo, name, value ):
+    for ( uri, mode ) in value:
+        applied = 0
+        for module in wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.modules:
+            if module._type == 'WebModuleDeployment' and module.uri == uri:
+                module.classloaderMode = mode
+                applied = 1
+        if not applied:
+            logger.error( 'webModuleClassLoadingMode option could not match module %s', uri )
+            raise Exception( 'webModuleClassLoadingMode option could not match module %s', uri )
+
+_extraOptionNamesOrdered = [ 'startingWeight', 'classLoadingMode', 'webModuleClassLoadingMode' ]
+
+_extraOptionProcessors = {
+    'startingWeight': lambda mo, name, value: wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.startingWeight = value,
+    'classLoadingMode': lambda mo, name, value: wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.classloader.mode = value,
+    'webModuleClassLoadingMode': _extraOptionProcessor_webModuleClassLoadingMode,
+}
+
 def processExtraAppOption( mo, name, value ):
-    if name == 'startingWeight':
-        wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.startingWeight = value
-    elif name == 'classLoadingMode':
-        wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.classloader.mode = value
-    elif name == 'webModuleClassLoadingMode':
-        for uriMode in value:
-            ( uri, mode ) = uriMode
-            applied = 0
-            for module in wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.modules:
-                if module._type == 'WebModuleDeployment' and module.uri == uri:
-                    module.classloaderMode = mode
-                    applied = 1
-            if not applied:
-                logger.error( 'webModuleClassLoadingMode option could not match module %s', uri )
-                raise Exception( 'webModuleClassLoadingMode option could not match module %s', uri )
+    extraOptionProcessor = _extraOptionProcessors.get( name )
+    if extraOptionProcessor:
+        extraOptionProcessor( mo, name, value )
     else:
         logger.error( 'Extra option "%s" specified for %s is not supported', name, mo.name )
         raise Exception( 'Extra option "%s" specified for %s is not supported' % ( name, mo.name ) )
@@ -429,8 +436,9 @@ def importApplicationManifest( filename, variables = {}, listener = None, manife
             wdr.config.getid1( '/Deployment:%s/' % mo.name ).deployedObject.assure( 'Property', {'name':'wdr.checksum'}, 'properties', value = calculatedChecksum, description = 'Checksum of deployed EAR file and application manifest' )
             affectedApplications.append( mo.name )
             listener.afterInstall( mo.name, mo.archive )
-        for ( k, v ) in mo.extras.items():
-            processExtraAppOption( mo, k, v )
+        for extraOptionName in _extraOptionNamesOrdered:
+            if mo.extras.has_key( extraOptionName ):
+                processExtraAppOption( mo, extraOptionName, mo.extras[ extraOptionName ] )
     return affectedApplications
 
 def loadConfiguration( filename, variables = {} ):
