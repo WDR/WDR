@@ -315,6 +315,12 @@ class _AppOptionValueConsumer( _AppEventConsumer ):
         self.parentList.append( re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], value ).split( ';' ) )
         return [self, _AppEventConsumer()]
 
+def _extraOptionProcessor_startingWeight( mo, name, value ):
+    wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.startingWeight = value
+
+def _extraOptionProcessor_classLoadingMode( mo, name, value ):
+    wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.classloader.mode = value
+
 def _extraOptionProcessor_webModuleClassLoadingMode( mo, name, value ):
     for ( uri, mode ) in value:
         applied = 0
@@ -329,8 +335,8 @@ def _extraOptionProcessor_webModuleClassLoadingMode( mo, name, value ):
 _extraOptionNamesOrdered = [ 'startingWeight', 'classLoadingMode', 'webModuleClassLoadingMode' ]
 
 _extraOptionProcessors = {
-    'startingWeight': lambda mo, name, value: wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.startingWeight = value,
-    'classLoadingMode': lambda mo, name, value: wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.classloader.mode = value,
+    'startingWeight': _extraOptionProcessor_startingWeight,
+    'classLoadingMode': _extraOptionProcessor_classLoadingMode,
     'webModuleClassLoadingMode': _extraOptionProcessor_webModuleClassLoadingMode,
 }
 
