@@ -15,7 +15,13 @@
 #
 
 import logging
+import threading
+import time
+import types
 import wdr
+
+import java.util
+import javax.management
 
 ( AdminApp, AdminConfig, AdminControl, AdminTask, Help ) = wdr.WsadminObjects().getObjects()
 
@@ -108,6 +114,9 @@ class JMXMBean:
 
     def __repr__( self ):
         return '%s("%s")' % ( self.__class__, self._id )
+
+    def waitForNotification( self, typeOrTypes = None, propertiesOrPropertiesList = None, timeout = 300.0 ):
+        return waitForNotification( self._id, typeOrTypes, propertiesOrPropertiesList, timeout )
 
 class MBeanAttribute:
     def __init__( self, mbean, info ):
@@ -245,6 +254,9 @@ class MBean:
 
     def __repr__( self ):
         return '%s("%s")' % ( self.__class__, self._id )
+
+    def waitForNotification( self, typeOrTypes = None, propertiesOrPropertiesList = None, timeout = 300.0 ):
+        return waitForNotification( self._id, typeOrTypes, propertiesOrPropertiesList, timeout )
 
 def queryMBeans( **attributes ):
     """Queries given the query criteria, retrieves an array of matching MBeans.
@@ -412,3 +424,101 @@ _typeRegistry = {
                  'java.lang.String': StringAttributeConverter()
                  }
 
+class BaseLocalNotificationFilter( javax.management.NotificationFilter ):
+    def __init__( self ):
+        pass
+
+    def getNotificationFilterSupport( self ):
+        return javax.management.NotificationFilterSupport()
+
+class LocalNotificationFilter( BaseLocalNotificationFilter ):
+    def __init__( self, typeOrTypes, propertiesOrPropertiesList ):
+        if typeOrTypes is None:
+            self.types = None
+        elif isinstance( typeOrTypes, types.ListType ):
+            if len( typeOrTypes ):
+                self.types = tuple( typeOrTypes )
+            else:
+                self.types = None
+        elif isinstance( typeOrTypes, types.TupleType ):
+            if len( typeOrTypes ):
+                self.types = typeOrTypes
+            else:
+                self.types = None
+        else:
+            self.types = ( typeOrTypes, )
+        if propertiesOrPropertiesList is None:
+            self.properties = None
+        elif isinstance( propertiesOrPropertiesList, types.ListType ):
+            self.properties = tuple( propertiesOrPropertiesList )
+        elif isinstance( propertiesOrPropertiesList, types.TupleType ):
+            self.properties = propertiesOrPropertiesList
+        else:
+            self.properties = ( propertiesOrPropertiesList, )
+
+    def isNotificationEnabled( self, notification ):
+        matched = 1
+        matched &= ( self.types is None ) or ( str( notification.type ) in self.types )
+        matched &= ( self.properties is None) or ( notification.userData is None ) or self.userDataMatchesProperties( notification.userData )
+        return matched
+
+    def userDataMatchesProperties(self, userData):
+        if java.util.Map.isAssignableFrom(userData.__class__):
+            transformedUserData = {}
+            for e in userData.entrySet():
+                transformedUserData[str(e.key)] = str(e.value)
+            return ( transformedUserData in self.properties )
+        else:
+            return 0
+
+    def getNotificationFilterSupport( self ):
+        if not self.types is None:
+            result = BaseLocalNotificationFilter.getNotificationFilterSupport( self )
+            for t in self.types:
+                result.enableType( t )
+        else:
+            result = None
+        return result
+
+class ScriptedNotificationListener( javax.management.NotificationListener ):
+    def __init__( self, notificationFilter ) :
+        self.condition = threading.Condition()
+        self.notificationFilter = notificationFilter
+        self.__result = None
+
+    def waitForNotification( self, timeout=0 ):
+        result = None
+        self.condition.acquire()
+        self.__result = None
+        try:
+            self.condition.wait( timeout )
+            result = self.__result
+        finally:
+            self.condition.release()
+        return result
+
+    def handleNotification( self, notification, handback ):
+        logger.debug( 'received %s with userData %s', notification, notification.userData )
+        self.condition.acquire()
+        try:
+            if ( self.notificationFilter is None ) or self.notificationFilter.isNotificationEnabled( notification ):
+                self.__result = notification
+                self.condition.notify()
+                logger.debug( 'returning notification %s with userData %s', notification, notification.userData )
+            else:
+                logger.debug( 'ignoring notification %s with userData %s', notification, notification.userData )
+        finally:
+            self.condition.release()
+
+def waitForNotification( objectName, typeOrTypes = None, propertiesOrPropertiesList = None, timeout = 300.0 ):
+    resutl = None
+    localFilter = LocalNotificationFilter( typeOrTypes, propertiesOrPropertiesList )
+    listener = ScriptedNotificationListener( localFilter )
+    if not isinstance( objectName, javax.management.ObjectName ):
+        objectName = AdminControl.makeObjectName( objectName )
+    AdminControl.adminClient.addNotificationListener( objectName, listener, localFilter.getNotificationFilterSupport(), None )
+    try:
+        result = listener.waitForNotification( timeout )
+    finally:
+        AdminControl.adminClient.removeNotificationListener( objectName, listener )
+    return result
