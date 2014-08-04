@@ -359,8 +359,23 @@ def _extraOptionProcessor_providerPolicySharingInfo( mo, name, value ):
     appName = mo.name
     for si in wdr.task.adminTaskAsDictList(AdminTask.getProviderPolicySharingInfo(['-applicationName', appName])):
         AdminTask.setProviderPolicySharingInfo(['-applicationName', appName, '-resource', si['resource'], '-remove', 'true'])
-    for ( resource, methods ) in value:
-        AdminTask.setProviderPolicySharingInfo(['-applicationName', appName, '-resource', resource, '-sharePolicyMethods', methods])
+    for row in value:
+        ( resource, methods ) = row[0:1]
+        wsMexPolicySetName = None
+        wsMexPolicySetBinding = None
+        if len( row ) > 2:
+            wsMexPolicySetName = row[2]
+        if len( row ) > 3:
+            wsMexPolicySetBinding = row[3]
+        args = ['-applicationName', appName, '-resource', resource, '-sharePolicyMethods', methods]
+        wsMexProperties = []
+        if wsMexPolicySetName:
+            wsMexProperties.append(['wsMexPolicySetName', wsMexPolicySetName])
+        if wsMexPolicySetBinding:
+            wsMexProperties.append(['wsMexPolicySetBinding', wsMexPolicySetBinding])
+        if wsMexProperties:
+            args.append(['-wsMexProperties', wsMexProperties])
+        AdminTask.setProviderPolicySharingInfo(args)
 
 def _extraOptionProcessor_scaImportWSBindings( mo, name, value ):
     appName = mo.name
