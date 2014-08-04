@@ -21,6 +21,7 @@ import os
 import re
 import sys
 import wdr.config
+import wdr.task
 
 logger = logging.getLogger( 'wdrManifest' )
 
@@ -332,12 +333,53 @@ def _extraOptionProcessor_webModuleClassLoadingMode( mo, name, value ):
             logger.error( 'webModuleClassLoadingMode option could not match module %s', uri )
             raise Exception( 'webModuleClassLoadingMode option could not match module %s', uri )
 
-_extraOptionNamesOrdered = [ 'startingWeight', 'classLoadingMode', 'webModuleClassLoadingMode' ]
+def _extraOptionProcessor_clientWSPolicySetAttachments( mo, name, value ):
+    appName = mo.name
+    for att in wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'client'])):
+        AdminTask.deletePolicySetAttachment(['-attachmentId', att['id'], '-applicationName', appName])
+    for ( policySet, resource ) in value:
+        AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'client'])
+
+def _extraOptionProcessor_applicationWSPolicySetAttachments( mo, name, value ):
+    appName = mo.name
+    for att in wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'application'])):
+        AdminTask.deletePolicySetAttachment(['-attachmentId', att['id'], '-applicationName', appName])
+    for ( policySet, resource, binding ) in value:
+        attId = AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'application'])
+        AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'application', '-bindingLocation', [ ['application', appName], ['attachmentId', attId] ]])
+
+def _extraOptionProcessor_systemTrustWSPolicySetAttachments( mo, name, value ):
+    appName = mo.name
+    for att in wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'system/trust'])):
+        AdminTask.deletePolicySetAttachment(['-attachmentId', att['id'], '-applicationName', appName])
+    for ( policySet, resource ) in value:
+        AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'system/trust'])
+
+def _extraOptionProcessor_providerPolicySharingInfo( mo, name, value ):
+    appName = mo.name
+    for si in wdr.task.adminTaskAsDictList(AdminTask.getProviderPolicySharingInfo(['-applicationName', appName])):
+        AdminTask.setProviderPolicySharingInfo(['-applicationName', appName, '-resource', si['resource'], '-remove', 'true'])
+    for ( resource, methods ) in value:
+        AdminTask.setProviderPolicySharingInfo(['-applicationName', appName, '-resource', resource, '-sharePolicyMethods', methods])
+
+_extraOptionNamesOrdered = (
+    'startingWeight',
+    'classLoadingMode',
+    'webModuleClassLoadingMode',
+    'applicationWSPolicySetAttachments',
+    'clientWSPolicySetAttachments',
+    'systemTrustWSPolicySetAttachments',
+    'providerPolicySharingInfo',
+    )
 
 _extraOptionProcessors = {
     'startingWeight': _extraOptionProcessor_startingWeight,
     'classLoadingMode': _extraOptionProcessor_classLoadingMode,
     'webModuleClassLoadingMode': _extraOptionProcessor_webModuleClassLoadingMode,
+    'applicationWSPolicySetAttachments': _extraOptionProcessor_applicationWSPolicySetAttachments,
+    'clientWSPolicySetAttachments': _extraOptionProcessor_clientWSPolicySetAttachments,
+    'systemTrustWSPolicySetAttachments': _extraOptionProcessor_systemTrustWSPolicySetAttachments,
+    'providerPolicySharingInfo': _extraOptionProcessor_providerPolicySharingInfo,
 }
 
 def processExtraAppOption( mo, name, value ):
