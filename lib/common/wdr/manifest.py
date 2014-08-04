@@ -362,10 +362,22 @@ def _extraOptionProcessor_providerPolicySharingInfo( mo, name, value ):
     for ( resource, methods ) in value:
         AdminTask.setProviderPolicySharingInfo(['-applicationName', appName, '-resource', resource, '-sharePolicyMethods', methods])
 
+def _extraOptionProcessor_scaImportWSBindings( mo, name, value ):
+    appName = mo.name
+    for ( moduleName, importName, endpoint ) in value:
+        AdminTask.modifySCAImportWSBinding(['-applicationName', appName, '-moduleName', moduleName, '-import', importName, '-endpoint', endpoint])
+
+def _extraOptionProcessor_scaModuleProperties( mo, name, value ):
+    appName = mo.name
+    for ( moduleName, propertyName, propertyValue ) in value:
+        AdminTask.modifySCAModuleProperty(['-applicationName', appName, '-moduleName', moduleName, '-propertyName', propertyName, '-newPropertyValue', propertyValue])
+
 _extraOptionNamesOrdered = (
     'startingWeight',
     'classLoadingMode',
     'webModuleClassLoadingMode',
+    'scaImportWSBindings',
+    'scaModuleProperties',
     'applicationWSPolicySetAttachments',
     'clientWSPolicySetAttachments',
     'systemTrustWSPolicySetAttachments',
@@ -376,6 +388,8 @@ _extraOptionProcessors = {
     'startingWeight': _extraOptionProcessor_startingWeight,
     'classLoadingMode': _extraOptionProcessor_classLoadingMode,
     'webModuleClassLoadingMode': _extraOptionProcessor_webModuleClassLoadingMode,
+    'scaImportWSBindings', _extraOptionProcessor_scaImportWSBindings,
+    'scaModuleProperties', _extraOptionProcessor_scaModuleProperties,
     'applicationWSPolicySetAttachments': _extraOptionProcessor_applicationWSPolicySetAttachments,
     'clientWSPolicySetAttachments': _extraOptionProcessor_clientWSPolicySetAttachments,
     'systemTrustWSPolicySetAttachments': _extraOptionProcessor_systemTrustWSPolicySetAttachments,
