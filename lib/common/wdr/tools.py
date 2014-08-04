@@ -16,6 +16,7 @@
 
 import java.util.List
 import logging
+import re
 import sys
 from java.util import Hashtable
 
@@ -462,6 +463,57 @@ def exportApplicationManifest( appName, customTaskProcessors = {} ):
             webModuleClassLoadingModes.append( '%s;%s' % ( module.uri, module.classloaderMode ) )
     if webModuleClassLoadingModes:
         manifest.extras['webModuleClassLoadingMode'] = webModuleClassLoadingModes
+    scaMapping = {}
+    try:
+        for moduleInfo in [ l.split(':') for l in AdminTask.listSCAModules().splitlines() ]:
+            scaMapping[moduleInfo[1]] = moduleInfo[0]
+    except AttributeError:
+        pass
+    scaModuleName = scaMapping.get( appName )
+    if scaModuleName:
+        try:
+            manifest.extras['scaModuleProperties'] = [[scaModuleName] + l.split('=') for l in AdminTask.showSCAModuleProperties(['-moduleName', scaModuleName, '-applicationName', appName]).splitlines()]
+        except:
+            pass
+        try:
+            scaImportWSBindings = []
+            deployedEndpointPat = re.compile(r'.*deployedEndpoint=([^,]+),.*')
+            for importName in AdminTask.listSCAImports(['-moduleName', scaModuleName, '-applicationName', appName]).splitlines():
+                try:
+                    importBinding = AdminTask.showSCAImportWSBinding(['-moduleName', scaModuleName, '-applicationName', appName, '-import', importName])
+                    deployedEndpointMat = deployedEndpointPat.match(importBinding)
+                    if deployedEndpointMat:
+                        scaImportWSBindings.append([scaModuleName, importName, deployedEndpointMat.group(1)])
+                except:
+                    pass
+            if scaImportWSBindings:
+                manifest.extras['scaImportWSBindings'] = scaImportWSBindings
+        except:
+            pass
+    applicationWSPolicySetAttachments = wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'application']))
+    if applicationWSPolicySetAttachments:
+        applicationWSPolicySetAttachmentList = []
+        for att in applicationWSPolicySetAttachments:
+            applicationWSPolicySetAttachmentList.append([att['name'], att['pattern.0'], att['binding']])
+        manifest.extras['applicationWSPolicySetAttachments'] = applicationWSPolicySetAttachmentList
+    clientWSPolicySetAttachments = wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'client']))
+    if clientWSPolicySetAttachments:
+        clientWSPolicySetAttachmentList = []
+        for att in clientWSPolicySetAttachments:
+            clientWSPolicySetAttachmentList.append([att['name'], att['pattern.0'], att['binding']])
+        manifest.extras['clientWSPolicySetAttachments'] = clientWSPolicySetAttachmentList
+    systemTrustWSPolicySetAttachments = wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'system/trust']))
+    if systemTrustWSPolicySetAttachments:
+        systemTrustWSPolicySetAttachmentList = []
+        for att in systemTrustWSPolicySetAttachments:
+            systemTrustWSPolicySetAttachmentList.append([att['name'], att['pattern.0'], att['binding']])
+        manifest.extras['systemTrustWSPolicySetAttachments'] = systemTrustWSPolicySetAttachmentList
+    providerPolicySharingInfo = wdr.task.adminTaskAsDictList(AdminTask.getProviderPolicySharingInfo(['-applicationName', appName]))
+    if providerPolicySharingInfo:
+        providerPolicySharingInfoList = []
+        for psi in providerPolicySharingInfo:
+            providerPolicySharingInfoList.append( [psi['resource'], psi['sharePolicyMethods'], psi.get('wsMexPolicySetName', ''), psi.get('wsMexPolicySetBinding', '')] )
+        manifest.extras['providerPolicySharingInfo'] = providerPolicySharingInfoList
     for task in appManagement.getApplicationInfo( appName, prefs, None ):
         taskProcessor = taskProcessors.get(task.name)
         if taskProcessor:
