@@ -360,7 +360,7 @@ def _extraOptionProcessor_providerPolicySharingInfo( mo, name, value ):
     for si in wdr.task.adminTaskAsDictList(AdminTask.getProviderPolicySharingInfo(['-applicationName', appName])):
         AdminTask.setProviderPolicySharingInfo(['-applicationName', appName, '-resource', si['resource'], '-remove', 'true'])
     for row in value:
-        ( resource, methods ) = row[0:1]
+        ( resource, methods ) = row[0:2]
         wsMexPolicySetName = None
         wsMexPolicySetBinding = None
         if len( row ) > 2:
