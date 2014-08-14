@@ -258,11 +258,11 @@ class MBean:
     def waitForNotification( self, typeOrTypes = None, propertiesOrPropertiesList = None, timeout = 300.0 ):
         return waitForNotification( self._id, typeOrTypes, propertiesOrPropertiesList, timeout )
 
-def queryMBeans( **attributes ):
+def queryMBeans( domain = 'WebSphere', **attributes ):
     """Queries given the query criteria, retrieves an array of matching MBeans.
     Example:
     print wdr.control.query( type = 'Server', node = 'wdrNode', name = 'wdrServer')"""
-    queryString = 'WebSphere:*'
+    queryString = '%s:*' % domain
     for ( k, v ) in attributes.items():
         queryString += ',%s=%s' % ( k, v )
     result = []
@@ -271,11 +271,11 @@ def queryMBeans( **attributes ):
             result.append( MBean( name ) )
     return result
 
-def getMBean( **attributes ):
+def getMBean( domain = 'WebSphere', **attributes ):
     """Queries given the query criteria, retrieves single instance of MBean
     Example:
     print wdr.control.query( type = 'Server', node = 'wdrNode', name = 'wdrServer')"""
-    queryString = 'WebSphere:*'
+    queryString = '%s:*' % domain
     for ( k, v ) in attributes.items():
         queryString += ',%s=%s' % ( k, v )
     result = AdminControl.queryNames( queryString ).splitlines()
@@ -288,11 +288,11 @@ def getMBean( **attributes ):
             logger.debug( 'More than one MBean found matching query %s', queryString )
         raise Exception( 'More than one MBean found matching query %s' % queryString )
 
-def getMBean1( **attributes ):
+def getMBean1( domain = 'WebSphere', **attributes ):
     """Queries given the query criteria, retrieves single instance of MBean
     Example:
     print wdr.control.query( type = 'Server', node = 'wdrNode', name = 'wdrServer')"""
-    queryString = 'WebSphere:*'
+    queryString = '%s:*' % domain
     for ( k, v ) in attributes.items():
         queryString += ',%s=%s' % ( k, v )
     result = AdminControl.queryNames( queryString ).splitlines()
@@ -307,11 +307,11 @@ def getMBean1( **attributes ):
             logger.debug( 'More than one MBean found matching query %s', queryString )
         raise Exception( 'More than one MBean found matching query %s' % queryString )
 
-def queryJMXMBeans( **attributes ):
+def queryJMXMBeans( domain = 'WebSphere', **attributes ):
     """Queries given the query criteria, retrieves an array of matching JMXMBeans.
     Example:
     print wdr.control.query( type = 'Server', node = 'wdrNode', name = 'wdrServer')"""
-    queryString = 'WebSphere:*'
+    queryString = '%s:*' % domain
     for ( k, v ) in attributes.items():
         queryString += ',%s=%s' % ( k, v )
     result = []
@@ -320,11 +320,11 @@ def queryJMXMBeans( **attributes ):
             result.append( JMXMBean( name ) )
     return result
 
-def getJMXMBean( **attributes ):
+def getJMXMBean( domain = 'WebSphere', **attributes ):
     """Queries given the query criteria, retrieves single instance of JMXMBean
     Example:
     print wdr.control.query( type = 'Server', node = 'wdrNode', name = 'wdrServer')"""
-    queryString = 'WebSphere:*'
+    queryString = '%s:*' % domain
     for ( k, v ) in attributes.items():
         queryString += ',%s=%s' % ( k, v )
     result = AdminControl.queryNames( queryString ).splitlines()
@@ -337,11 +337,11 @@ def getJMXMBean( **attributes ):
             logger.debug( 'More than one JMXMBean found matching query %s', queryString )
         raise Exception( 'More than one JMXMBean found matching query %s' % queryString )
 
-def getJMXMBean1( **attributes ):
+def getJMXMBean1( domain = 'WebSphere', **attributes ):
     """Queries given the query criteria, retrieves single instance of JMXMBean
     Example:
     print wdr.control.query( type = 'Server', node = 'wdrNode', name = 'wdrServer')"""
-    queryString = 'WebSphere:*'
+    queryString = '%s:*' % domain
     for ( k, v ) in attributes.items():
         queryString += ',%s=%s' % ( k, v )
     result = AdminControl.queryNames( queryString ).splitlines()
