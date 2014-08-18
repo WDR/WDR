@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 
+from types import DictType
 from types import ListType
 import com.ibm.ws.scripting
 import logging
@@ -30,10 +31,43 @@ _directivePattern = re.compile( r'^(?P<tabs>\t*)@\s*(?P<name>[A-Za-z][a-zA-Z0-9_
 _typePattern = re.compile( r'^(?P<tabs>\t*)(?P<type>[A-Za-z][a-zA-Z0-9_]*)\s*(?P<linkage>[&#][a-zA-Z0-9_]+)?\s*$' )
 _keyPattern = re.compile( r'^(?P<tabs>\t*)\*(?P<name>[A-Za-z][a-zA-Z0-9_]*)\s*(?P<value>.+?)?\s*$' )
 _attPattern = re.compile( r'^(?P<tabs>\t*)-(?P<name>[A-Za-z][a-zA-Z0-9_]*)\s*(?P<value>.+?)?\s*$' )
-_variablePattern = re.compile( r'(?P<var>\$\[[a-zA-Z][a-zA-Z0-9]*\])' )
+_variablePattern = re.compile( r'\$\[(?P<var>[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)(?:\|(?P<filter>[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*))?\]' )
 _appNamePattern = re.compile( r'^(?:(?:"(?P<qname>[^"]+)")|(?P<name>\S+))\s+(?:(?:"(?P<qpath>[^"]+)")|(?P<path>.+?))\s*$' )
 _appOptionPattern = re.compile( r'^(?P<tabs>\t)(?P<name>\*?[a-zA-Z0-9_\.]+)\s*(?P<value>.+?)?\s*$' )
 _appOptionValuePattern = re.compile( r'^(?P<tabs>\t\t)(?P<value>.+?)\s*$' )
+
+def _defaultFilter( value ):
+    if value is None:
+        return ''
+    else:
+        return str( value )
+
+def _lookupVariable( expression, filterExpression, variables ):
+    value = None
+    context = variables
+    try:
+        for seg in expression.split('.'):
+            value = context[seg]
+            if isinstance( value, DictType ):
+                context = value
+    except KeyError, e:
+        raise KeyError( expression )
+    if callable( value ):
+        value = value( expression, variables )
+    filter = _defaultFilter
+    if filterExpression is not None:
+        context = variables
+        try:
+            for seg in filterExpression.split('.'):
+                filter = context[seg]
+                if isinstance( filter, DictType ):
+                    context = filter
+        except KeyError, e:
+            raise KeyError( filterExpression )
+    return filter( value )
+
+def _substituteVariables( value, variables ):
+    return re.sub( _variablePattern, lambda k, v = variables:_lookupVariable( k.group( 'var' ), k.group( 'filter' ), v ), value )
 
 class ManifestConfigObject:
     def __init__( self, type ):
@@ -140,7 +174,7 @@ class _ObjectDataConsumer( _ConfigEventConsumer ):
     def consumeKey( self, filename, line, lineno, variables, manifestPath ):
         mat = _keyPattern.match( line )
         name = mat.group( 'name' )
-        value = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], mat.group( 'value' ) )
+        value = _substituteVariables( mat.group( 'value' ), variables )
         self.parentObject.keys[name] = value
         return [self]
     def consumeAttribute( self, filename, line, lineno, variables, manifestPath ):
@@ -153,7 +187,7 @@ class _ObjectDataConsumer( _ConfigEventConsumer ):
             self.parentObject._orderedAttributeNames.append( name )
             return [self, _ObjectConsumer( values )]
         else:
-            self.parentObject.attributes[name] = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], value )
+            self.parentObject.attributes[name] = _substituteVariables( value, variables )
             self.parentObject._orderedAttributeNames.append( name )
             return [self, _ConfigEventConsumer()]
     def consumeObject( self, filename, line, lineno, manifestPath ):
@@ -264,11 +298,11 @@ class _AppConsumer( _AppEventConsumer ):
         name = mat.group( 'name' )
         if name is None:
             name = mat.group( 'qname' )
-        name = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], name )
+        name = _substituteVariables( name, variables )
         archive = mat.group( 'path' )
         if archive is None:
             archive = mat.group( 'qpath' )
-        archive = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], archive )
+        archive = _substituteVariables( archive, variables )
         dirname = os.path.dirname( os.path.normpath( os.path.abspath( filename ) ) )
         archive = os.path.normpath( os.path.join( dirname, archive ) )
         obj = ApplicationObject( name, archive )
@@ -293,7 +327,7 @@ class _AppOptionConsumer( _AppEventConsumer ):
                 self.parentObject.extras[name] = values
                 return [self, _AppOptionValueConsumer( values )]
             else:
-                self.parentObject.extras[name] = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], value )
+                self.parentObject.extras[name] = _substituteVariables( value, variables )
                 return [self, _AppEventConsumer()]
             pass
         else:
@@ -302,7 +336,7 @@ class _AppOptionConsumer( _AppEventConsumer ):
                 self.parentObject.options[name] = values
                 return [self, _AppOptionValueConsumer( values )]
             else:
-                self.parentObject.options[name] = re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], value )
+                self.parentObject.options[name] = _substituteVariables( value, variables )
                 return [self, _AppEventConsumer()]
 
 class _AppOptionValueConsumer( _AppEventConsumer ):
@@ -312,7 +346,7 @@ class _AppOptionValueConsumer( _AppEventConsumer ):
     def consumeOptionValue( self, filename, line, lineno, variables ):
         mat = _appOptionValuePattern.match( line )
         value = mat.group( 'value' )
-        self.parentList.append( re.sub( _variablePattern, lambda k, v = variables:v[k.group( 'var' )[2:-1]], value ).split( ';' ) )
+        self.parentList.append( _substituteVariables( value, variables ).split( ';' ) )
         return [self, _AppEventConsumer()]
 
 def processExtraAppOption( mo, name, value ):

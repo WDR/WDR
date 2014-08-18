@@ -31,5 +31,10 @@ logging.config.fileConfig( 'lib/common/logconf.ini' )
 
 import unittest
 import wdrtest.config
+import wdrtest.manifest
 
-unittest.main(wdrtest.config)
+suite = unittest.TestSuite()
+suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(wdrtest.config))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromModule(wdrtest.manifest))
+
+unittest.TextTestRunner().run(suite)
