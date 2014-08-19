@@ -47,6 +47,8 @@ class VariableSubstitutionTest( unittest.TestCase ):
         self.assertEquals( 'Hello world!', _substituteVariables( 'Hello $[name]!', {'name': lambda expression, variables: 'world'} ) )
     def testCallableReturningNone( self ):
         self.assertEquals( 'Hello !', _substituteVariables( 'Hello $[name]!', {'name': lambda expression, variables: None} ) )
+    def testWithExtraSpaces( self ):
+        self.assertEquals( 'Hello world!', _substituteVariables( 'Hello $[ person.name ]!', {'person': {'name': 'world'}} ) )
 
 class VariableSubstitutionWithFilteringTest( unittest.TestCase ):
     def testUpper( self ):
@@ -71,3 +73,5 @@ class VariableSubstitutionWithFilteringTest( unittest.TestCase ):
                         {'cell': 'wdrCell', 'node': 'httpNode01', 'server': 'httpServer01'}
                     ],
                     'joinDeploymentTargets': lambda targetList: ('+'.join(['WebSphere:cell=%(cell)s,cluster=%(cluster)s' % t for t in filter(lambda e: e.get('cluster'), targetList)] + ['WebSphere:cell=%(cell)s,node=%(node)s,server=%(server)s' % t for t in filter(lambda e: e.get('node') and e.get('server'), targetList)])) } ) )
+    def testWithExtraSpaces( self ):
+        self.assertEquals( 'Hello WORLD!', _substituteVariables( 'Hello $[ name | upper ]!', {'name': 'world', 'upper': string.upper } ) )
