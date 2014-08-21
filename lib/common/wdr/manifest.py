@@ -336,14 +336,14 @@ def _extraOptionProcessor_webModuleClassLoadingMode( mo, name, value ):
 def _extraOptionProcessor_clientWSPolicySetAttachments( mo, name, value ):
     appName = mo.name
     for att in wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'client'])):
-        AdminTask.deletePolicySetAttachment(['-attachmentId', att['id'], '-applicationName', appName])
+        AdminTask.deletePolicySetAttachment(['-attachmentId', att['id'], '-applicationName', appName, '-attachmentType', 'client'])
     for ( policySet, resource ) in value:
         AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'client'])
 
 def _extraOptionProcessor_applicationWSPolicySetAttachments( mo, name, value ):
     appName = mo.name
     for att in wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'application'])):
-        AdminTask.deletePolicySetAttachment(['-attachmentId', att['id'], '-applicationName', appName])
+        AdminTask.deletePolicySetAttachment(['-attachmentId', att['id'], '-applicationName', appName, '-attachmentType', 'application'])
     for ( policySet, resource, binding ) in value:
         attId = AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'application'])
         AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'application', '-bindingLocation', [ ['application', appName], ['attachmentId', attId] ]])
@@ -351,7 +351,7 @@ def _extraOptionProcessor_applicationWSPolicySetAttachments( mo, name, value ):
 def _extraOptionProcessor_systemTrustWSPolicySetAttachments( mo, name, value ):
     appName = mo.name
     for att in wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'system/trust'])):
-        AdminTask.deletePolicySetAttachment(['-attachmentId', att['id'], '-applicationName', appName])
+        AdminTask.deletePolicySetAttachment(['-attachmentId', att['id'], '-applicationName', appName, '-attachmentType', 'system/trust'])
     for ( policySet, resource ) in value:
         AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'system/trust'])
 
