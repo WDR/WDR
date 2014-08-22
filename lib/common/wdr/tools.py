@@ -460,7 +460,7 @@ def exportApplicationManifest( appName, customTaskProcessors = {} ):
     webModuleClassLoadingModes = []
     for module in appDeployment.modules:
         if module._type == 'WebModuleDeployment':
-            webModuleClassLoadingModes.append( '%s;%s' % ( module.uri, module.classloaderMode ) )
+            webModuleClassLoadingModes.append( [module.uri, module.classloaderMode] )
     if webModuleClassLoadingModes:
         manifest.extras['webModuleClassLoadingMode'] = webModuleClassLoadingModes
     scaMapping = {}
