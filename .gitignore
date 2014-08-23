@@ -1,5 +1,10 @@
-.svn/
-*$py.class
-*.pyc
-wdr.log
+_site/*
+_theme_packages/*
 
+Thumbs.db
+.DS_Store
+
+!.gitkeep
+
+.rbenv-version
+.rvmrc

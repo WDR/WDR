@@ -1,53 +1,46 @@
-WDR
-===
+# Jekyll-Bootstrap
 
-Jython library which aims to greatly simplify WebSphere scripting.
+The quickest way to start and publish your Jekyll powered blog. 100% compatible with GitHub pages
 
-# Features
-* makes wsadmin scripts more "Pythonic" and readable and maintainable in result
-* allows interoperability with "legacy" Jython scripts including mixing of classic wsadmin and WDR code
-* works with currently supported WSAS versions (6.1 and later)
-* Open Source, Apache License, Version 2.0
+## Usage
 
-# Some highlights
+For all usage and documentation please see: <http://jekyllbootstrap.com>
 
-## Listing nodes and servers available in configuration
+## Version
 
-```python
-for node in list('Node'):
-    print node.name
-    for server in node.list('Server'):
-        print " " + server.name
-```
+0.3.0 - stable and versioned using [semantic versioning](http://semver.org/).
 
-The same code in wsadmin would look like as follows:
-```python
-for node in AdminConfig.list('Node').splitlines():
-    print AdminConfig.showAttribute(node, 'name')
-    for server in AdminConfig.list('Server', node).splitlines():
-        print ' ' + AdminConfig.showAttribute(server, 'name')
-```
-## Modifying configuration objects
+**NOTE:** 0.3.0 introduces a new theme which is not backwards compatible in the sense it won't _look_ like the old version.
+However, the actual API has not changed at all.
+You might want to run 0.3.0 in a branch to make sure you are ok with the theme design changes.
 
-```python
-jvm = getid1('/Server:dmgr/JavaProcessDef:/JavaVirtualMachine:/')
-jvm.initialHeapSize = 64
-jvm.maximumHeapSize = 512
-```
+## Contributing
 
-## Invoking MBean operations
+This repository tracks 2 projects:
 
-```python
-dmgr = getMBean1(type='Server', process='dmgr')
-dmgr.restart()
-```
+- **Jekyll-Bootstrap Framework.**
+  The framework for which users should clone and build their blog on top of is available in the master branch.
 
-# Getting started
+  To contribute to the framework please make sure to checkout your branch based on `jb-development`!!
+  This is very important as it allows me to accept your pull request without having to publish a public version release.
 
-* checkout WDR from GitHub
-* run wsadmin with 
- - `-profile $WDR_HOME/profile.py`
- - `-javaoption "-Dpython.path=$WDR_HOME"`
+  Small, atomic Features, bugs, etc.
+  Use the `jb-development` branch but note it will likely change fast as pull requests are accepted.
+  Please rebase as often as possible when working.
+  Work on small, atomic features/bugs to avoid upstream commits affecting/breaking your development work.
 
-More documentation coming soon...
+  For Big Features or major API extensions/edits:
+  This is the one case where I'll accept pull-requests based off the master branch.
+  This allows you to work in isolation but it means I'll have to manually merge your work into the next public release.
+  Translation : it might take a bit longer so please be patient! (but sincerely thank you).
 
+- **Jekyll-Bootstrap Documentation Website.**
+  The documentation website at <http://jekyllbootstrap.com> is maintained in the gh-pages branch.
+  Please fork and contribute documentation additions to this branch only.
+
+The master and gh-pages branch do not share the same ancestry. Please treat them as completely separate git repositories!
+
+
+## License
+
+[MIT](http://opensource.org/licenses/MIT)
