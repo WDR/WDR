@@ -6,7 +6,7 @@ title: getid1
 
 A convenience function for retrieving single configuration object matching specified criteria. In contrast to [getid](wdr.config.getid.html) function, this function returns configuration object instance, not an array of objects. If no matches exist or more than one match exists, `getid1` raises an exception.
 
-    getid1 ( criteria )
+    getid1 ( <criteria> )
 
 #### Arguments
 

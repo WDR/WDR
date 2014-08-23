@@ -6,10 +6,14 @@ title: queryJMXMBeans
 
 Retrieves list of [wdr.control.JMXMBean](wdr.control.JMXMBean.class.html) instances matching specified criteria.
 
-    queryJMXMBeans( <criteria> )
+    queryJMXMBeans( [<domain>,] <criteria> )
 
 
 #### Arguments
+
+_domain_
+
+JMX domain being searched; optional argument, defauts to value of 'WebSphere'; in most of the cases you can skip this argument and rely on the default value
 
 _criteria_
 

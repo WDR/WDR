@@ -27,6 +27,10 @@ title: WDR Reference
 
 [hasChanges](wdr.config.hasChanges.html)
 
+[importApplicationManifest](wdr.manifest.importApplicationManifest.html)
+
+[importConfigurationManifest](wdr.manifest.importConfigurationManifest.html)
+
 [jmxmbean](wdr.control.jmxmbean.html)
 
 [jmxmbeans](wdr.control.jmxmbeans.html)
@@ -62,5 +66,11 @@ title: WDR Reference
 [wdr.control.MBean](wdr.control.MBean.class.html)
 
 [wdr.control.JMXMBean](wdr.control.JMXMBean.class.html)
+
+# wdr.tools package
+
+Functions and classes from `wdr.tools` package need to be fully qualified in your scripts.
+
+[wdr.tools.exportApplicationManifestToFile](wdr.tools.exportApplicationManifestToFile.html)
 
 [wdr.tools.ManifestGenerationAdminApp](wdr.tools.ManifestGenerationAdminApp.class.html)

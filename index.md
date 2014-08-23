@@ -90,10 +90,10 @@ for node in listConfigObjects('Node'):
     for server in node.listConfigObjects('Server'):
         if server.serverType == 'APPLICATION_SERVER':
             manifestVariables = { 'nodeName': node.name, 'serverName': server.name }
-            loadConfiguration( 'standardJVM.wdrc', manifestVariables )
+            importConfigurationManifest( 'standardJVM.wdrc', manifestVariables )
 {% endhighlight %}
 
-Using a nested loop, the script iterates all application servers and applies the following manifest to all of them. The manifest references `nodeName` and `serverName` variables which are being passed as `manifestVariables` dictionary to the `loadConfiguration` function.
+Using a nested loop, the script iterates all application servers and applies the following manifest to all of them. The manifest references `nodeName` and `serverName` variables which are being passed as `manifestVariables` dictionary to the `importConfigurationManifest` function.
 
 The content of the manifest file ('standardJVM.wdr') referenced by the above script:
 

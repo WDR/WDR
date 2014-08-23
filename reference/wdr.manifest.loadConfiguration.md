@@ -4,4 +4,4 @@ tagline: WDR Reference
 title: loadConfiguration
 ---
 
-loadConfiguration
+**Deprecated** Use [importConfigurationManifest](wdr.manifest.importConfigurationManifest.html) instead.
