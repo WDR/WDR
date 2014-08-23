@@ -21,7 +21,7 @@ The ``importApplicationManifest`` function:
 * if the application was deployed before and checksums in WAS configuration match checksums calculated above, the install/update step is being skipped
 * if application was installed/updated, its manifest & EAR checksum is being saved in WAS configuration as custom property of the deployment
 
-#### Arguments
+## Arguments
 
 _applicationManifestFilename_
 
@@ -39,15 +39,15 @@ _manifestPath_
 
 list of paths where the `applicationManifestFile` is going to be looked up; optional, defaults to reversed Jython's `sys.path`
 
-#### Result
+## Result
 
 List of application names that have been affected (installed or updated) during manifest import. Application manifest may describe deployment of one or more applications. Names of applications which haven't been installed/updated will not be included in the returned list.
 
-#### Result
+## Result
 
 List of application names installed or updated during manifest processing.
 
-#### Notes
+## Notes
 
 Idempotency of ``importApplicationManifest`` function relies on value of `wdr.checksum` custom property being added to `Deployment/ApplicationDeployment` object after successful install/update operation. The `wdr.checksum` property is visible in AdminConsole from version 8.0 of WebSphere Application Server. Regardless of product version, it is always possible to access it via scrtipt:
 
@@ -69,7 +69,7 @@ The value of `wdr.checksum` consists of checksum of application binary and check
 > * customise manifest for your environment
 > * reinstall again by importing the manifest
 
-#### Examples
+## Examples
 
 The example demonstrates installing or updating the ``DefaultApplication`` provided with WebSphere Application Server.
 

@@ -25,7 +25,7 @@ cell = getid1('/Cell:/')
 print AdminConfig.showAttribute(str(cell), 'name')
 {% endhighlight %}
 
-#### Methods
+## Methods
 
 * [assure](wdr.config.ConfigObject.assure.html)
 * [create](wdr.config.ConfigObject.create.html)

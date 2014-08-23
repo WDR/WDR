@@ -8,11 +8,11 @@ Retrieves all attributes with their values in one call.
 
     obj.getAllAttributes()
 
-#### Result
+## Result
 
 A dictionary where keys are attribute names and values are the actual values of these attributes.
 
-#### Examples
+## Examples
 
 * Retrieving all attributes of DataSource's ConnectionPool
 

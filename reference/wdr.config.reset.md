@@ -11,7 +11,7 @@ _It's a good practice to always explicitly save or discard configuration session
 
     reset()
 
-### See also
+## See also
 
 * [hasChanges](wdr.config.hasChanges.html)
 * [save](wdr.config.save.html)

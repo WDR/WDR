@@ -8,17 +8,17 @@ Lists all child objects of a specified type.
 
     obj.listConfigObjects( <typeName> )
 
-#### Arguments
+## Arguments
 
 _typeName_
 
 name of object type
 
-#### Result
+## Result
 
 List of [wdr.config.ConfigObject](wdr.config.ConfigObject.class.html) instances.
 
-#### Examples
+## Examples
 
 * Retrieving list of JDBCProvider's DataSources
 
@@ -28,6 +28,6 @@ print provider.listConfigObjects('DataSource')
 
     [Default Datasource(cells/wdrCell/nodes/wdrNode01/servers/wdrServer|resources.xml#DataSource_1124467080076)]
 
-#### See also
+## See also
 
 * [listConfigObjects](wdr.config.listConfigObjects.html)

@@ -8,13 +8,13 @@ Returns type name of configuration object
 
     getObjectType( <configObject> )
 
-#### Arguments
+## Arguments
 
 _configObject_
 
 configuration object
 
-#### Examples
+## Examples
 
 {% highlight python %}
 o = getid('/Cell:/')[0]

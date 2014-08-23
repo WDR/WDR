@@ -9,7 +9,7 @@ Value of `None` is returned if to MBeans match specified criteria.
 
     getMBean( [<domain>,] <criteria> )
 
-#### Arguments
+## Arguments
 
 _domain_
 
@@ -19,18 +19,18 @@ _criteria_
 
 list of key/value pairs
 
-#### Result
+## Result
 
 Instance of [wdr.control.MBean](wdr.control.MBean.class) or value of `None`.
 
-#### Examples
+## Examples
 
 {% highlight python %}
 srv = getMBean(type='Server', name='dmgr')
 print srv.state
 {% endhighlight %}
 
-#### See also
+## See also
 
 * [getMBean1](wdr.control.getMBean1.html)
 * [queryMBeans](wdr.control.queryMBeans.html)

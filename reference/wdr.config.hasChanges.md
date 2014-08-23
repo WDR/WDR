@@ -8,11 +8,11 @@ Returns 1 (true) if current WDR/wsadmin session has some unsaved configuration c
 
     hasChanges()
 
-#### Result
+## Result
 
 1 (true) if there are any unsaved changes in current session, 0 (false) otherwise.
 
-### Examples
+## Examples
 
 Script snippet cleaning up session state before exiting.
 
@@ -26,7 +26,7 @@ else:
 exit
 {% endhighlight %}
 
-#### See also
+## See also
 
 * [save](wdr.config.save.html)
 * [reset](wdr.config.reset) and [discard](wdr.config.discard.html)

@@ -8,7 +8,7 @@ Retrieves list of [wdr.control.MBean](wdr.control.MBean.class.html) instances ma
 
     queryMBeans( [<domain>,] <criteria> )
 
-#### Arguments
+## Arguments
 
 _domain_
 
@@ -18,11 +18,11 @@ _criteria_
 
 list of key/value pairs
 
-#### Result
+## Result
 
 List of [wdr.control.MBean](wdr.control.MBean.class.html) instances.
 
-#### Examples
+## Examples
 
 * Printing free and available memory for each JVM MBean found
 
@@ -38,7 +38,7 @@ for tp in queryMBeans('ACME', type='com.acme.tasks.TaskProcessor', module='Order
     print 'Failed/total number of orders: %d/%d' % (tp.failed, tp.total)
 {% endhighlight %}
 
-#### See also
+## See also
 
 * [getMBean](wdr.control.getMBean.html)
 * [getMBean1](wdr.control.getMBean1.html)

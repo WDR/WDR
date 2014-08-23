@@ -10,17 +10,17 @@ Constructs list of [wdr.control.JMXMBean](wdr.control.JMXMBean.class.html) objec
 
 This function comes helpful when mixing classic wsadmin code with WDR-based code. JMX ObjectNames obtained by wsadmin ``AdminControl.queryNames`` or by other means can be easily converted into list of [wdr.control.JMXMBean](wdr.control.JMXMBean.class.html) objects.
 
-#### Arguments
+## Arguments
 
 _objectNames_
 
 multi-line string representation of ObjectName
 
-#### Result
+## Result
 
 list of [wdr.control.JMXMBean](wdr.control.JMXMBean.class.html) instances
 
-#### Examples
+## Examples
 
 {% highlight python %}
 # objectName variable will contain a multi-line string where each
