@@ -8,17 +8,17 @@ Retrieves configuration objects based on provided criteria.
 
     getid ( <criteria> )
 
-#### Arguments
+## Arguments
 
 _criteria_
 
  a string in the form of `(/<type>:[<name>]/)+`
 
-#### Result
+## Result
 
 An array of [wdr.config.ConfigObject](wdr.config.ConfigObject.class.html) objects.
 
-#### Examples
+## Examples
 
 * Retrieving `Cell` object
 
@@ -44,7 +44,7 @@ print getid('/Server:wdrServer/JavaProcessDef:/')
 
     [(cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#JavaProcessDef_1335359012301)]
 
-#### See also
+## See also
 
 * [wdr.config.ConfigObject.getid](wdr.config.ConfigObject.getid.html)
 * [getid1](wdr.config.getid1.html)

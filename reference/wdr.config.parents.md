@@ -8,17 +8,17 @@ Returns parent types of specified type.
 
     parents( <typeName> )
 
-#### Arguments
+## Arguments
 
 _typeName_
 
 name of configuration object type
 
-#### Result
+## Result
 
 List of type names which contain specified type.
 
-#### Examples
+## Examples
 
 * Listing parents of `JDBCProvider` type
 
@@ -28,7 +28,7 @@ print parents('JDBCProvider')
 
     ['Cell', 'Deployment', 'Node', 'Server', 'ServerCluster']
 
-#### See also
+## See also
 
 * [attributes](wdr.config.attributes.html)
 * [getObjectType](wdr.config.getObjectType.html)

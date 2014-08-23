@@ -11,7 +11,7 @@ Represents a Managed Bean registered in one of accessible WebSphere processes. I
 * [jmxmbean](wdr.control.jmxmbean.html)
 * [jmxmbeans](wdr.control.jmxmbeans.html)
 
-`wdr.control.JMXMBean` class is quite similar in its semantics to [wdr.control.MBean](wdr.control.MBeans.class.html) class except for automatic value conversions. With `JMXMBean` class you are able (an you have to) use Java types for arguments and attributes. No Java/Python conversions are being performed. In most of the cases you'll find these conversions desirable and prefer to use `MBean` class in favour of `JMXMBean`. However, there are rare use cases when you need to work with Java types.
+`wdr.control.JMXMBean` class is quite similar in its semantics to [wdr.control.MBean](wdr.control.MBean.class.html) class except for automatic value conversions. With `JMXMBean` class you are able (an you have to) use Java types for arguments and attributes. No Java/Python conversions are being performed. In most of the cases you'll find these conversions desirable and prefer to use `MBean` class in favour of `JMXMBean`. However, there are rare use cases when you need to work with Java types.
 
 The `AntAgent` type is going to be used in all `JMXMBean` examples due to the fact of using `byte[]`, `java.lang.String` and `java.lang.String[]` in argument lists and results.
 
@@ -79,3 +79,7 @@ print String(antAgent.getLastLog())
 
     BUILD SUCCESSFUL
     Total time: 0 seconds
+
+## JMX notification support
+
+The JMXMBean class has itentical methods for JMX notification support as [wdr.control.MBean](wdr.control.MBean.class.html).

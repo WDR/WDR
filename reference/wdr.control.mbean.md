@@ -10,17 +10,17 @@ Constructs [wdr.control.MBean](wdr.control.MBean.class.html) object from string 
 
 This function comes helpful when mixing classic wsadmin code with WDR-based code. JMX ObjectName obtained by wsadmin ``AdminControl.queryNames`` or by other means can be easily converted into [wdr.control.MBean](wdr.control.MBean.class.html) object.
 
-#### Arguments
+## Arguments
 
 _objectName_
 
 string representation of ObjectName
 
-#### Result
+## Result
 
 [wdr.control.MBean](wdr.control.MBean.class.html) instance
 
-#### Examples
+## Examples
 
 {% highlight python %}
 # objectName variable will contain a single-line string representing ObjectName of dmgr Server

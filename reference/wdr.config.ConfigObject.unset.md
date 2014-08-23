@@ -8,17 +8,17 @@ title: ConfigObject.unset
 
     obj.unset( <attributeList> )
 
-#### Arguments
+## Arguments
 
 _attributeList_
 
 list of attribute names to unset
 
-#### Result
+## Result
 
 Reference to the object being modified
 
-#### Examples
+## Examples
 
 * Unsetting `initialHeapSize` and `maximumHeapSize` for server's JVM
 

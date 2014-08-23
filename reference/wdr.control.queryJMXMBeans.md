@@ -9,7 +9,7 @@ Retrieves list of [wdr.control.JMXMBean](wdr.control.JMXMBean.class.html) instan
     queryJMXMBeans( [<domain>,] <criteria> )
 
 
-#### Arguments
+## Arguments
 
 _domain_
 
@@ -19,11 +19,11 @@ _criteria_
 
 list of key/value pairs
 
-#### Result
+## Result
 
 List of [wdr.control.JMXMBean](wdr.control.JMXMBean.class.html) instances.
 
-#### Examples
+## Examples
 
 * Printing free and available memory for each JVM MBean found
 
@@ -32,7 +32,7 @@ for jvm in queryJMXMBeans(type='JVM'):
     print 'Free/max memory: %d/%d' % (jvm.freeMemory, jvm.maxMemory)
 {% endhighlight %}
 
-#### See also
+## See also
 
 * [getMBean](wdr.control.getMBean.html)
 * [getMBean1](wdr.control.getMBean1.html)

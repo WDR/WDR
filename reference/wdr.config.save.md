@@ -8,7 +8,7 @@ Saves configuration changes made by current WDR/wsadmin session.
 
     save()
 
-#### See also
+## See also
 
 * [hasChanges](wdr.config.hasChanges.html)
 * [reset](wdr.config.reset.html)

@@ -8,7 +8,7 @@ Creates a new configuration object in configuration repository and returns its r
 
     obj.create( <typeName>, [ <propertyName>, ], attributes )
 
-#### Arguments
+## Arguments
 
 _typeName_
 
@@ -22,11 +22,11 @@ _attributes_
 
 list of new object's attributes
 
-#### Result
+## Result
 
 After successful execution, a reference to newly created [wdr.config.ConfigObject](wdr.config.ConfigObject.class.html) is being returned.
 
-#### Examples
+## Examples
 
 * Creating `Server` object in the scope of a `Node` and modifying the newly created object
 
@@ -44,7 +44,7 @@ property = server.processDefinitions[0].jvmEntries[0].create('Property', 'system
 property.description = 'This JVM is going to write logs in Polish language. Powodzenia :)'
 {% endhighlight %}
 
-### See also
+## See also
 
 * [parents](wdr.config.parents.html)
 * [attributes](wdr.config.attributes.html)

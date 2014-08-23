@@ -8,17 +8,17 @@ A convenience function for retrieving single configuration object matching speci
 
     getid1 ( <criteria> )
 
-#### Arguments
+## Arguments
 
 _criteria_
 
 a string in the form of `(/<type>:[<name>]/)+`
 
-#### Result
+## Result
 
 An instance of [wdr.config.ConfigObject](wdr.config.ConfigObject.class.html) object.
 
-#### Examples
+## Examples
 
 * Retrieving `Cell` object
 
@@ -36,7 +36,7 @@ print getid1('/Server:wdrServer/JavaProcessDef:/')
 
     (cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#JavaProcessDef_1335359012301)
 
-#### See also
+## See also
 
 * [getid](wdr.config.getid.html)
 * [wdr.config.ConfigObject.getid](wdr.config.ConfigObject.getid.html)

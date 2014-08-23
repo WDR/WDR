@@ -10,17 +10,17 @@ This function is especially useful for integrating with existing wsadmin scripts
 
     configObject( objectIdentifier )
 
-#### Arguments
+## Arguments
 
 _objectIdentifier_
 
 string identifier of a single configuration object
 
-#### Result
+## Result
 
 ConfigObject representing a configuration object
 
-#### Examples
+## Examples
 
 {% highlight python %}
 o = configObject('wdrCell(cells/wdrCell|cell.xml#Cell_1)')

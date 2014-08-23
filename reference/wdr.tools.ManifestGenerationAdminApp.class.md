@@ -20,6 +20,6 @@ AdminApp = wdr.tools.ManifestGenerationAdminApp( AdminApp, 'DefaultApplication.w
 AdminApp.install( ... )
 {% endhighlight %}
 
-#### See also
+## See also
 
 * [exportApplicationManifestToFile](wdr.tools.exportApplicationManifestToFile.html)

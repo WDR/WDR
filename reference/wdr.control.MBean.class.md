@@ -17,7 +17,7 @@ Attribute values and operation arguments/results undergo standard wsadmin conver
 
 `wdr.control.MBean` class should be used in favour of [wdr.control.JMXMBean](wdr.control.JMXMBean.class.html) class whenever possible.
 
-#### Accessing MBean attributes
+## Accessing MBean attributes
 
 Attributes can be accessed using dot-notation. The following example finds 'WebContainer' thread pool in the deployment manager and changes maximum number of threads from 50 to 30:
 
@@ -31,7 +31,7 @@ print 'Maximum size of thread pool is: %d' % tp.maximumSize
     Maximum size of thread pool is: 50
     Maximum size of thread pool is: 30
 
-#### Invoking MBean operations
+## Invoking MBean operations
 
 Operations can be invoked on MBean instances using dot-notation:
 
@@ -77,4 +77,45 @@ Whereas this example forces `MBean` class to use two-argument operation:
 {% highlight python %}
 na = getMBean1(type='NodeAgent', node='wdrNode01')
 na.launchProcess[ ['java.lang.String', 'java.lang.Integer'] ]('wdrServer', 300)
+{% endhighlight %}
+
+## JMX notification support
+
+MBean's `waitForNotification` method allow the script to wait for JMX notifications for a specified amount of time. The syntax is:
+
+    waitForNotification( [<typeOrTypes> [, <propertiesOrPropertiesList> [, timeout = 300.0] ] ] ):
+
+The arguments (all optional) are:
+
+_typeOrTypes_
+
+string, list of strings or tuple of strings containing names of notifications the function should wait for
+
+_propertiesOrPropertiesList_
+
+dictionary or a list of dictionaries describing properties of the notification the function should wait for
+
+_timeout_
+
+maximum number of seconds the function will wait for notification
+
+The return value is the notification received or a value of None in case of timeout.
+
+A practical example is a function which starts an application server process:
+
+{% highlight python %}
+def startProcess(node, process, timeout):
+    # finding the nodeagent
+    nodeAgent = getMBean1(type='NodeAgent', node=node)
+    # requesting the nodeagent to launch the process; the second argument is timeout
+    # value of 1 means that launchProcess will block only for 1 second
+    nodeAgent.launchProcess(process, 1)
+    # waiting for notification meeting the following criteria:
+    # - type of 'websphere.process.running' or 'websphere.process.failed'
+    # - processName property equal to application server's name
+    notification = nodeAgent.waitForNotification(('websphere.process.running', 'websphere.process.failed'), {'processName': process}, timeout)
+    # the notification may be None if the notification hasn't been received within timeout
+    if (notification is None) or (notification.type != 'websphere.process.running'):
+        raise Exception( 'server %s / %s failed to start' % (node, process) )
+    print 'started process %s / %s', node, process
 {% endhighlight %}

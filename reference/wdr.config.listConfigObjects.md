@@ -8,7 +8,7 @@ Lists configuration objects of a specified type within either specified scope or
 
     listConfigObjects( <typeName>, [ <scope> | <pattern> ] )
 
-#### Arguments
+## Arguments
 
 _typeName_
 
@@ -22,11 +22,11 @@ _pattern_
 
 wildcard pattern for filtering the results
 
-#### Result
+## Result
 
 List of [wdr.config.ConfigObject](wdr.config.ConfigObject.class.html) objects.
 
-#### Examples
+## Examples
 
 * Listing all `Server` objects
 
@@ -54,7 +54,7 @@ print listConfigObjects('Server', 'nodeagent(*')
 
     [nodeagent(cells/wdrCell/nodes/wdrNode01/servers/nodeagent|server.xml#Server_1340355137285)]
 
-#### See also
+## See also
 
 * [wdr.config.ConfigObject.listConfigObjects](wdr.config.ConfigObject.listConfigObjects.html)
 * [getid](wdr.config.getid.html)

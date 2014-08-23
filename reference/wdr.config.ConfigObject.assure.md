@@ -14,7 +14,7 @@ If no existing object matches `type` and `keys`, the `assure` method attempts to
 
 If multiple objects match `type` and `keys`, an exception is being raised.
 
-#### Arguments
+## Arguments
 
 _type_
 
@@ -32,13 +32,13 @@ _attributes_
 
 list of attributes
 
-#### Result
+## Result
 
 After successful execution, a reference to the `ConfigObject` affected by the call is being returned (be it the created one or the modified one).
 
 Exception will be raised if multiple objects matched specified criteria or if `ConfigObject` creation/modification failed.
 
-#### Examples
+## Examples
 
 * The following script assures that a server named 'wdrServer02' exists in the scope of node 'wdrNode01' and also assures that a JVM property 'user.language' exists and it has value of 'pl'.
 
@@ -49,7 +49,7 @@ jvm = server.processDefinitions[0].jvmEntries[0]
 jvm.assure('Property', {'name':'user.language'}, 'systemProperties', value='pl', description='This JVM is going to write logs in Polish language. Powodzenia :)')
 {% endhighlight %}
 
-#### See also
+## See also
 
 * [parents](wdr.config.parents.html)
 * [attributes](wdr.config.attributes.html)

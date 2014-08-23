@@ -10,7 +10,7 @@ Imports configuration manifest into WAS configuration repository.
 
 The idea behind manifests is described on a [page dedicated to manifests](../manifests.html).
 
-#### Arguments
+## Arguments
 
 _filename_
 
@@ -24,6 +24,6 @@ _manifestPath_
 
 list of paths where the `filename` is going to be looked up; optional, defaults to reversed Jython's `sys.path`
 
-#### Result
+## Result
 
 None

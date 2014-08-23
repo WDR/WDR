@@ -8,6 +8,6 @@ Lists names of deployed applications.
 
     listApplications()
 
-#### Result
+## Result
 
 List of application deployed application names.

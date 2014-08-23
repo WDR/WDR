@@ -8,17 +8,17 @@ Modifies several object attributes in one call.
 
     obj.modify( <attributes> )
 
-#### Arguments
+## Arguments
 
 _attributes_
 
 attributes that have to modified
 
-#### Result
+## Result
 
 Reference to the configuration object [wdr.config.ConfigObject](wdr.config.ConfigObject.class.html) being modified.
 
-#### Examples
+## Examples
 
 * Changing two DataSource's ConnectionPool parameters in one call:
 

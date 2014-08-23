@@ -8,7 +8,7 @@ Retrieves list of attribute names of specified type or configuration object.
 
     attributes ( <typeName> | <configObject> )
 
-#### Arguments
+## Arguments
 
 _typeName_
 
@@ -18,11 +18,11 @@ _configObject_
 
 instance of ConfigObject
 
-#### Result
+## Result
 
 List of configuration attribute names of type/object as array of strings.
 
-#### Examples
+## Examples
 
 * Retrieving attributes of a type
 
