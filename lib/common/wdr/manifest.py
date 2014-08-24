@@ -22,6 +22,7 @@ import os
 import re
 import sys
 import wdr.config
+import wdr.task
 
 logger = logging.getLogger( 'wdrManifest' )
 
@@ -349,22 +350,107 @@ class _AppOptionValueConsumer( _AppEventConsumer ):
         self.parentList.append( _substituteVariables( value, variables ).split( ';' ) )
         return [self, _AppEventConsumer()]
 
+def _extraOptionProcessor_startingWeight( mo, name, value ):
+    wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.startingWeight = value
+
+def _extraOptionProcessor_classLoadingMode( mo, name, value ):
+    wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.classloader.mode = value
+
+def _extraOptionProcessor_webModuleClassLoadingMode( mo, name, value ):
+    for ( uri, mode ) in value:
+        applied = 0
+        for module in wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.modules:
+            if module._type == 'WebModuleDeployment' and module.uri == uri:
+                module.classloaderMode = mode
+                applied = 1
+        if not applied:
+            logger.error( 'webModuleClassLoadingMode option could not match module %s', uri )
+            raise Exception( 'webModuleClassLoadingMode option could not match module %s', uri )
+
+def _extraOptionProcessor_clientWSPolicySetAttachments( mo, name, value ):
+    appName = mo.name
+    for att in wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'client'])):
+        AdminTask.deletePolicySetAttachment(['-attachmentId', att['id'], '-applicationName', appName, '-attachmentType', 'client'])
+    for ( policySet, resource, binding ) in value:
+        attId = AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'client'])
+        AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'application', '-bindingLocation', [ ['application', appName], ['attachmentId', attId] ], '-attachmentType', 'client'])
+
+def _extraOptionProcessor_applicationWSPolicySetAttachments( mo, name, value ):
+    appName = mo.name
+    for att in wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'application'])):
+        AdminTask.deletePolicySetAttachment(['-attachmentId', att['id'], '-applicationName', appName, '-attachmentType', 'application'])
+    for ( policySet, resource, binding ) in value:
+        attId = AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'application'])
+        AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'application', '-bindingLocation', [ ['application', appName], ['attachmentId', attId] ], '-attachmentType', 'application'])
+
+def _extraOptionProcessor_systemTrustWSPolicySetAttachments( mo, name, value ):
+    appName = mo.name
+    for att in wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'system/trust'])):
+        AdminTask.deletePolicySetAttachment(['-attachmentId', att['id'], '-applicationName', appName, '-attachmentType', 'system/trust'])
+    for ( policySet, resource, binding ) in value:
+        attId = AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'system/trust'])
+        AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'application', '-bindingLocation', [ ['application', appName], ['attachmentId', attId] ], '-attachmentType', 'system/trust'])
+
+def _extraOptionProcessor_providerPolicySharingInfo( mo, name, value ):
+    appName = mo.name
+    for si in wdr.task.adminTaskAsDictList(AdminTask.getProviderPolicySharingInfo(['-applicationName', appName])):
+        AdminTask.setProviderPolicySharingInfo(['-applicationName', appName, '-resource', si['resource'], '-remove', 'true'])
+    for row in value:
+        ( resource, methods ) = row[0:2]
+        wsMexPolicySetName = None
+        wsMexPolicySetBinding = None
+        if len( row ) > 2:
+            wsMexPolicySetName = row[2]
+        if len( row ) > 3:
+            wsMexPolicySetBinding = row[3]
+        args = ['-applicationName', appName, '-resource', resource, '-sharePolicyMethods', methods]
+        wsMexProperties = []
+        if wsMexPolicySetName:
+            wsMexProperties.append(['wsMexPolicySetName', wsMexPolicySetName])
+        if wsMexPolicySetBinding:
+            wsMexProperties.append(['wsMexPolicySetBinding', wsMexPolicySetBinding])
+        if wsMexProperties:
+            args.append(['-wsMexProperties', wsMexProperties])
+        AdminTask.setProviderPolicySharingInfo(args)
+
+def _extraOptionProcessor_scaImportWSBindings( mo, name, value ):
+    appName = mo.name
+    for ( moduleName, importName, endpoint ) in value:
+        AdminTask.modifySCAImportWSBinding(['-applicationName', appName, '-moduleName', moduleName, '-import', importName, '-endpoint', endpoint])
+
+def _extraOptionProcessor_scaModuleProperties( mo, name, value ):
+    appName = mo.name
+    for ( moduleName, propertyName, propertyValue ) in value:
+        AdminTask.modifySCAModuleProperty(['-applicationName', appName, '-moduleName', moduleName, '-propertyName', propertyName, '-newPropertyValue', propertyValue])
+
+_extraOptionNamesOrdered = (
+    'startingWeight',
+    'classLoadingMode',
+    'webModuleClassLoadingMode',
+    'scaImportWSBindings',
+    'scaModuleProperties',
+    'applicationWSPolicySetAttachments',
+    'clientWSPolicySetAttachments',
+    'systemTrustWSPolicySetAttachments',
+    'providerPolicySharingInfo',
+    )
+
+_extraOptionProcessors = {
+    'startingWeight': _extraOptionProcessor_startingWeight,
+    'classLoadingMode': _extraOptionProcessor_classLoadingMode,
+    'webModuleClassLoadingMode': _extraOptionProcessor_webModuleClassLoadingMode,
+    'scaImportWSBindings': _extraOptionProcessor_scaImportWSBindings,
+    'scaModuleProperties': _extraOptionProcessor_scaModuleProperties,
+    'applicationWSPolicySetAttachments': _extraOptionProcessor_applicationWSPolicySetAttachments,
+    'clientWSPolicySetAttachments': _extraOptionProcessor_clientWSPolicySetAttachments,
+    'systemTrustWSPolicySetAttachments': _extraOptionProcessor_systemTrustWSPolicySetAttachments,
+    'providerPolicySharingInfo': _extraOptionProcessor_providerPolicySharingInfo,
+}
+
 def processExtraAppOption( mo, name, value ):
-    if name == 'startingWeight':
-        wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.startingWeight = value
-    elif name == 'classLoadingMode':
-        wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.classloader.mode = value
-    elif name == 'webModuleClassLoadingMode':
-        for uriMode in value:
-            ( uri, mode ) = uriMode
-            applied = 0
-            for module in wdr.config.getid1( '/Deployment:%s' % mo.name ).deployedObject.modules:
-                if module._type == 'WebModuleDeployment' and module.uri == uri:
-                    module.classloaderMode = mode
-                    applied = 1
-            if not applied:
-                logger.error( 'webModuleClassLoadingMode option could not match module %s', uri )
-                raise Exception( 'webModuleClassLoadingMode option could not match module %s', uri )
+    extraOptionProcessor = _extraOptionProcessors.get( name )
+    if extraOptionProcessor:
+        extraOptionProcessor( mo, name, value )
     else:
         logger.error( 'Extra option "%s" specified for %s is not supported', name, mo.name )
         raise Exception( 'Extra option "%s" specified for %s is not supported' % ( name, mo.name ) )
@@ -463,8 +549,9 @@ def importApplicationManifest( filename, variables = {}, listener = None, manife
             wdr.config.getid1( '/Deployment:%s/' % mo.name ).deployedObject.assure( 'Property', {'name':'wdr.checksum'}, 'properties', value = calculatedChecksum, description = 'Checksum of deployed EAR file and application manifest' )
             affectedApplications.append( mo.name )
             listener.afterInstall( mo.name, mo.archive )
-        for ( k, v ) in mo.extras.items():
-            processExtraAppOption( mo, k, v )
+        for extraOptionName in _extraOptionNamesOrdered:
+            if mo.extras.has_key( extraOptionName ):
+                processExtraAppOption( mo, extraOptionName, mo.extras[ extraOptionName ] )
     return affectedApplications
 
 def loadConfiguration( filename, variables = {} ):
