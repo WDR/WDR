@@ -22,7 +22,7 @@ __all__ = ['config', 'control', 'task', 'manifest', 'util']
 logger = logging.getLogger( 'wdr' )
 
 MAJOR_VERSION = 0
-MINOR_VERSION = 4
+MINOR_VERSION = 5
 
 class WsadminObjects:
     __wsadminObjects = None
