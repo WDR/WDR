@@ -372,24 +372,36 @@ def _extraOptionProcessor_clientWSPolicySetAttachments( mo, name, value ):
     for att in wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'client'])):
         AdminTask.deletePolicySetAttachment(['-attachmentId', att['id'], '-applicationName', appName, '-attachmentType', 'client'])
     for ( policySet, resource, binding ) in value:
-        attId = AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'client'])
-        AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'application', '-bindingLocation', [ ['application', appName], ['attachmentId', attId] ], '-attachmentType', 'client'])
+        try:
+            attId = AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'client'])
+            AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'application', '-bindingLocation', [ ['application', appName], ['attachmentId', attId] ], '-attachmentType', 'client'])
+        except:
+            logger.error( 'failed to apply clientWSPolicySetAttachments for %s', [ policySet, resource, binding ])
+            raise
 
 def _extraOptionProcessor_applicationWSPolicySetAttachments( mo, name, value ):
     appName = mo.name
     for att in wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'application'])):
         AdminTask.deletePolicySetAttachment(['-attachmentId', att['id'], '-applicationName', appName, '-attachmentType', 'application'])
     for ( policySet, resource, binding ) in value:
-        attId = AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'application'])
-        AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'application', '-bindingLocation', [ ['application', appName], ['attachmentId', attId] ], '-attachmentType', 'application'])
+        try:
+            attId = AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'application'])
+            AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'application', '-bindingLocation', [ ['application', appName], ['attachmentId', attId] ], '-attachmentType', 'application'])
+        except:
+            logger.error( 'failed to apply applicationWSPolicySetAttachments for %s', [ policySet, resource, binding ])
+            raise
 
 def _extraOptionProcessor_systemTrustWSPolicySetAttachments( mo, name, value ):
     appName = mo.name
     for att in wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'system/trust'])):
         AdminTask.deletePolicySetAttachment(['-attachmentId', att['id'], '-applicationName', appName, '-attachmentType', 'system/trust'])
     for ( policySet, resource, binding ) in value:
-        attId = AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'system/trust'])
-        AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'application', '-bindingLocation', [ ['application', appName], ['attachmentId', attId] ], '-attachmentType', 'system/trust'])
+        try:
+            attId = AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'system/trust'])
+            AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'application', '-bindingLocation', [ ['application', appName], ['attachmentId', attId] ], '-attachmentType', 'system/trust'])
+        except:
+            logger.error( 'failed to apply systemTrustWSPolicySetAttachments for %s', [ policySet, resource, binding ])
+            raise
 
 def _extraOptionProcessor_providerPolicySharingInfo( mo, name, value ):
     appName = mo.name
@@ -411,17 +423,31 @@ def _extraOptionProcessor_providerPolicySharingInfo( mo, name, value ):
             wsMexProperties.append(['wsMexPolicySetBinding', wsMexPolicySetBinding])
         if wsMexProperties:
             args.append(['-wsMexProperties', wsMexProperties])
-        AdminTask.setProviderPolicySharingInfo(args)
+        try:
+            AdminTask.setProviderPolicySharingInfo(args)
+        except:
+            logger.error( 'failed to apply providerPolicySharingInfo for %s', args)
+            raise
 
 def _extraOptionProcessor_scaImportWSBindings( mo, name, value ):
     appName = mo.name
     for ( moduleName, importName, endpoint ) in value:
-        AdminTask.modifySCAImportWSBinding(['-applicationName', appName, '-moduleName', moduleName, '-import', importName, '-endpoint', endpoint])
+        args = ['-applicationName', appName, '-moduleName', moduleName, '-import', importName, '-endpoint', endpoint]
+        try:
+            AdminTask.modifySCAImportWSBinding( args )
+        except:
+            logger.error( 'failed to apply scaImportWSBindings for %s', args)
+            raise
 
 def _extraOptionProcessor_scaModuleProperties( mo, name, value ):
     appName = mo.name
     for ( moduleName, propertyName, propertyValue ) in value:
-        AdminTask.modifySCAModuleProperty(['-applicationName', appName, '-moduleName', moduleName, '-propertyName', propertyName, '-newPropertyValue', propertyValue])
+        args = ['-applicationName', appName, '-moduleName', moduleName, '-propertyName', propertyName, '-newPropertyValue', propertyValue]
+        try:
+            AdminTask.modifySCAModuleProperty( args )
+        except:
+            logger.error( 'failed to apply scaModuleProperties for %s', args)
+            raise
 
 _extraOptionNamesOrdered = (
     'startingWeight',
