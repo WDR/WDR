@@ -133,6 +133,43 @@ Example:
     		firstWebModule.war;PARENT_FIRST
     		secondWebModule.war;PARENT_FIRST
 
+* **applicationWSPolicySetAttachments** assures that application (provider) policy set attachment and binding exists for specified resource exists.
+
+The syntax of this option is:
+
+    	*applicationWSPolicySetAttachments
+    		policySet;resources;binding
+
+The policySet, resources, binding have the same meaning as in `AdminTask.createPolicySetAttachment` function.
+
+* **clientWSPolicySetAttachments** assures that client policy set attachment and binding exist for specified resource exists.
+
+The syntax of this option is:
+
+    	*applicationWSPolicySetAttachments
+    		policySet;resources;binding
+
+The policySet, resources, binding have the same meaning as in `AdminTask.createPolicySetAttachment` function.
+
+* **systemTrustWSPolicySetAttachments** assures that system/trust policy set attachment and binding exist for specified resource exists.
+
+The syntax of this option is:
+
+    	*applicationWSPolicySetAttachments
+    		policySet;resources;binding
+
+The policySet, resources, binding have the same meaning as in `AdminTask.createPolicySetAttachment` function.
+
+* **providerPolicySharingInfo** assures that policy sharing information is set for a service.
+
+The syntax of this option is:
+
+    	*applicationWSPolicySetAttachments
+    		resource;sharePolicyMethods[;wsMexPolicySetName;wsMexPolicySetBinding]
+    		secondWebModule.war;PARENT_FIRST
+
+The resource, sharePolicyMethods, wsMexPolicySetName and wsMexPolicySetBinding have the same meaning as in `AdminTask.getProviderPolicySharingInfo` function.
+
 ### AdminApp options
 
 Subsequent lines contain standard installation/update options. All the values supported by AdminApp are supported except _appname_.
