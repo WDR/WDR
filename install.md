@@ -9,6 +9,6 @@ Most of `wsadmin` installations use `wsadmin.<bat|sh>` script provided by WebSph
 
 Each of these installation options is described in separate guides:
 
-* [Server-side installation](install_server.html)
+* [Server-side installation](install_server.html) - read this if you want to run your scripts on the deployment manager (or standalone server) or if you are developer and want to manage your local WebSphere test environment
 
-* [Thin client installation installation](install_thin_client.html)
+* [Thin client installation installation](install_thin_client.html) - read this if you build an automation server or want to remote remote instances of WAS. This setup is a bit more difficult then server-side installation, but it doesn't require you to install server binaries and helps you save money on WebSphere license costs
