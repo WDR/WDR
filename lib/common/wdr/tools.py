@@ -502,12 +502,6 @@ def exportApplicationManifest( appName, customTaskProcessors = {} ):
         for att in clientWSPolicySetAttachments:
             clientWSPolicySetAttachmentList.append([att['name'], att['pattern.0'], att['binding']])
         manifest.extras['clientWSPolicySetAttachments'] = clientWSPolicySetAttachmentList
-    systemTrustWSPolicySetAttachments = wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'system/trust']))
-    if systemTrustWSPolicySetAttachments:
-        systemTrustWSPolicySetAttachmentList = []
-        for att in systemTrustWSPolicySetAttachments:
-            systemTrustWSPolicySetAttachmentList.append([att['name'], att['pattern.0'], att['binding']])
-        manifest.extras['systemTrustWSPolicySetAttachments'] = systemTrustWSPolicySetAttachmentList
     providerPolicySharingInfo = wdr.task.adminTaskAsDictList(AdminTask.getProviderPolicySharingInfo(['-applicationName', appName]))
     if providerPolicySharingInfo:
         providerPolicySharingInfoList = []
