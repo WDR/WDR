@@ -392,16 +392,7 @@ def _extraOptionProcessor_applicationWSPolicySetAttachments( mo, name, value ):
             raise
 
 def _extraOptionProcessor_systemTrustWSPolicySetAttachments( mo, name, value ):
-    appName = mo.name
-    for att in wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'system/trust'])):
-        AdminTask.deletePolicySetAttachment(['-attachmentId', att['id'], '-applicationName', appName, '-attachmentType', 'system/trust'])
-    for ( policySet, resource, binding ) in value:
-        try:
-            attId = AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'system/trust'])
-            AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'system/trust', '-bindingLocation', [ ['application', appName], ['attachmentId', attId]]])
-        except:
-            logger.error( 'failed to apply systemTrustWSPolicySetAttachments for %s', [ policySet, resource, binding ])
-            raise
+    pass
 
 def _extraOptionProcessor_providerPolicySharingInfo( mo, name, value ):
     appName = mo.name
