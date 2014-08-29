@@ -152,15 +152,6 @@ The syntax of this option is:
 
 The policySet, resources, binding have the same meaning as in `AdminTask.createPolicySetAttachment` function.
 
-* **systemTrustWSPolicySetAttachments** assures that system/trust policy set attachment and binding exist for specified resource exists.
-
-The syntax of this option is:
-
-    	*applicationWSPolicySetAttachments
-    		policySet;resources;binding
-
-The policySet, resources, binding have the same meaning as in `AdminTask.createPolicySetAttachment` function.
-
 * **providerPolicySharingInfo** assures that policy sharing information is set for a service.
 
 The syntax of this option is:
