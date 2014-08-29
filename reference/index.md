@@ -1,6 +1,7 @@
 ---
-layout: page
+layout: default
 title: WDR Reference
+short_title: API reference
 ---
 
 # Global functions

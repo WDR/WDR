@@ -1,6 +1,7 @@
 ---
 layout: page
 title: Application and configuration manifests
+short_title: Manifests
 ---
 
 <!--
