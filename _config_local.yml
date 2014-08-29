@@ -6,9 +6,9 @@ tagline: Jython framework aiming at simplifying WebSphere Application Server scr
 
 disclaimer: All rademarks belong to their respective owners
 
-baseurl: /WDR
-url: http://wdr.github.io
+baseurl: ''
+url: http://localhost:4000
 
-google_analytics: 'UA-44124024-1'
+# google_analytics: 'UA-44124024-1'
 
 github : WDR/WDR

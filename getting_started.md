@@ -1,6 +1,7 @@
 ---
 layout: page
 title: Getting started with WDR
+short_title: Getting started
 ---
 
 This page should help you get your feet wet with WDR and learn some basic functionality of the library. Not all functions and objects have been described here, for a full list check Reference Reference.

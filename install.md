@@ -1,6 +1,7 @@
 ---
 layout: page
 title: Installing WDR
+short_title: Install
 ---
 
 WDR is a pure Jython library running in `wsadmin` client and as such requires only a functional `wsadmin` setup plus some Jython scripts.

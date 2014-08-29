@@ -1,9 +1,9 @@
 ---
-layout: page
+layout: default
 title: WDR
 tagline: Simpler WebSphere Application Server Scripting
 ---
-Jython library which aims at simplifying WebSphere scripting.
+
 
 # Features
 
