@@ -374,7 +374,8 @@ def _extraOptionProcessor_clientWSPolicySetAttachments( mo, name, value ):
     for ( policySet, resource, binding ) in value:
         try:
             attId = AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'client'])
-            AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'client', '-bindingLocation', [ ['application', appName], ['attachmentId', attId]]])
+            if binding:
+                AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'client', '-bindingLocation', [ ['application', appName], ['attachmentId', attId]]])
         except:
             logger.error( 'failed to apply clientWSPolicySetAttachments for %s', [ policySet, resource, binding ])
             raise
@@ -386,7 +387,8 @@ def _extraOptionProcessor_applicationWSPolicySetAttachments( mo, name, value ):
     for ( policySet, resource, binding ) in value:
         try:
             attId = AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'application'])
-            AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'application', '-bindingLocation', [ ['application', appName], ['attachmentId', attId]]])
+            if binding:
+                AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'application', '-bindingLocation', [ ['application', appName], ['attachmentId', attId]]])
         except:
             logger.error( 'failed to apply applicationWSPolicySetAttachments for %s', [ policySet, resource, binding ])
             raise
