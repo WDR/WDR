@@ -494,13 +494,13 @@ def exportApplicationManifest( appName, customTaskProcessors = {} ):
     if applicationWSPolicySetAttachments:
         applicationWSPolicySetAttachmentList = []
         for att in applicationWSPolicySetAttachments:
-            applicationWSPolicySetAttachmentList.append([att['name'], att['pattern.0'], att['binding']])
+            applicationWSPolicySetAttachmentList.append([att['name'], att['pattern.0'], att.get('binding', '')])
         manifest.extras['applicationWSPolicySetAttachments'] = applicationWSPolicySetAttachmentList
     clientWSPolicySetAttachments = wdr.task.adminTaskAsDictList(AdminTask.getPolicySetAttachments(['-applicationName', appName, '-attachmentType', 'client']))
     if clientWSPolicySetAttachments:
         clientWSPolicySetAttachmentList = []
         for att in clientWSPolicySetAttachments:
-            clientWSPolicySetAttachmentList.append([att['name'], att['pattern.0'], att['binding']])
+            clientWSPolicySetAttachmentList.append([att['name'], att['pattern.0'], att.get('binding', '')])
         manifest.extras['clientWSPolicySetAttachments'] = clientWSPolicySetAttachmentList
     providerPolicySharingInfo = wdr.task.adminTaskAsDictList(AdminTask.getProviderPolicySharingInfo(['-applicationName', appName]))
     if providerPolicySharingInfo:
