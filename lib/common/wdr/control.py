@@ -480,19 +480,44 @@ class LocalNotificationFilter( BaseLocalNotificationFilter ):
             result = None
         return result
 
-class ScriptedNotificationListener( javax.management.NotificationListener ):
+class NotificationHandler( javax.management.NotificationListener ):
     def __init__( self, notificationFilter ) :
         self.condition = threading.Condition()
         self.notificationFilter = notificationFilter
-        self.__result = None
+        self._notifications = []
+
+    def register( self, mbean, handback=None ):
+        if isinstance( mbean, MBean ):
+            objectName = mbean._id
+        elif isinstance( mbean, MBean ):
+            objectName = mbean._id
+        else:
+            objectName = mbean
+        if not isinstance( objectName, javax.management.ObjectName ):
+            objectName = AdminControl.makeObjectName( objectName )
+        AdminControl.adminClient.addNotificationListener( objectName, self, self.notificationFilter.getNotificationFilterSupport(), handback )
+
+    def remove( self, mbean ):
+        if isinstance( mbean, MBean ):
+            objectName = mbean._id
+        elif isinstance( mbean, MBean ):
+            objectName = mbean._id
+        else:
+            objectName = mbean
+        if not isinstance( objectName, javax.management.ObjectName ):
+            objectName = AdminControl.makeObjectName( objectName )
+        AdminControl.adminClient.removeNotificationListener( objectName, self )
 
     def waitForNotification( self, timeout=0 ):
         result = None
         self.condition.acquire()
-        self.__result = None
         try:
-            self.condition.wait( timeout )
-            result = self.__result
+            if self._notifications:
+                result = self._notifications.pop( 0 )
+            else:
+                self.condition.wait( timeout )
+                if self._notifications:
+                    result = self._notifications.pop( 0 )
         finally:
             self.condition.release()
         return result
@@ -502,23 +527,24 @@ class ScriptedNotificationListener( javax.management.NotificationListener ):
         self.condition.acquire()
         try:
             if ( self.notificationFilter is None ) or self.notificationFilter.isNotificationEnabled( notification ):
-                self.__result = notification
+                self._notifications.append( notification )
                 self.condition.notify()
+                self.onNotification( notification, handback )
                 logger.debug( 'returning notification %s with userData %s', notification, notification.userData )
             else:
                 logger.debug( 'ignoring notification %s with userData %s', notification, notification.userData )
         finally:
             self.condition.release()
 
-def waitForNotification( objectName, typeOrTypes = None, propertiesOrPropertiesList = None, timeout = 300.0 ):
+    def onNotification( self, notification, handback ):
+        pass
+
+def waitForNotification( mbean, typeOrTypes = None, propertiesOrPropertiesList = None, timeout = 300.0 ):
     result = None
-    localFilter = LocalNotificationFilter( typeOrTypes, propertiesOrPropertiesList )
-    listener = ScriptedNotificationListener( localFilter )
-    if not isinstance( objectName, javax.management.ObjectName ):
-        objectName = AdminControl.makeObjectName( objectName )
-    AdminControl.adminClient.addNotificationListener( objectName, listener, localFilter.getNotificationFilterSupport(), None )
+    handler = NotificationHandler( LocalNotificationFilter( typeOrTypes, propertiesOrPropertiesList ) )
+    handler.register( mbean )
     try:
-        result = listener.waitForNotification( timeout )
+        result = handler.waitForNotification( timeout )
     finally:
-        AdminControl.adminClient.removeNotificationListener( objectName, listener )
+        handler.remove( mbean )
     return result
