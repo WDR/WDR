@@ -511,7 +511,7 @@ class ScriptedNotificationListener( javax.management.NotificationListener ):
             self.condition.release()
 
 def waitForNotification( objectName, typeOrTypes = None, propertiesOrPropertiesList = None, timeout = 300.0 ):
-    resutl = None
+    result = None
     localFilter = LocalNotificationFilter( typeOrTypes, propertiesOrPropertiesList )
     listener = ScriptedNotificationListener( localFilter )
     if not isinstance( objectName, javax.management.ObjectName ):
