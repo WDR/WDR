@@ -4,7 +4,7 @@ markdown: kramdown
 title : WDR
 tagline: Jython framework aiming at simplifying WebSphere Application Server scripting
 
-disclaimer: All rademarks belong to their respective owners
+disclaimer: All trademarks belong to their respective owners
 
 baseurl: /WDR
 url: http://wdr.github.io
