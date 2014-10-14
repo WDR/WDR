@@ -296,6 +296,8 @@ class ConfigId:
             if str( self ) == str( other ):
                 return 1
         return 0
+    def __hash__( self ):
+        return hash( str( self ) )
     def __str__( self ):
         return "%s(%s|%s#%s)" % ( self.name, self.xmlPath, self.xmlDoc, self.xmlId )
     def __unicode__( self ):
@@ -358,6 +360,9 @@ class ConfigObject:
             if str( self ) == str( other ):
                 return 1
         return 0
+
+    def __hash__( self ):
+        return hash( self._id )
 
     def __getattr__( self, name ):
         if name == '__methods__':
