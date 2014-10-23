@@ -526,7 +526,7 @@ def importApplicationManifest( filename, variables = {}, listener = None, manife
     for mo in _importApplicationManifest( _locateManifestFile( filename, manifestPath ), variables ):
         if mo.name in wdr.app.listApplications():
             deployment = wdr.config.getid1( '/Deployment:%s/' % mo.name )
-            deployedChecksumProperties = deployment.deployedObject.lookup( 'Property', {'name':'wdr.checksum'} )
+            deployedChecksumProperties = deployment.deployedObject.lookup( 'Property', {'name':'wdr.checksum'}, 'properties' )
             if deployedChecksumProperties:
                 deployedChecksum = deployedChecksumProperties[0].value
             else:
