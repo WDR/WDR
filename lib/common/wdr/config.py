@@ -573,37 +573,34 @@ class ConfigObject:
         name = _criteria.get( 'name', None )
         if _propertyName:
             if name:
-                candidates = [c for c in self._getConfigAttribute( _propertyName ) if c._id.name == name]
+                candidates = [c for c in self._getConfigAttribute( _propertyName ) if c._type == _type and c._id.name == name]
             else:
-                candidates = self._getConfigAttribute( _propertyName )
+                candidates = [c for c in self._getConfigAttribute( _propertyName ) if c._type == _type]
         else:
             myName = None
             if getTypeInfo( self._type ).attributes.has_key( 'name' ):
                 myName = self._getConfigAttribute( 'name' )
-            allAncestors = self.listConfigObjects( _type )
             if self._type in parents( _type ):
-                if myName and name:
-                    indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, myName, _type, name ) )
-                elif name:
-                    indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, '', _type, name ) )
-                elif myName:
-                    indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, myName, _type, '' ) )
+                indexedParents = getid( '/%s:%s/' % ( self._type, myName or '' ) )
+                indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, myName or '', _type, name or '' ) )
+                if len( indexedParents ) == 1:
+                    candidates = indexedCandidates
                 else:
-                    indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, '', _type, '' ) )
-                candidates = [c for c in allAncestors if c in indexedCandidates]
+                    candidates = [c for c in self.listConfigObjects( _type ) if c in indexedCandidates]
             else:
-                candidates = allAncestors
-            # exclude grandchildren
-            for parentType in parents( _type ):
-                if parentType != self._type:
-                    for child in self.listConfigObjects( parentType ):
-                        for grandchild in child.listConfigObjects( _type ):
-                            if logger.isEnabledFor( logging.DEBUG ):
-                                logger.debug( 'grandchild %s of %s found', grandchild, self )
-                            if grandchild in candidates:
-                                candidates.remove( grandchild )
+                logger.warning( 'using suboptimal lookup of %s objects within %s', _type, self._type )
+                candidates = self.listConfigObjects( _type )
+                # exclude grandchildren
+                for parentType in parents( _type ):
+                    if parentType != self._type:
+                        for child in self.listConfigObjects( parentType ):
+                            for grandchild in child.listConfigObjects( _type ):
                                 if logger.isEnabledFor( logging.DEBUG ):
-                                    logger.debug( 'grandchild %s of %s removed from list of lookup candidates', grandchild, self )
+                                    logger.debug( 'grandchild %s of %s found', grandchild, self )
+                                if grandchild in candidates:
+                                    candidates.remove( grandchild )
+                                    if logger.isEnabledFor( logging.DEBUG ):
+                                        logger.debug( 'grandchild %s of %s removed from list of lookup candidates', grandchild, self )
         result = []
         for obj in candidates:
             if logger.isEnabledFor( logging.DEBUG ):

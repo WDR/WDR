@@ -174,7 +174,7 @@ def _toHex( bytes ):
     return result
 
 def _digestFile( md, filename ):
-    fis = java.io.FileInputStream( filename )
+    fis = java.io.BufferedInputStream( java.io.FileInputStream( filename ) )
     try:
         buf = jarray.zeros( 1024, 'b' )
         b = 0
