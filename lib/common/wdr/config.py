@@ -296,6 +296,8 @@ class ConfigId:
             if str( self ) == str( other ):
                 return 1
         return 0
+    def __hash__( self ):
+        return hash( str( self ) )
     def __str__( self ):
         return "%s(%s|%s#%s)" % ( self.name, self.xmlPath, self.xmlDoc, self.xmlId )
     def __unicode__( self ):
@@ -329,6 +331,31 @@ class AttributeInfo:
     def __repr__( self ):
         return '%s %s' % ( self.name, self.type )
 
+class AttributeValueCache:
+    def __init__( self ):
+        self.cache = {}
+
+    def getAttribute( self, configObject, attributeName ):
+        oid = str( configObject )
+        objectCache = self.cache[oid] = self.cache.get( oid, {} )
+        if objectCache.has_key( attributeName ):
+            return objectCache[attributeName]
+        result = configObject._getConfigAttribute( attributeName )
+        objectCache[attributeName] = result
+        return result
+
+    def invalidate( self, configObject = None, attributeName = None ):
+        if configObject is None:
+            self.cache.clear()
+        elif self.cache.has_key( configObject ):
+            if attributeName is not None:
+                if self.cache[configObject].has_key( attributeName ):
+                    del self.cache[configObject][attributeName]
+            else:
+                self.cache[configObject].clear()
+
+
+
 class ConfigObject:
     def __init__( self, _id ):
         if logger.isEnabledFor( logging.DEBUG ):
@@ -358,6 +385,9 @@ class ConfigObject:
             if str( self ) == str( other ):
                 return 1
         return 0
+
+    def __hash__( self ):
+        return hash( self._id )
 
     def __getattr__( self, name ):
         if name == '__methods__':
@@ -569,17 +599,18 @@ class ConfigObject:
             raise Exception( 'More than one configuration object matched criteria %s' % _criteria )
         return result[0]
 
-    def lookup( self, _type, _criteria, _propertyName = None ):
+    def lookup( self, _type, _criteria, _propertyName = None, attributeCache = None ):
+        attributeCache = attributeCache or AttributeValueCache()
         name = _criteria.get( 'name', None )
         if _propertyName:
             if name:
-                candidates = [c for c in self._getConfigAttribute( _propertyName ) if c._type == _type and c._id.name == name]
+                candidates = [c for c in attributeCache.getAttribute( self, _propertyName ) if c._type == _type and c._id.name == name]
             else:
-                candidates = [c for c in self._getConfigAttribute( _propertyName ) if c._type == _type]
+                candidates = [c for c in attributeCache.getAttribute( self, _propertyName ) if c._type == _type]
         else:
             myName = None
             if getTypeInfo( self._type ).attributes.has_key( 'name' ):
-                myName = self._getConfigAttribute( 'name' )
+                myName = attributeCache.getAttribute( self, 'name' )
             if self._type in parents( _type ):
                 indexedParents = getid( '/%s:%s/' % ( self._type, myName or '' ) )
                 indexedCandidates = getid( '/%s:%s/%s:%s/' % ( self._type, myName or '', _type, name or '' ) )
@@ -606,7 +637,7 @@ class ConfigObject:
             if logger.isEnabledFor( logging.DEBUG ):
                 logger.debug( 'matching %s with %s', obj, _criteria )
             for ( k, v ) in _criteria.items():
-                if obj[k] != v:
+                if attributeCache.getAttribute( obj, k ) != v:
                     if logger.isEnabledFor( logging.DEBUG ):
                         logger.debug( 'object %s did not match the criteria, attribute %s != "%s"', obj, k, v )
                     break
