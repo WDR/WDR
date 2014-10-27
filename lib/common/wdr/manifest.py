@@ -637,21 +637,24 @@ def importConfigurationManifest( filename, variables = {}, manifestPath = None )
         sysPathReversed.reverse()
         manifestPath.extend( sysPathReversed )
     anchors = {}
+    attributeCache = wdr.config.AttributeValueCache()
     for mo in _loadConfigurationManifest( _locateManifestFile( filename, manifestPath ), variables, manifestPath ):
-        _importManifestConfigObject( mo, anchors )
+        _importManifestConfigObject( mo, anchors, None, None, attributeCache )
 
-def _findMatchingObjects( manifestObject, candidateList ):
+def _findMatchingObjects( manifestObject, candidateList, attributeCache ):
+    # attributeCache = attributeCache or wdr.config.AttributeValueCache()
     matchingList = []
     for o in candidateList:
         if o._type == manifestObject.type:
             for ( k, v ) in manifestObject.keys.items():
-                if o[k] != v:
+                if attributeCache.getAttribute( o, k ) != v:
                     break
             else:
                 matchingList.append( o )
     return matchingList
 
-def _createConfigObject( manifestObject, parentObject, parentAttribute = None ):
+def _createConfigObject( manifestObject, parentObject, parentAttribute, attributeCache ):
+    # attributeCache = attributeCache or wdr.config.AttributeValueCache()
     typeName = manifestObject.type
     typeInfo = wdr.config.getTypeInfo( typeName )
     simpleAttributes = []
@@ -677,7 +680,8 @@ def _setAnchor( manifestObject, anchors, configObject ):
             logger.debug( 'setting anchor %s to %s', manifestObject.anchor, configObject )
             anchors[manifestObject.anchor] = configObject
 
-def _updateConfigObjectSimpleAttributes( configObject, manifestObject ):
+def _updateConfigObjectSimpleAttributes( configObject, manifestObject, attributeCache ):
+    # attributeCache = attributeCache or wdr.config.AttributeValueCache()
     typeName = manifestObject.type
     typeInfo = wdr.config.getTypeInfo( typeName )
     for propName in manifestObject._orderedAttributeNames:
@@ -695,6 +699,7 @@ def _updateConfigObjectSimpleAttributes( configObject, manifestObject ):
                     newPropValue = propValue
                 try:
                     configObject._modify( [[propName, newPropValue]] )
+                    attributeCache.invalidate( configObject, propName )
                 except com.ibm.ws.scripting.ScriptingException, ex:
                     msg = '' + ex.message
                     if msg.find( 'ADMG0014E' ) != -1:
@@ -703,7 +708,8 @@ def _updateConfigObjectSimpleAttributes( configObject, manifestObject ):
                     else:
                         raise
 
-def _updateConfigObjectKeys( configObject, manifestObject ):
+def _updateConfigObjectKeys( configObject, manifestObject, attributeCache ):
+    # attributeCache = attributeCache or wdr.config.AttributeValueCache()
     typeName = manifestObject.type
     typeInfo = wdr.config.getTypeInfo( typeName )
     for ( propName, propValue ) in manifestObject.keys.items():
@@ -716,6 +722,7 @@ def _updateConfigObjectKeys( configObject, manifestObject ):
                         configObject._modify( [[propName, propValue.split( ';' )]] )
                     else:
                         configObject._modify( [[propName, propValue]] )
+                    attributeCache.invalidate( configObject, propName )
                 except com.ibm.ws.scripting.ScriptingException, ex:
                     msg = '' + ex.message
                     if msg.find( 'ADMG0014E' ) != -1:
@@ -723,7 +730,8 @@ def _updateConfigObjectKeys( configObject, manifestObject ):
                     else:
                         raise
 
-def _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors ):
+def _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors, attributeCache ):
+    # attributeCache = attributeCache or wdr.config.AttributeValueCache()
     typeName = manifestObject.type
     typeInfo = wdr.config.getTypeInfo( typeName )
     for propName in manifestObject._orderedAttributeNames:
@@ -733,13 +741,14 @@ def _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors 
             attributeTypeInfo = wdr.config.getTypeInfo( attributeInfo.type )
             if not attributeTypeInfo.converter:
                 for obj in propValue:
-                    _importManifestConfigObject( obj, anchors, configObject, propName )
+                    _importManifestConfigObject( obj, anchors, configObject, propName, attributeCache )
 
-def _updateConfigObjectChildren( configObject, manifestObject, anchors ):
+def _updateConfigObjectChildren( configObject, manifestObject, anchors, attributeCache ):
     for obj in manifestObject.children:
-        _importManifestConfigObject( obj, anchors, configObject )
+        _importManifestConfigObject( obj, anchors, configObject, None, attributeCache )
 
-def _importManifestConfigObject( manifestObject, anchors, parentObject = None, parentAttribute = None ):
+def _importManifestConfigObject( manifestObject, anchors, parentObject, parentAttribute, attributeCache ):
+    # attributeCache = attributeCache or wdr.config.AttributeValueCache()
     typeName = manifestObject.type
     logger.debug( 'importing object type %s as child of object %s and property %s', typeName, parentObject, parentAttribute )
     configObject = None
@@ -759,20 +768,21 @@ def _importManifestConfigObject( manifestObject, anchors, parentObject = None, p
                     if not anchors.has_key( manifestObject.reference ):
                         raise Exception( 'Unresolved reference: %s' % manifestObject.reference )
                     parentObject[parentAttribute] = parentObject[parentAttribute].append( anchors[manifestObject.reference] )
+                    attributeCache.invalidate( parentObject, parentAttribute )
                 else:
                     # adding object to a list
-                    matchingObjects = _findMatchingObjects( manifestObject, parentObject[parentAttribute] )
+                    matchingObjects = _findMatchingObjects( manifestObject, attributeCache.getAttribute( parentObject, parentAttribute ), attributeCache )
                     if len( matchingObjects ) == 0:
                         configObject = _createConfigObject( manifestObject, parentObject, parentAttribute )
                         _setAnchor( manifestObject, anchors, configObject )
-                        _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors )
+                        _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors, attributeCache )
                         _updateConfigObjectChildren( configObject, manifestObject, anchors )
                     elif len( matchingObjects ) == 1:
                         configObject = matchingObjects[0]
                         _setAnchor( manifestObject, anchors, configObject )
-                        _updateConfigObjectSimpleAttributes( configObject, manifestObject )
-                        _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors )
-                        _updateConfigObjectChildren( configObject, manifestObject, anchors )
+                        _updateConfigObjectSimpleAttributes( configObject, manifestObject, attributeCache )
+                        _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors, attributeCache )
+                        _updateConfigObjectChildren( configObject, manifestObject, anchors, attributeCache )
                     else:
                         raise Exception( 'Multiple %s objects matched criteria' % typeName )
             else:
@@ -785,6 +795,7 @@ def _importManifestConfigObject( manifestObject, anchors, parentObject = None, p
                     if not anchors.has_key( manifestObject.reference ):
                         raise Exception( 'Unresolved reference: %s' % manifestObject.reference )
                     parentObject[parentAttribute] = anchors[manifestObject.reference]
+                    attributeCache.invalidate( parentObject, parentAttribute )
                 else:
                     # creating/modifying single object attribute
                     if len( manifestObject.keys ) != 0:
@@ -793,44 +804,44 @@ def _importManifestConfigObject( manifestObject, anchors, parentObject = None, p
                     if len( matchingObjects ) == 0 or ( len( matchingObjects ) == 1 and matchingObjects[0] is None ):
                         configObject = _createConfigObject( manifestObject, parentObject, parentAttribute )
                         _setAnchor( manifestObject, anchors, configObject )
-                        _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors )
-                        _updateConfigObjectChildren( configObject, manifestObject, anchors )
+                        _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors, attributeCache )
+                        _updateConfigObjectChildren( configObject, manifestObject, anchors, attributeCache )
                     elif len( matchingObjects ) == 1:
                         configObject = matchingObjects[0]
                         _setAnchor( manifestObject, anchors, configObject )
-                        _updateConfigObjectKeys( configObject, manifestObject )
-                        _updateConfigObjectSimpleAttributes( configObject, manifestObject )
-                        _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors )
-                        _updateConfigObjectChildren( configObject, manifestObject, anchors )
+                        _updateConfigObjectKeys( configObject, manifestObject, attributeCache )
+                        _updateConfigObjectSimpleAttributes( configObject, manifestObject, attributeCache )
+                        _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors, attributeCache )
+                        _updateConfigObjectChildren( configObject, manifestObject, anchors, attributeCache )
                     else:
                         raise Exception( 'Multiple %s objects matched criteria' % typeName )
         else:
             # parent attribute name not provided
             if manifestObject.reference:
                 raise Exception( 'Reference "%s" was not expected here' % manifestObject.reference )
-            matchingObjects = _findMatchingObjects( manifestObject, parentObject.lookup( typeName, {} ) )
+            matchingObjects = _findMatchingObjects( manifestObject, parentObject.lookup( typeName, {} ), attributeCache )
             if len( matchingObjects ) == 0:
                 configObject = _createConfigObject( manifestObject, parentObject )
                 _setAnchor( manifestObject, anchors, configObject )
-                _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors )
-                _updateConfigObjectChildren( configObject, manifestObject, anchors )
+                _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors, attributeCache )
+                _updateConfigObjectChildren( configObject, manifestObject, anchors, attributeCache )
             elif len( matchingObjects ) == 1:
                 configObject = matchingObjects[0]
                 _setAnchor( manifestObject, anchors, configObject )
-                _updateConfigObjectSimpleAttributes( configObject, manifestObject )
-                _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors )
-                _updateConfigObjectChildren( configObject, manifestObject, anchors )
+                _updateConfigObjectSimpleAttributes( configObject, manifestObject, attributeCache )
+                _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors, attributeCache )
+                _updateConfigObjectChildren( configObject, manifestObject, anchors, attributeCache )
             else:
                 raise Exception( 'Multiple %s objects matched criteria' % typeName )
     else:
         # without knowing the parent, object can be only modified, no new object can be created
-        matchingObjects = _findMatchingObjects( manifestObject, wdr.config.listConfigObjects( typeName ) )
+        matchingObjects = _findMatchingObjects( manifestObject, wdr.config.listConfigObjects( typeName ), attributeCache )
         if len( matchingObjects ) == 1:
             configObject = matchingObjects[0]
-            _updateConfigObjectSimpleAttributes( configObject, manifestObject )
+            _updateConfigObjectSimpleAttributes( configObject, manifestObject, attributeCache )
             _setAnchor( manifestObject, anchors, configObject )
-            _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors )
-            _updateConfigObjectChildren( configObject, manifestObject, anchors )
+            _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors, attributeCache )
+            _updateConfigObjectChildren( configObject, manifestObject, anchors, attributeCache )
         elif len( matchingObjects ) == 0:
             raise Exception( 'No %s object matched criteria' % typeName )
         else:
