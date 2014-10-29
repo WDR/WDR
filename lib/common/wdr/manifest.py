@@ -670,6 +670,8 @@ def _createConfigObject( manifestObject, parentObject, parentAttribute, attribut
         else:
             raise Exception( 'Invalid attribute %s specified for object %s(%s)' % ( propName, typeName, manifestObject.keys ) )
     result = parentObject._create( typeName, parentAttribute, simpleAttributes )
+    if parentAttribute is not None:
+        attributeCache.invalidate( parentObject, parentAttribute )
     return result
 
 def _setAnchor( manifestObject, anchors, configObject ):
@@ -773,7 +775,7 @@ def _importManifestConfigObject( manifestObject, anchors, parentObject, parentAt
                     # adding object to a list
                     matchingObjects = _findMatchingObjects( manifestObject, attributeCache.getAttribute( parentObject, parentAttribute ), attributeCache )
                     if len( matchingObjects ) == 0:
-                        configObject = _createConfigObject( manifestObject, parentObject, parentAttribute )
+                        configObject = _createConfigObject( manifestObject, parentObject, parentAttribute, attributeCache )
                         _setAnchor( manifestObject, anchors, configObject )
                         _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors, attributeCache )
                         _updateConfigObjectChildren( configObject, manifestObject, anchors )
@@ -802,7 +804,7 @@ def _importManifestConfigObject( manifestObject, anchors, parentObject, parentAt
                         raise Exception( '%s.%s is not a list, therefore no keys are allowed for its objects' )
                     matchingObjects = [parentObject[parentAttribute]]
                     if len( matchingObjects ) == 0 or ( len( matchingObjects ) == 1 and matchingObjects[0] is None ):
-                        configObject = _createConfigObject( manifestObject, parentObject, parentAttribute )
+                        configObject = _createConfigObject( manifestObject, parentObject, parentAttribute, attributeCache )
                         _setAnchor( manifestObject, anchors, configObject )
                         _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors, attributeCache )
                         _updateConfigObjectChildren( configObject, manifestObject, anchors, attributeCache )
@@ -821,7 +823,7 @@ def _importManifestConfigObject( manifestObject, anchors, parentObject, parentAt
                 raise Exception( 'Reference "%s" was not expected here' % manifestObject.reference )
             matchingObjects = _findMatchingObjects( manifestObject, parentObject.lookup( typeName, {} ), attributeCache )
             if len( matchingObjects ) == 0:
-                configObject = _createConfigObject( manifestObject, parentObject )
+                configObject = _createConfigObject( manifestObject, parentObject, None, attributeCache )
                 _setAnchor( manifestObject, anchors, configObject )
                 _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors, attributeCache )
                 _updateConfigObjectChildren( configObject, manifestObject, anchors, attributeCache )
