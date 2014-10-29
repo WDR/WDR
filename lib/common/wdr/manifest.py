@@ -642,7 +642,6 @@ def importConfigurationManifest( filename, variables = {}, manifestPath = None )
         _importManifestConfigObject( mo, anchors, None, None, attributeCache )
 
 def _findMatchingObjects( manifestObject, candidateList, attributeCache ):
-    # attributeCache = attributeCache or wdr.config.AttributeValueCache()
     matchingList = []
     for o in candidateList:
         if o._type == manifestObject.type:
@@ -654,7 +653,6 @@ def _findMatchingObjects( manifestObject, candidateList, attributeCache ):
     return matchingList
 
 def _createConfigObject( manifestObject, parentObject, parentAttribute, attributeCache ):
-    # attributeCache = attributeCache or wdr.config.AttributeValueCache()
     typeName = manifestObject.type
     typeInfo = wdr.config.getTypeInfo( typeName )
     simpleAttributes = []
@@ -683,7 +681,6 @@ def _setAnchor( manifestObject, anchors, configObject ):
             anchors[manifestObject.anchor] = configObject
 
 def _updateConfigObjectSimpleAttributes( configObject, manifestObject, attributeCache ):
-    # attributeCache = attributeCache or wdr.config.AttributeValueCache()
     typeName = manifestObject.type
     typeInfo = wdr.config.getTypeInfo( typeName )
     for propName in manifestObject._orderedAttributeNames:
@@ -711,7 +708,6 @@ def _updateConfigObjectSimpleAttributes( configObject, manifestObject, attribute
                         raise
 
 def _updateConfigObjectKeys( configObject, manifestObject, attributeCache ):
-    # attributeCache = attributeCache or wdr.config.AttributeValueCache()
     typeName = manifestObject.type
     typeInfo = wdr.config.getTypeInfo( typeName )
     for ( propName, propValue ) in manifestObject.keys.items():
@@ -733,7 +729,6 @@ def _updateConfigObjectKeys( configObject, manifestObject, attributeCache ):
                         raise
 
 def _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors, attributeCache ):
-    # attributeCache = attributeCache or wdr.config.AttributeValueCache()
     typeName = manifestObject.type
     typeInfo = wdr.config.getTypeInfo( typeName )
     for propName in manifestObject._orderedAttributeNames:
@@ -750,7 +745,6 @@ def _updateConfigObjectChildren( configObject, manifestObject, anchors, attribut
         _importManifestConfigObject( obj, anchors, configObject, None, attributeCache )
 
 def _importManifestConfigObject( manifestObject, anchors, parentObject, parentAttribute, attributeCache ):
-    # attributeCache = attributeCache or wdr.config.AttributeValueCache()
     typeName = manifestObject.type
     logger.debug( 'importing object type %s as child of object %s and property %s', typeName, parentObject, parentAttribute )
     configObject = None
@@ -778,7 +772,7 @@ def _importManifestConfigObject( manifestObject, anchors, parentObject, parentAt
                         configObject = _createConfigObject( manifestObject, parentObject, parentAttribute, attributeCache )
                         _setAnchor( manifestObject, anchors, configObject )
                         _updateConfigObjectComplexAttributes( configObject, manifestObject, anchors, attributeCache )
-                        _updateConfigObjectChildren( configObject, manifestObject, anchors )
+                        _updateConfigObjectChildren( configObject, manifestObject, anchors, attributeCache )
                     elif len( matchingObjects ) == 1:
                         configObject = matchingObjects[0]
                         _setAnchor( manifestObject, anchors, configObject )
