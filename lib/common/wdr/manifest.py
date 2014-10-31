@@ -552,6 +552,9 @@ def importApplicationManifest( filename, variables = {}, listener = None, manife
                 wdr.config.getid1( '/Deployment:%s/' % mo.name ).deployedObject.assure( 'Property', {'name':'wdr.checksum'}, 'properties', value = calculatedChecksum, description = 'Checksum of deployed EAR file and application manifest' )
                 affectedApplications.append( mo.name )
                 listener.afterUpdate( mo.name, mo.archive )
+                for extraOptionName in _extraOptionNamesOrdered:
+                        if mo.extras.has_key( extraOptionName ):
+                            processExtraAppOption( mo, extraOptionName, mo.extras[ extraOptionName ] )
         else:
             listener.beforeInstall( mo.name, mo.archive )
             action = wdr.app.Install()
@@ -568,9 +571,9 @@ def importApplicationManifest( filename, variables = {}, listener = None, manife
             wdr.config.getid1( '/Deployment:%s/' % mo.name ).deployedObject.assure( 'Property', {'name':'wdr.checksum'}, 'properties', value = calculatedChecksum, description = 'Checksum of deployed EAR file and application manifest' )
             affectedApplications.append( mo.name )
             listener.afterInstall( mo.name, mo.archive )
-        for extraOptionName in _extraOptionNamesOrdered:
-            if mo.extras.has_key( extraOptionName ):
-                processExtraAppOption( mo, extraOptionName, mo.extras[ extraOptionName ] )
+            for extraOptionName in _extraOptionNamesOrdered:
+                if mo.extras.has_key( extraOptionName ):
+                    processExtraAppOption( mo, extraOptionName, mo.extras[ extraOptionName ] )
     return affectedApplications
 
 def loadConfiguration( filename, variables = {} ):
