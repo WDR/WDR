@@ -20,6 +20,7 @@ import java.io
 import java.lang
 import java.math
 import java.security
+import com.ibm.websphere.crypto
 import logging
 import string
 import wdr
@@ -235,3 +236,8 @@ def sha512( str ):
     md.update( java.lang.String( str ).getBytes( 'UTF-8' ) )
     return _toHex( md.digest() )
 
+def encodePassword( str ):
+    return com.ibm.websphere.crypto.PasswordUtil.encode( str )
+
+def decodePassword( str ):
+    return com.ibm.websphere.crypto.PasswordUtil.decode( str )
