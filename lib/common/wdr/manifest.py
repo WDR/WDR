@@ -375,7 +375,10 @@ def _extraOptionProcessor_clientWSPolicySetAttachments( mo, name, value ):
         try:
             attId = AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'client'])
             if binding:
-                AdminTask.setBinding(['-bindingName', binding, '-attachmentType', 'client', '-bindingLocation', [ ['application', appName], ['attachmentId', attId]]])
+                try:
+                    AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'client', '-bindingLocation', [ ['application', appName], ['attachmentId', attId]]])
+                except:
+                    AdminTask.setBinding(['-bindingName', binding, '-attachmentType', 'client', '-bindingLocation', [ ['application', appName], ['attachmentId', attId]]])
         except:
             logger.error( 'failed to apply clientWSPolicySetAttachments for %s', [ policySet, resource, binding ])
             raise
@@ -388,7 +391,11 @@ def _extraOptionProcessor_applicationWSPolicySetAttachments( mo, name, value ):
         try:
             attId = AdminTask.createPolicySetAttachment(['-policySet', policySet, '-resources', [resource], '-applicationName', appName, '-attachmentType', 'application'])
             if binding:
-                AdminTask.setBinding(['-bindingName', binding, '-attachmentType', 'application', '-bindingLocation', [ ['application', appName], ['attachmentId', attId]]])
+                try:
+                    AdminTask.setBinding(['-bindingScope', 'domain', '-bindingName', binding, '-attachmentType', 'application', '-bindingLocation', [ ['application', appName], ['attachmentId', attId]]])
+                except:
+                    AdminTask.setBinding(['-bindingName', binding, '-attachmentType', 'application', '-bindingLocation', [ ['application', appName], ['attachmentId', attId]]])
+
         except:
             logger.error( 'failed to apply applicationWSPolicySetAttachments for %s', [ policySet, resource, binding ])
             raise
