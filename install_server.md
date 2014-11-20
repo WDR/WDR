@@ -26,11 +26,11 @@ Set 2 environment variables:
 Then run start `wsadmin` session with the following arguments:
 
 {% highlight sh %}
-${WAS_HOME}/bin/wsadmin.sh -lang jython -javaoption -Dcom.ibm.ws.scripting.exceptionPropagation=thrown -javaoption -Dpython.path=${WDR_HOME}/lib/common:${WDR_HOME}/lib/legacy -profile ${WDR_HOME}/profile.py
+${WAS_HOME}/bin/wsadmin.sh -lang jython -javaoption -Dcom.ibm.ws.scripting.exceptionPropagation=thrown -javaoption -Dpython.path=${WDR_HOME}/lib/legacy:${WDR_HOME}/lib/common:. -profile ${WDR_HOME}/profile.py
 {% endhighlight %}
 
 {% highlight bat %}
-%WAS_HOME%\bin\wsadmin.bat -lang jython -javaoption -Dcom.ibm.ws.scripting.exceptionPropagation=thrown -javaoption "-Dpython.path=%WDR_HOME%\lib\common;%WDR_HOME%\lib\legacy" -profile %WDR_HOME%\profile.py
+%WAS_HOME%\bin\wsadmin.bat -lang jython -javaoption -Dcom.ibm.ws.scripting.exceptionPropagation=thrown -javaoption "-Dpython.path=%WDR_HOME%\lib\legacy;%WDR_HOME%\lib\common;." -profile %WDR_HOME%\profile.py
 {% endhighlight %}
 
 If everything goes well, you should get the output similar to the following one:
