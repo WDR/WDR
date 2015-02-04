@@ -41,8 +41,8 @@ def sync( quiet = 0 ):
                 for ns in wdr.control.queryMBeans( type = 'NodeSync', node = node.name ):
                     if not quiet:
                         logger.info( 'synchronizing node %s', node.name )
-                    ns.sync()
-                    synchronizedNodes += 1.0
+                    if ns.sync():
+                        synchronizedNodes += 1.0
                     break
                 else:
                     if not quiet:
