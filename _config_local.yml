@@ -1,7 +1,7 @@
 highlighter: pygments
 markdown: kramdown
 
-title : WDR
+title : WDR - WebSphere automation library
 description: WebSphere automation library
 keywords: WebSphere,wsadmin,Jython,automation,DevOps
 tagline: Jython framework aiming at simplifying WebSphere Application Server scripting

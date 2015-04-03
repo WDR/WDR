@@ -1,6 +1,5 @@
 ---
 layout: default
-title: WDR
 tagline: Simpler WebSphere Application Server Scripting
 ---
 
