@@ -43,6 +43,9 @@ def sync( quiet = 0 ):
                         logger.info( 'synchronizing node %s', node.name )
                     if ns.sync():
                         synchronizedNodes += 1.0
+                    else:
+                        if not quiet:
+                            logger.warning( 'synchronization of %s did not complete successfully', node.name )
                     break
                 else:
                     if not quiet:
