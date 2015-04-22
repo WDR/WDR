@@ -87,6 +87,12 @@ if [ "${JYTHON_VERSION}" == "2.1" ]; then
 	PYTHON_PATH="${PYTHON_PATH}:${WDR_HOME}/lib/legacy"
 fi
 
+if [[ -d ${HOME}/.wdr/lib ]] ; then
+	for lib in `find ${HOME}/.wdr/lib -mindepth 1 -maxdepth 1 -type d` ; do
+		PYTHON_PATH=${PYTHON_PATH}:${lib}
+	done
+fi
+
 if [ "${EXTRA_PYTHON_PATH}" != "" ]; then
 	PYTHON_PATH="${PYTHON_PATH}:${EXTRA_PYTHON_PATH}"
 fi
