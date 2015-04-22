@@ -104,6 +104,10 @@ if "%JYTHON_VERSION%" == "2.1" (
 set PYTHON_PATH=%PYTHON_PATH%;%WDR_HOME%\lib\legacy
 )
 
+if exist %USERPROFILE%\.wdr\lib (
+for /d %%L in (%USERPROFILE%\.wdr\lib\*) do set PYTHON_PATH=%PYTHON_PATH%;%%L
+)
+
 if not "%EXTRA_PYTHON_PATH%" == "" (
 set PYTHON_PATH=%PYTHON_PATH%;%EXTRA_PYTHON_PATH%
 )
