@@ -67,7 +67,7 @@ def _lookupVariable( expression, filterExpression, variables ):
             raise KeyError( filterExpression )
     return filter( value )
 
-def _substituteVariables( value, variables ):
+def substituteVariables( value, variables ):
     return re.sub( _variablePattern, lambda k, v = variables:_lookupVariable( k.group( 'var' ), k.group( 'filter' ), v ), value )
 
 class ManifestConfigObject:
@@ -175,7 +175,7 @@ class _ObjectDataConsumer( _ConfigEventConsumer ):
     def consumeKey( self, filename, line, lineno, variables, manifestPath ):
         mat = _keyPattern.match( line )
         name = mat.group( 'name' )
-        value = _substituteVariables( mat.group( 'value' ), variables )
+        value = substituteVariables( mat.group( 'value' ), variables )
         self.parentObject.keys[name] = value
         return [self]
     def consumeAttribute( self, filename, line, lineno, variables, manifestPath ):
@@ -188,7 +188,7 @@ class _ObjectDataConsumer( _ConfigEventConsumer ):
             self.parentObject._orderedAttributeNames.append( name )
             return [self, _ObjectConsumer( values )]
         else:
-            self.parentObject.attributes[name] = _substituteVariables( value, variables )
+            self.parentObject.attributes[name] = substituteVariables( value, variables )
             self.parentObject._orderedAttributeNames.append( name )
             return [self, _ConfigEventConsumer()]
     def consumeObject( self, filename, line, lineno, manifestPath ):
@@ -299,7 +299,7 @@ class _AppConsumer( _AppEventConsumer ):
         name = mat.group( 'name' )
         if name is None:
             name = mat.group( 'qname' )
-        name = _substituteVariables( name, variables )
+        name = substituteVariables( name, variables )
         archive = mat.group( 'path' )
         if archive is None:
             archive = mat.group( 'qpath' )
@@ -328,7 +328,7 @@ class _AppOptionConsumer( _AppEventConsumer ):
                 self.parentObject.extras[name] = values
                 return [self, _AppOptionValueConsumer( values )]
             else:
-                self.parentObject.extras[name] = _substituteVariables( value, variables )
+                self.parentObject.extras[name] = substituteVariables( value, variables )
                 return [self, _AppEventConsumer()]
             pass
         else:
@@ -337,7 +337,7 @@ class _AppOptionConsumer( _AppEventConsumer ):
                 self.parentObject.options[name] = values
                 return [self, _AppOptionValueConsumer( values )]
             else:
-                self.parentObject.options[name] = _substituteVariables( value, variables )
+                self.parentObject.options[name] = substituteVariables( value, variables )
                 return [self, _AppEventConsumer()]
 
 class _AppOptionValueConsumer( _AppEventConsumer ):
