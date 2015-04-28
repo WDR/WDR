@@ -239,6 +239,23 @@ def sha512( str ):
     md.update( java.lang.String( str ).getBytes( 'UTF-8' ) )
     return _toHex( md.digest() )
 
+def _mergeVariables( d, u ):
+    for ( k, v ) in u.items():
+        if isinstance( v, types.DictType ):
+            r = _mergeVariables( d.get( k, {} ), v )
+            d[k] = r
+        else:
+            d[k] = u[k]
+    return d
+
+
+def mergeVariables( *scopes ):
+    result = {}
+    for s in scopes:
+        result = _mergeVariables( result, s )
+    return result
+
+
 def encodePassword( str ):
     return com.ibm.websphere.crypto.PasswordUtil.encode( str )
 
