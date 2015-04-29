@@ -303,7 +303,7 @@ class _AppConsumer( _AppEventConsumer ):
         archive = mat.group( 'path' )
         if archive is None:
             archive = mat.group( 'qpath' )
-        archive = _substituteVariables( archive, variables )
+        archive = substituteVariables( archive, variables )
         dirname = os.path.dirname( os.path.normpath( os.path.abspath( filename ) ) )
         archive = os.path.normpath( os.path.join( dirname, archive ) )
         obj = ApplicationObject( name, archive )
@@ -347,7 +347,7 @@ class _AppOptionValueConsumer( _AppEventConsumer ):
     def consumeOptionValue( self, filename, line, lineno, variables ):
         mat = _appOptionValuePattern.match( line )
         value = mat.group( 'value' )
-        self.parentList.append( _substituteVariables( value, variables ).split( ';' ) )
+        self.parentList.append( substituteVariables( value, variables ).split( ';' ) )
         return [self, _AppEventConsumer()]
 
 def _extraOptionProcessor_startingWeight( mo, name, value ):
