@@ -23,6 +23,7 @@ import java.security
 import com.ibm.websphere.crypto
 import logging
 import string
+import types
 import wdr
 
 ( AdminApp, AdminConfig, AdminControl, AdminTask, Help ) = wdr.WsadminObjects().getObjects()
