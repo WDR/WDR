@@ -118,8 +118,10 @@ def substituteVariables(value, variables):
 
 
 class ManifestConfigObject:
-    def __init__(self, type):
+    def __init__(self, type, filename=None, linenumber=0):
         self.type = type
+        self.filename = filename
+        self.linenumber = linenumber
         self.children = []
         self.keys = {}
         self.attributes = {}
@@ -141,6 +143,12 @@ class ManifestConfigObject:
 
     def __unicode__(self):
         return unicode(self._toString(0))
+
+    def getSourceLocation(self):
+        if self.filename and self.linenumber:
+            return '%s(%d)' % (self.filename, self.linenumber)
+        else:
+            return '(unknown source)'
 
     def _toString(self, indent):
         result = ''
@@ -227,7 +235,7 @@ class _ObjectConsumer(_ConfigEventConsumer):
         mat = _typePattern.match(line)
         name = mat.group('type')
         linkage = mat.group('linkage')
-        obj = ManifestConfigObject(name)
+        obj = ManifestConfigObject(name, filename, lineno)
         if linkage:
             if linkage[0] == '#':
                 obj.anchor = linkage[1:]
@@ -299,7 +307,7 @@ class _ObjectDataConsumer(_ConfigEventConsumer):
         mat = _typePattern.match(line)
         name = mat.group('type')
         linkage = mat.group('linkage')
-        obj = ManifestConfigObject(name)
+        obj = ManifestConfigObject(name, filename, lineno)
         if linkage:
             if linkage[0] == '#':
                 obj.anchor = linkage[1:]
