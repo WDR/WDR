@@ -258,6 +258,20 @@ class MBean:
     def waitForNotification( self, typeOrTypes = None, propertiesOrPropertiesList = None, timeout = 300.0 ):
         return waitForNotification( self._id, typeOrTypes, propertiesOrPropertiesList, timeout )
 
+def completeObjectName( domain='WebSphere', **attributes ):
+    """Find the complete object name using the provided template, which is a fragment of the object name. If there are
+    multiple results, the first result is returned.
+    Example:
+    print wdr.control.completeObjectName(type='Application', name='applicationName')"""
+    template = '%s:*' % domain
+    for ( k, v ) in attributes.items():
+        template += ',%s=%s' % ( k, v )
+    completeObjectName = AdminControl.completeObjectName(template)
+    if completeObjectName == '':
+        return None
+    else:
+        return completeObjectName
+
 def queryMBeans( domain = 'WebSphere', **attributes ):
     """Queries given the query criteria, retrieves an array of matching MBeans.
     Example:
