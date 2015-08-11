@@ -1,20 +1,12 @@
 #!/bin/bash
 
+# runtimes.default.bat
 #
-# Copyright 2012-2015 Marcin Plonka <mplonka@gmail.com>
+# do not modify this file
+# update of WDR may overwrite your changes
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+# in order to customize WAS client paths: make a copy of this file, save it as "runtimes.sh"
+# and customize that "runtimes.sh" script
 
 WAS61_RUNTIME_HOME="/opt/IBM/WebSphere61/AppClient"
 WAS61_JYTHON_VERSION="2.1"

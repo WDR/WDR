@@ -1,53 +1,61 @@
-#
-# Copyright 2012-2015 Marcin Plonka <mplonka@gmail.com>
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-
 import logging
 import re
 import wdr
 
-( AdminApp, AdminConfig, AdminControl, AdminTask, Help ) = wdr.WsadminObjects().getObjects()
-logger = logging.getLogger( 'wdrTask' )
 
-_listPattern = re.compile( r'\[(.*)\]' )
-_itemPattern = re.compile( r'(?<=\[)(?P<key>\S+)\s+(?:\[(?P<valueQuoted>[^\]]+)\]|(?P<valueNotQuoted>[^ \[\]]+))' )
+(
+    AdminApp, AdminConfig, AdminControl, AdminTask, Help
+) = wdr.WsadminObjects().getObjects()
 
-def adminTaskAsDict( adminTaskList ):
+logger = logging.getLogger('wdr.task')
+
+_listPattern = re.compile(r'\[(.*)\]')
+_itemPattern = re.compile(
+    r'(?<=\[)'
+    + r'(?P<key>\S+)'
+    + r'\s+'
+    + r'(?:'
+    + (
+        r''
+        + r'\[(?P<valueQuoted>[^\]]+)\]'
+        + r'|'
+        + r'(?P<valueNotQuoted>[^ \[\]]+)'
+    )
+    + r')'
+)
+
+
+def adminTaskAsDict(adminTaskList):
     result = {}
-    for ( key, valueQuoted, valueNotQuoted ) in _itemPattern.findall( adminTaskList ):
+    for (key, valueQuoted, valueNotQuoted) in _itemPattern.findall(
+        adminTaskList
+    ):
         result[key] = valueQuoted or valueNotQuoted
     return result
 
-def adminTaskAsDictList( adminTaskListOfLists ):
+
+def adminTaskAsDictList(adminTaskListOfLists):
     result = []
     for l in adminTaskListOfLists.splitlines():
-        listMatcher = _listPattern.match( l )
+        listMatcher = _listPattern.match(l)
         if listMatcher:
-            result.append( adminTaskAsDict( listMatcher.group( 1 ) ) )
+            result.append(adminTaskAsDict(listMatcher.group(1)))
     return result
 
-def adminTaskAsListOfLists( adminTaskList ):
+
+def adminTaskAsListOfLists(adminTaskList):
     result = []
-    for ( key, valueQuoted, valueNotQuoted ) in _itemPattern.findall( adminTaskList ):
-        result.append( [key, valueQuoted or valueNotQuoted] )
+    for (key, valueQuoted, valueNotQuoted) in _itemPattern.findall(
+        adminTaskList
+    ):
+        result.append([key, valueQuoted or valueNotQuoted])
     return result
 
-def adminTaskAsListOfListsList( adminTaskListOfLists ):
+
+def adminTaskAsListOfListsList(adminTaskListOfLists):
     result = []
     for l in adminTaskListOfLists.splitlines():
-        listMatcher = _listPattern.match( l )
+        listMatcher = _listPattern.match(l)
         if listMatcher:
-            result.append( adminTaskAsListOfLists( listMatcher.group( 1 ) ) )
+            result.append(adminTaskAsListOfLists(listMatcher.group(1)))
     return result
