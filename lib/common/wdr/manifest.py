@@ -889,7 +889,7 @@ def importApplicationManifest(
         if mo.name in wdr.app.listApplications():
             deployedObject = wdr.config.getid1(
                 '/Deployment:%s/' % mo.name
-            ).deployment
+            ).deployedObject
             deployedChecksumProperties = deployedObject.lookup(
                 'Property',
                 {'name': 'wdr.checksum'},
@@ -922,7 +922,7 @@ def importApplicationManifest(
                 action(mo.name)
                 deployedObject = wdr.config.getid1(
                     '/Deployment:%s/' % mo.name
-                ).deployment
+                ).deployedObject
                 deployedObject.assure(
                     'Property', {'name': 'wdr.checksum'}, 'properties',
                     value=calculatedChecksum,
@@ -950,7 +950,7 @@ def importApplicationManifest(
             calculatedChecksum = fileChecksum + ';' + manifestChecksum
             deployedObject = wdr.config.getid1(
                 '/Deployment:%s/' % mo.name
-            ).deployment
+            ).deployedObject
             deployedObject.assure(
                 'Property',
                 {'name': 'wdr.checksum'},
