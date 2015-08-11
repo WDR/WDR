@@ -118,8 +118,10 @@ def substituteVariables(value, variables):
 
 
 class ManifestConfigObject:
-    def __init__(self, type):
+    def __init__(self, type, filename=None, linenumber=0):
         self.type = type
+        self.filename = filename
+        self.linenumber = linenumber
         self.children = []
         self.keys = {}
         self.attributes = {}
@@ -141,6 +143,12 @@ class ManifestConfigObject:
 
     def __unicode__(self):
         return unicode(self._toString(0))
+
+    def getSourceLocation(self):
+        if self.filename and self.linenumber:
+            return '%s(%d)' % (self.filename, self.linenumber)
+        else:
+            return '(unknown source)'
 
     def _toString(self, indent):
         result = ''
@@ -176,7 +184,7 @@ class LoadError:
 
     def __str__(self):
         return (
-            '(%s:%d) %s: %s'
+            '[%s(%d)] %s: %s'
             % (self.filename, self.lineno, self.message, self.line)
         )
 
@@ -190,27 +198,29 @@ class _ConfigEventConsumer:
 
     def consumeObject(self, filename, line, lineno, manifestPath):
         logger.error(
-            'manifest parsing error - unexpected object definition at line %d',
-            lineno
+            '[%s(%d)] manifest parsing error - unexpected object definition',
+            filename, lineno
         )
         raise LoadError('Unexpected object definition', filename, line, lineno)
 
     def consumeKey(self, filename, line, lineno, variables, manifestPath):
         logger.error(
-            'manifest parsing error - unexpected object key at line %d', lineno
+            '[%s(%d)] manifest parsing error - unexpected object key', filename,
+            lineno
         )
         raise LoadError('Unexpected key', filename, line, lineno)
 
     def consumeAttribute(self, filename, line, lineno, variables, manifestPath):
         logger.error(
-            'manifest parsing error - unexpected object attribute at line %d',
-            lineno
+            '[%s(%d)] manifest parsing error - unexpected object attribute',
+            filename, lineno
         )
         raise LoadError('Unexpected attribute', filename, line, lineno)
 
     def consumeDirective(self, filename, line, lineno, variables, manifestPath):
         logger.error(
-            'manifest parsing error - unexpected directive at line %d', lineno
+            '[%s(%d)] manifest parsing error - unexpected directive', filename,
+            lineno
         )
         raise LoadError('Unexpected directive', filename, line, lineno)
 
@@ -227,7 +237,7 @@ class _ObjectConsumer(_ConfigEventConsumer):
         mat = _typePattern.match(line)
         name = mat.group('type')
         linkage = mat.group('linkage')
-        obj = ManifestConfigObject(name)
+        obj = ManifestConfigObject(name, filename, lineno)
         if linkage:
             if linkage[0] == '#':
                 obj.anchor = linkage[1:]
@@ -241,28 +251,43 @@ class _ObjectConsumer(_ConfigEventConsumer):
         name = mat.group('name')
         values = mat.group('values').split()
         if 'include' == name:
-            self.parentList.extend(
-                _loadConfigurationManifest(
-                    _locateManifestFile(
-                        values[0],
-                        [os.path.dirname(filename)]
-                    ),
-                    variables,
-                    manifestPath
+            try:
+                self.parentList.extend(
+                    _loadConfigurationManifest(
+                        _locateManifestFile(
+                            values[0],
+                            [os.path.dirname(filename)]
+                        ),
+                        variables,
+                        manifestPath
+                    )
                 )
-            )
+            except:
+                logger.error(
+                    '[%s(%d)] error while processing include directive',
+                    filename, lineno
+                )
+                raise
             return [self]
         elif 'import' == name:
-            self.parentList.extend(
-                _loadConfigurationManifest(
-                    _locateManifestFile(values[0], manifestPath),
-                    variables,
-                    manifestPath
+            try:
+                self.parentList.extend(
+                    _loadConfigurationManifest(
+                        _locateManifestFile(values[0], manifestPath),
+                        variables,
+                        manifestPath
+                    )
                 )
-            )
+            except:
+                logger.error(
+                    '[%s(%d)] error while processing import directive',
+                    filename, lineno
+                )
+                raise
             return [self]
         logger.error(
-            'manifest parsing error - unexpected directive at line %d', lineno
+            '[%s(%d)] manifest parsing error - unexpected directive',
+            filename, lineno
         )
         raise LoadError('Unexpected directive', filename, line, lineno)
 
@@ -275,7 +300,13 @@ class _ObjectDataConsumer(_ConfigEventConsumer):
     def consumeKey(self, filename, line, lineno, variables, manifestPath):
         mat = _keyPattern.match(line)
         name = mat.group('name')
-        value = substituteVariables(mat.group('value'), variables)
+        try:
+            value = substituteVariables(mat.group('value'), variables)
+        except:
+            logger.error(
+                '[%s(%d)] error while substituting variables', filename, lineno
+            )
+            raise
         self.parentObject.keys[name] = value
         return [self]
 
@@ -289,9 +320,16 @@ class _ObjectDataConsumer(_ConfigEventConsumer):
             self.parentObject._orderedAttributeNames.append(name)
             return [self, _ObjectConsumer(values)]
         else:
-            self.parentObject.attributes[name] = (
-                substituteVariables(value, variables)
-            )
+            try:
+                self.parentObject.attributes[name] = (
+                    substituteVariables(value, variables)
+                )
+            except:
+                logger.error(
+                    '[%s(%d)] error while substituting variables', filename,
+                    lineno
+                )
+                raise
             self.parentObject._orderedAttributeNames.append(name)
             return [self, _ConfigEventConsumer()]
 
@@ -299,7 +337,7 @@ class _ObjectDataConsumer(_ConfigEventConsumer):
         mat = _typePattern.match(line)
         name = mat.group('type')
         linkage = mat.group('linkage')
-        obj = ManifestConfigObject(name)
+        obj = ManifestConfigObject(name, filename, lineno)
         if linkage:
             if linkage[0] == '#':
                 obj.anchor = linkage[1:]
@@ -952,7 +990,7 @@ def _loadConfigurationManifest(filename, variables, manifestPath):
             lineno += 1
             imat = _genericPattern.match(line)
             if not imat:
-                logger.error('wrong indentation in line %d', lineno)
+                logger.error('[%s(%d)] wrong indentation', filename, lineno)
                 raise LoadError('Wrong indentation', filename, line, lineno)
             indent = len(imat.group('tabs'))
             if len(stack) < indent + 1:
@@ -978,7 +1016,9 @@ def _loadConfigurationManifest(filename, variables, manifestPath):
                     filename, line, lineno, manifestPath
                 )
             else:
-                logger.error('invalid manifest statement in line %s', lineno)
+                logger.error(
+                    '[%s(%d)] invalid manifest statement', filename, lineno
+                )
                 raise LoadError('Not recognized', filename, line, lineno)
         logger.debug('file %s successfuly parsed', filename)
     finally:
@@ -1038,8 +1078,12 @@ def _createConfigObject(
                 simpleAttributes.append([propName, propValue])
         else:
             raise Exception(
-                'Invalid attribute %s specified for object %s(%s)'
-                % (propName, typeName, manifestObject.keys))
+                '[%s] Invalid attribute %s specified for object %s(%s)'
+                % (
+                    manifestObject.getSourceLocation(), propName, typeName,
+                    manifestObject.keys
+                )
+            )
     result = parentObject._create(typeName, parentAttribute, simpleAttributes)
     if parentAttribute is not None:
         attributeCache.invalidate(parentObject, parentAttribute)
@@ -1049,7 +1093,13 @@ def _createConfigObject(
 def _setAnchor(manifestObject, anchors, configObject):
     if manifestObject.anchor:
         if anchors.has_key(manifestObject.anchor):
-            raise Exception('Duplicate anchor: %s' % manifestObject.anchor)
+            raise Exception(
+                '[%s] Duplicate anchor: %s'
+                % (
+                    manifestObject.getSourceLocation(),
+                    manifestObject.anchor
+                )
+            )
         else:
             logger.debug(
                 'setting anchor %s to %s', manifestObject.anchor, configObject
@@ -1087,9 +1137,10 @@ def _updateConfigObjectSimpleAttributes(
                             newPropValue
                         ):
                             logger.warning(
-                                'read-only attribute %s.%s'
+                                '[%s] read-only attribute %s.%s'
                                 + ' could not be modified',
-                                typeName, propName
+                                manifestObject.getSourceLocation(), typeName,
+                                propName
                             )
                     else:
                         raise
@@ -1113,9 +1164,10 @@ def _updateConfigObjectKeys(configObject, manifestObject, attributeCache):
                     msg = '' + ex.message
                     if msg.find('ADMG0014E') != -1:
                         logger.warning(
-                            'read-only attribute %s.%s'
+                            '[%s] read-only attribute %s.%s'
                             + ' could not be modified',
-                            typeName, propName
+                            manifestObject.getSourceLocation(), typeName,
+                            propName
                         )
                     else:
                         raise
@@ -1167,18 +1219,25 @@ def _importManifestConfigObject(
                     # (parent attribute is a list)
                     if not manifestObject.isEmpty():
                         raise Exception(
-                            'Objects being assigned to reference-attributes'
-                            + ' must not contain keys/attributes/children'
+                            '[%s] Objects being assigned to'
+                            + ' reference-attributes must not contain'
+                            + ' keys/attributes/children'
+                            % manifestObject.getSourceLocation()
                         )
                     if not manifestObject.reference:
                         raise Exception(
-                            'Objects being assigned to reference-attributes'
-                            + 'must be references to other objects'
+                            '[%s] Objects being assigned to'
+                            + ' reference-attributes must be references to'
+                            + ' other objects'
+                            % manifestObject.getSourceLocation()
                         )
                     if not anchors.has_key(manifestObject.reference):
                         raise Exception(
-                            'Unresolved reference: %s'
-                            % manifestObject.reference
+                            '[%s] Unresolved reference: %s'
+                            % (
+                                manifestObject.getSourceLocation(),
+                                manifestObject.reference
+                            )
                         )
                     parentObject[parentAttribute] = (
                         parentObject[parentAttribute].append(
@@ -1226,25 +1285,35 @@ def _importManifestConfigObject(
                         )
                     else:
                         raise Exception(
-                            'Multiple %s objects matched criteria' % typeName
+                            '[%s] Multiple %s objects matched criteria'
+                            % (
+                                manifestObject.getSourceLocation(), typeName
+                            )
                         )
             else:
                 if parentAttributeInfo.reference:
                     # assigning object reference to parent object's attribute
                     if not manifestObject.isEmpty():
                         raise Exception(
-                            'Objects being assigned to reference-attributes'
-                            + ' must not contain keys/attributes/children'
+                            '[%s] Objects being assigned to'
+                            + ' reference-attributes must not contain'
+                            + ' keys/attributes/children'
+                            % manifestObject.getSourceLocation()
                         )
                     if not manifestObject.reference:
                         raise Exception(
-                            'Objects being assigned to reference-attributes'
-                            + ' must be references to other objects'
+                            '[%s] Objects being assigned to'
+                            + ' reference-attributes must be references to'
+                            + 'other objects'
+                            % manifestObject.getSourceLocation()
                         )
                     if not anchors.has_key(manifestObject.reference):
                         raise Exception(
-                            'Unresolved reference: %s'
-                            % manifestObject.reference
+                            '[%s] Unresolved reference: %s'
+                            % (
+                                manifestObject.getSourceLocation(),
+                                manifestObject.reference
+                            )
                         )
                     parentObject[parentAttribute] = (
                         anchors[manifestObject.reference]
@@ -1299,14 +1368,20 @@ def _importManifestConfigObject(
                         )
                     else:
                         raise Exception(
-                            'Multiple %s objects matched criteria' % typeName
+                            '[%s] Multiple %s objects matched criteria'
+                            % (
+                                manifestObject.getSourceLocation(), typeName
+                            )
                         )
         else:
             # parent attribute name not provided
             if manifestObject.reference:
                 raise Exception(
-                    'Reference "%s" was not expected here'
-                    % manifestObject.reference
+                    '[%s] Reference "%s" was not expected here'
+                    % (
+                        manifestObject.getSourceLocation(),
+                        manifestObject.reference
+                    )
                 )
             matchingObjects = _findMatchingObjects(
                 manifestObject, parentObject.lookup(typeName, {}),
@@ -1337,7 +1412,10 @@ def _importManifestConfigObject(
                 )
             else:
                 raise Exception(
-                    'Multiple %s objects matched criteria' % typeName
+                    '[%s] Multiple %s objects matched criteria'
+                    % (
+                        manifestObject.getSourceLocation(), typeName
+                    )
                 )
     else:
         # without knowing the parent, object can be only modified,
@@ -1360,6 +1438,16 @@ def _importManifestConfigObject(
                 configObject, manifestObject, anchors, attributeCache
             )
         elif len(matchingObjects) == 0:
-            raise Exception('No %s object matched criteria' % typeName)
+            raise Exception(
+                '[%s] No %s object matched criteria'
+                % (
+                    manifestObject.getSourceLocation(), typeName
+                )
+            )
         else:
-            raise Exception('Multiple %s objects matched criteria' % typeName)
+            raise Exception(
+                '[%s] Multiple %s objects matched criteria'
+                % (
+                    manifestObject.getSourceLocation(), typeName
+                )
+            )
