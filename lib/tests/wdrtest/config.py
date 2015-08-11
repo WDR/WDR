@@ -1,251 +1,242 @@
-#
-# Copyright 2012-2015 Marcin Plonka <mplonka@gmail.com>
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-
 import unittest
-from wdr.config import _parseConfigId, _parseConfigIdList, _isConfigId, _isConfigIdList, parseAttributeType
+from wdr.config import _parseConfigId, _parseConfigIdList
+from wdr.config import _isConfigId, _isConfigIdList
+from wdr.config import parseAttributeType
 
-class ConfigIdParsingTest( unittest.TestCase ):
-    def testSimple( self ):
+
+class ConfigIdParsingTest(unittest.TestCase):
+    def testSimple(self):
         strId = 'DefaultDatasource(cells/wdrCell/nodes/wdrNode/servers/wdrServer|resources.xml#DataSource_1234567890123)'
-        self.assert_( _isConfigId( strId ) )
-        cfgId = _parseConfigId( strId )
-        self.assertEquals( cfgId.name, 'DefaultDatasource' )
-        self.assertEquals( cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgId.xmlDoc, 'resources.xml' )
-        self.assertEquals( cfgId.xmlId, 'DataSource_1234567890123' )
+        self.assert_(_isConfigId(strId))
+        cfgId = _parseConfigId(strId)
+        self.assertEquals(cfgId.name, 'DefaultDatasource')
+        self.assertEquals(cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgId.xmlDoc, 'resources.xml')
+        self.assertEquals(cfgId.xmlId, 'DataSource_1234567890123')
 
-    def testQuoted( self ):
+    def testQuoted(self):
         strId = '"DefaultDatasource(cells/wdrCell/nodes/wdrNode/servers/wdrServer|resources.xml#DataSource_1234567890123)"'
-        self.assert_( _isConfigId( strId ) )
-        cfgId = _parseConfigId( strId )
-        self.assertEquals( cfgId.name, 'DefaultDatasource' )
-        self.assertEquals( cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgId.xmlDoc, 'resources.xml' )
-        self.assertEquals( cfgId.xmlId, 'DataSource_1234567890123' )
+        self.assert_(_isConfigId(strId))
+        cfgId = _parseConfigId(strId)
+        self.assertEquals(cfgId.name, 'DefaultDatasource')
+        self.assertEquals(cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgId.xmlDoc, 'resources.xml')
+        self.assertEquals(cfgId.xmlId, 'DataSource_1234567890123')
 
-    def testQuotedWithSpace( self ):
+    def testQuotedWithSpace(self):
         strId = '"Default Datasource(cells/wdrCell/nodes/wdrNode/servers/wdrServer|resources.xml#DataSource_1234567890123)"'
-        self.assert_( _isConfigId( strId ) )
-        cfgId = _parseConfigId( strId )
-        self.assertEquals( cfgId.name, 'Default Datasource' )
-        self.assertEquals( cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgId.xmlDoc, 'resources.xml' )
-        self.assertEquals( cfgId.xmlId, 'DataSource_1234567890123' )
+        self.assert_(_isConfigId(strId))
+        cfgId = _parseConfigId(strId)
+        self.assertEquals(cfgId.name, 'Default Datasource')
+        self.assertEquals(cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgId.xmlDoc, 'resources.xml')
+        self.assertEquals(cfgId.xmlId, 'DataSource_1234567890123')
 
-    def testQuotedWithLeadingSpace( self ):
+    def testQuotedWithLeadingSpace(self):
         strId = '" Default Datasource(cells/wdrCell/nodes/wdrNode/servers/wdrServer|resources.xml#DataSource_1234567890123)"'
-        self.assert_( _isConfigId( strId ) )
-        cfgId = _parseConfigId( strId )
-        self.assertEquals( cfgId.name, ' Default Datasource' )
-        self.assertEquals( cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgId.xmlDoc, 'resources.xml' )
-        self.assertEquals( cfgId.xmlId, 'DataSource_1234567890123' )
+        self.assert_(_isConfigId(strId))
+        cfgId = _parseConfigId(strId)
+        self.assertEquals(cfgId.name, ' Default Datasource')
+        self.assertEquals(cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgId.xmlDoc, 'resources.xml')
+        self.assertEquals(cfgId.xmlId, 'DataSource_1234567890123')
 
-    def testQuotedWithTrailingSpace( self ):
+    def testQuotedWithTrailingSpace(self):
         strId = '"Default Datasource (cells/wdrCell/nodes/wdrNode/servers/wdrServer|resources.xml#DataSource_1234567890123)"'
-        self.assert_( _isConfigId( strId ) )
-        cfgId = _parseConfigId( strId )
-        self.assertEquals( cfgId.name, 'Default Datasource ' )
-        self.assertEquals( cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgId.xmlDoc, 'resources.xml' )
-        self.assertEquals( cfgId.xmlId, 'DataSource_1234567890123' )
+        self.assert_(_isConfigId(strId))
+        cfgId = _parseConfigId(strId)
+        self.assertEquals(cfgId.name, 'Default Datasource ')
+        self.assertEquals(cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgId.xmlDoc, 'resources.xml')
+        self.assertEquals(cfgId.xmlId, 'DataSource_1234567890123')
 
-    def testEmptyAdminName( self ):
+    def testEmptyAdminName(self):
         strId = '(cells/wdrCell/nodes/wdrNode/servers/wdrServer|resources.xml#DataSource_1234567890123)'
-        self.assert_( _isConfigId( strId ) )
-        cfgId = _parseConfigId( strId )
-        self.assertEquals( cfgId.name, '' )
-        self.assertEquals( cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgId.xmlDoc, 'resources.xml' )
-        self.assertEquals( cfgId.xmlId, 'DataSource_1234567890123' )
+        self.assert_(_isConfigId(strId))
+        cfgId = _parseConfigId(strId)
+        self.assertEquals(cfgId.name, '')
+        self.assertEquals(cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgId.xmlDoc, 'resources.xml')
+        self.assertEquals(cfgId.xmlId, 'DataSource_1234567890123')
 
-    def testQuotedEmptyAdminName( self ):
+    def testQuotedEmptyAdminName(self):
         strId = '"(cells/wdrCell/nodes/wdrNode/servers/wdrServer|resources.xml#DataSource_1234567890123)"'
-        self.assert_( _isConfigId( strId ) )
-        cfgId = _parseConfigId( strId )
-        self.assertEquals( cfgId.name, '' )
-        self.assertEquals( cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgId.xmlDoc, 'resources.xml' )
-        self.assertEquals( cfgId.xmlId, 'DataSource_1234567890123' )
+        self.assert_(_isConfigId(strId))
+        cfgId = _parseConfigId(strId)
+        self.assertEquals(cfgId.name, '')
+        self.assertEquals(cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgId.xmlDoc, 'resources.xml')
+        self.assertEquals(cfgId.xmlId, 'DataSource_1234567890123')
 
-    def testQuotedOnlySpacesInAdminName( self ):
+    def testQuotedOnlySpacesInAdminName(self):
         strId = '" (cells/wdrCell/nodes/wdrNode/servers/wdrServer|resources.xml#DataSource_1234567890123)"'
-        self.assert_( _isConfigId( strId ) )
-        cfgId = _parseConfigId( strId )
-        self.assertEquals( cfgId.name, ' ' )
-        self.assertEquals( cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgId.xmlDoc, 'resources.xml' )
-        self.assertEquals( cfgId.xmlId, 'DataSource_1234567890123' )
+        self.assert_(_isConfigId(strId))
+        cfgId = _parseConfigId(strId)
+        self.assertEquals(cfgId.name, ' ')
+        self.assertEquals(cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgId.xmlDoc, 'resources.xml')
+        self.assertEquals(cfgId.xmlId, 'DataSource_1234567890123')
 
-    def testQuotedParenthesisInAdminName( self ):
+    def testQuotedParenthesisInAdminName(self):
         strId = '"Derby JDBC Provider (XA)(cells/wdrCell/nodes/wdrNode/servers/wdrServer|resources.xml#builtin_jdbcprovider)"'
-        self.assert_( _isConfigId( strId ) )
-        cfgId = _parseConfigId( strId )
-        self.assertEquals( cfgId.name, 'Derby JDBC Provider (XA)' )
-        self.assertEquals( cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgId.xmlDoc, 'resources.xml' )
-        self.assertEquals( cfgId.xmlId, 'builtin_jdbcprovider' )
+        self.assert_(_isConfigId(strId))
+        cfgId = _parseConfigId(strId)
+        self.assertEquals(cfgId.name, 'Derby JDBC Provider (XA)')
+        self.assertEquals(cfgId.xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgId.xmlDoc, 'resources.xml')
+        self.assertEquals(cfgId.xmlId, 'builtin_jdbcprovider')
 
-    def testEmptyElementList( self ):
+    def testEmptyElementList(self):
         strIds = '[]'
-        self.assert_( _isConfigIdList( strIds ) )
-        cfgIds = _parseConfigIdList( strIds )
-        self.assertEquals( len( cfgIds ), 0 )
+        self.assert_(_isConfigIdList(strIds))
+        cfgIds = _parseConfigIdList(strIds)
+        self.assertEquals(len(cfgIds), 0)
 
-    def testOneElementList( self ):
+    def testOneElementList(self):
         strIds = '[user.language(cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#Property_1)]'
-        self.assert_( _isConfigIdList( strIds ) )
-        cfgIds = _parseConfigIdList( strIds )
-        self.assertEquals( len( cfgIds ), 1 )
-        self.assertEquals( cfgIds[0].name, 'user.language' )
-        self.assertEquals( cfgIds[0].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgIds[0].xmlDoc, 'server.xml' )
-        self.assertEquals( cfgIds[0].xmlId, 'Property_1' )
+        self.assert_(_isConfigIdList(strIds))
+        cfgIds = _parseConfigIdList(strIds)
+        self.assertEquals(len(cfgIds), 1)
+        self.assertEquals(cfgIds[0].name, 'user.language')
+        self.assertEquals(cfgIds[0].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgIds[0].xmlDoc, 'server.xml')
+        self.assertEquals(cfgIds[0].xmlId, 'Property_1')
 
-    def testTwoElementList( self ):
+    def testTwoElementList(self):
         strIds = '[user.language(cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#Property_1) user.region(cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#Property_2)]'
-        self.assert_( _isConfigIdList( strIds ) )
-        cfgIds = _parseConfigIdList( strIds )
-        self.assertEquals( len( cfgIds ), 2 )
-        self.assertEquals( cfgIds[0].name, 'user.language' )
-        self.assertEquals( cfgIds[0].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgIds[0].xmlDoc, 'server.xml' )
-        self.assertEquals( cfgIds[0].xmlId, 'Property_1' )
-        self.assertEquals( cfgIds[1].name, 'user.region' )
-        self.assertEquals( cfgIds[1].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgIds[1].xmlDoc, 'server.xml' )
-        self.assertEquals( cfgIds[1].xmlId, 'Property_2' )
+        self.assert_(_isConfigIdList(strIds))
+        cfgIds = _parseConfigIdList(strIds)
+        self.assertEquals(len(cfgIds), 2)
+        self.assertEquals(cfgIds[0].name, 'user.language')
+        self.assertEquals(cfgIds[0].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgIds[0].xmlDoc, 'server.xml')
+        self.assertEquals(cfgIds[0].xmlId, 'Property_1')
+        self.assertEquals(cfgIds[1].name, 'user.region')
+        self.assertEquals(cfgIds[1].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgIds[1].xmlDoc, 'server.xml')
+        self.assertEquals(cfgIds[1].xmlId, 'Property_2')
 
-    def testThreeElementList( self ):
+    def testThreeElementList(self):
         strIds = '[user.language(cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#Property_1) user.region(cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#Property_2) file.encoding(cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#Property_3)]'
-        self.assert_( _isConfigIdList( strIds ) )
-        cfgIds = _parseConfigIdList( strIds )
-        self.assertEquals( len( cfgIds ), 3 )
-        self.assertEquals( cfgIds[0].name, 'user.language' )
-        self.assertEquals( cfgIds[0].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgIds[0].xmlDoc, 'server.xml' )
-        self.assertEquals( cfgIds[0].xmlId, 'Property_1' )
-        self.assertEquals( cfgIds[1].name, 'user.region' )
-        self.assertEquals( cfgIds[1].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgIds[1].xmlDoc, 'server.xml' )
-        self.assertEquals( cfgIds[1].xmlId, 'Property_2' )
-        self.assertEquals( cfgIds[2].name, 'file.encoding' )
-        self.assertEquals( cfgIds[2].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgIds[2].xmlDoc, 'server.xml' )
-        self.assertEquals( cfgIds[2].xmlId, 'Property_3' )
+        self.assert_(_isConfigIdList(strIds))
+        cfgIds = _parseConfigIdList(strIds)
+        self.assertEquals(len(cfgIds), 3)
+        self.assertEquals(cfgIds[0].name, 'user.language')
+        self.assertEquals(cfgIds[0].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgIds[0].xmlDoc, 'server.xml')
+        self.assertEquals(cfgIds[0].xmlId, 'Property_1')
+        self.assertEquals(cfgIds[1].name, 'user.region')
+        self.assertEquals(cfgIds[1].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgIds[1].xmlDoc, 'server.xml')
+        self.assertEquals(cfgIds[1].xmlId, 'Property_2')
+        self.assertEquals(cfgIds[2].name, 'file.encoding')
+        self.assertEquals(cfgIds[2].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgIds[2].xmlDoc, 'server.xml')
+        self.assertEquals(cfgIds[2].xmlId, 'Property_3')
 
-    def testOneElementListQuoted( self ):
+    def testOneElementListQuoted(self):
         strIds = '["user.language(cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#Property_1)"]'
-        self.assert_( _isConfigIdList( strIds ) )
-        cfgIds = _parseConfigIdList( strIds )
-        self.assertEquals( len( cfgIds ), 1 )
-        self.assertEquals( cfgIds[0].name, 'user.language' )
-        self.assertEquals( cfgIds[0].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgIds[0].xmlDoc, 'server.xml' )
-        self.assertEquals( cfgIds[0].xmlId, 'Property_1' )
+        self.assert_(_isConfigIdList(strIds))
+        cfgIds = _parseConfigIdList(strIds)
+        self.assertEquals(len(cfgIds), 1)
+        self.assertEquals(cfgIds[0].name, 'user.language')
+        self.assertEquals(cfgIds[0].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgIds[0].xmlDoc, 'server.xml')
+        self.assertEquals(cfgIds[0].xmlId, 'Property_1')
 
-    def testTwoElementListQuoted( self ):
+    def testTwoElementListQuoted(self):
         strIds = '["user.language(cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#Property_1)" "user.region(cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#Property_2)"]'
-        self.assert_( _isConfigIdList( strIds ) )
-        cfgIds = _parseConfigIdList( strIds )
-        self.assertEquals( len( cfgIds ), 2 )
-        self.assertEquals( cfgIds[0].name, 'user.language' )
-        self.assertEquals( cfgIds[0].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgIds[0].xmlDoc, 'server.xml' )
-        self.assertEquals( cfgIds[0].xmlId, 'Property_1' )
-        self.assertEquals( cfgIds[1].name, 'user.region' )
-        self.assertEquals( cfgIds[1].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgIds[1].xmlDoc, 'server.xml' )
-        self.assertEquals( cfgIds[1].xmlId, 'Property_2' )
+        self.assert_(_isConfigIdList(strIds))
+        cfgIds = _parseConfigIdList(strIds)
+        self.assertEquals(len(cfgIds), 2)
+        self.assertEquals(cfgIds[0].name, 'user.language')
+        self.assertEquals(cfgIds[0].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgIds[0].xmlDoc, 'server.xml')
+        self.assertEquals(cfgIds[0].xmlId, 'Property_1')
+        self.assertEquals(cfgIds[1].name, 'user.region')
+        self.assertEquals(cfgIds[1].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgIds[1].xmlDoc, 'server.xml')
+        self.assertEquals(cfgIds[1].xmlId, 'Property_2')
 
-    def testThreeElementListQuoted( self ):
+    def testThreeElementListQuoted(self):
         strIds = '["user.language(cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#Property_1)" "user.region(cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#Property_2)" "file.encoding(cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#Property_3)"]'
-        self.assert_( _isConfigIdList( strIds ) )
-        cfgIds = _parseConfigIdList( strIds )
-        self.assertEquals( len( cfgIds ), 3 )
-        self.assertEquals( cfgIds[0].name, 'user.language' )
-        self.assertEquals( cfgIds[0].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgIds[0].xmlDoc, 'server.xml' )
-        self.assertEquals( cfgIds[0].xmlId, 'Property_1' )
-        self.assertEquals( cfgIds[1].name, 'user.region' )
-        self.assertEquals( cfgIds[1].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgIds[1].xmlDoc, 'server.xml' )
-        self.assertEquals( cfgIds[1].xmlId, 'Property_2' )
-        self.assertEquals( cfgIds[2].name, 'file.encoding' )
-        self.assertEquals( cfgIds[2].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgIds[2].xmlDoc, 'server.xml' )
-        self.assertEquals( cfgIds[2].xmlId, 'Property_3' )
+        self.assert_(_isConfigIdList(strIds))
+        cfgIds = _parseConfigIdList(strIds)
+        self.assertEquals(len(cfgIds), 3)
+        self.assertEquals(cfgIds[0].name, 'user.language')
+        self.assertEquals(cfgIds[0].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgIds[0].xmlDoc, 'server.xml')
+        self.assertEquals(cfgIds[0].xmlId, 'Property_1')
+        self.assertEquals(cfgIds[1].name, 'user.region')
+        self.assertEquals(cfgIds[1].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgIds[1].xmlDoc, 'server.xml')
+        self.assertEquals(cfgIds[1].xmlId, 'Property_2')
+        self.assertEquals(cfgIds[2].name, 'file.encoding')
+        self.assertEquals(cfgIds[2].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgIds[2].xmlDoc, 'server.xml')
+        self.assertEquals(cfgIds[2].xmlId, 'Property_3')
 
-    def testEntireListQuoted( self ):
-        #WAS 6.1 may return the entire list in quotes
+    def testEntireListQuoted(self):
+        # WAS 6.1 may return the entire list in quotes
         strIds = '"[(cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#SomeObject_1) (cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#SomeObject_2)]"'
-        self.assert_( _isConfigIdList( strIds ) )
-        cfgIds = _parseConfigIdList( strIds )
-        self.assertEquals( len( cfgIds ), 2 )
-        self.assertEquals( cfgIds[0].name, '' )
-        self.assertEquals( cfgIds[0].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgIds[0].xmlDoc, 'server.xml' )
-        self.assertEquals( cfgIds[0].xmlId, 'SomeObject_1' )
-        self.assertEquals( cfgIds[1].name, '' )
-        self.assertEquals( cfgIds[1].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer' )
-        self.assertEquals( cfgIds[1].xmlDoc, 'server.xml' )
-        self.assertEquals( cfgIds[1].xmlId, 'SomeObject_2' )
+        self.assert_(_isConfigIdList(strIds))
+        cfgIds = _parseConfigIdList(strIds)
+        self.assertEquals(len(cfgIds), 2)
+        self.assertEquals(cfgIds[0].name, '')
+        self.assertEquals(cfgIds[0].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgIds[0].xmlDoc, 'server.xml')
+        self.assertEquals(cfgIds[0].xmlId, 'SomeObject_1')
+        self.assertEquals(cfgIds[1].name, '')
+        self.assertEquals(cfgIds[1].xmlPath, 'cells/wdrCell/nodes/wdrNode/servers/wdrServer')
+        self.assertEquals(cfgIds[1].xmlDoc, 'server.xml')
+        self.assertEquals(cfgIds[1].xmlId, 'SomeObject_2')
 
-class AttributeInfoParsingTest( unittest.TestCase ):
-    def testAttributeWithEnum( self ):
-        ai = parseAttributeType( 'authMechanismPreference', 'ENUM(BASIC_PASSWORD, KERBEROS)' )
-        self.assertEquals( ai.name, 'authMechanismPreference' )
-        self.assertEquals( ai.type, 'ENUM' )
-        self.assertEquals( ai.list, 0 )
-        self.assertEquals( ai.enumValues, ['BASIC_PASSWORD', 'KERBEROS'] )
-        self.assertEquals( ai.reference, 0 )
-        self.assertEquals( ai.subTypes, None )
 
-    def testAttributeWithTypeAndSubTypes( self ):
-        ai = parseAttributeType( 'properties', 'Property(TypedProperty, DescriptiveProperty)' )
-        self.assertEquals( ai.name, 'properties' )
-        self.assertEquals( ai.type, 'Property' )
-        self.assertEquals( ai.list, 0 )
-        self.assertEquals( ai.enumValues, None )
-        self.assertEquals( ai.reference, 0 )
-        self.assertEquals( ai.subTypes, ['TypedProperty', 'DescriptiveProperty'] )
+class AttributeInfoParsingTest(unittest.TestCase):
+    def testAttributeWithEnum(self):
+        ai = parseAttributeType('authMechanismPreference', 'ENUM(BASIC_PASSWORD, KERBEROS)')
+        self.assertEquals(ai.name, 'authMechanismPreference')
+        self.assertEquals(ai.type, 'ENUM')
+        self.assertEquals(ai.list, 0)
+        self.assertEquals(ai.enumValues, ['BASIC_PASSWORD', 'KERBEROS'])
+        self.assertEquals(ai.reference, 0)
+        self.assertEquals(ai.subTypes, None)
 
-    def testAttributeListWithTypeAndSubTypes( self ):
-        ai = parseAttributeType( 'files', 'File(Archive, EJBJarFile, WARFile, EARFile, ApplicationClientFile, ModuleFile, Container, ReadOnlyDirectory, RARFile)*' )
-        self.assertEquals( ai.name, 'files' )
-        self.assertEquals( ai.type, 'File' )
-        self.assertEquals( ai.list, 1 )
-        self.assertEquals( ai.enumValues, None )
-        self.assertEquals( ai.reference, 0 )
-        self.assertEquals( ai.subTypes, ['Archive', 'EJBJarFile', 'WARFile', 'EARFile', 'ApplicationClientFile', 'ModuleFile', 'Container', 'ReadOnlyDirectory', 'RARFile'] )
+    def testAttributeWithTypeAndSubTypes(self):
+        ai = parseAttributeType('properties', 'Property(TypedProperty, DescriptiveProperty)')
+        self.assertEquals(ai.name, 'properties')
+        self.assertEquals(ai.type, 'Property')
+        self.assertEquals(ai.list, 0)
+        self.assertEquals(ai.enumValues, None)
+        self.assertEquals(ai.reference, 0)
+        self.assertEquals(ai.subTypes, ['TypedProperty', 'DescriptiveProperty'])
 
-    def testAttributeReference( self ):
-        ai = parseAttributeType( 'provider', 'J2EEResourceProvider@' )
-        self.assertEquals( ai.name, 'provider' )
-        self.assertEquals( ai.type, 'J2EEResourceProvider' )
-        self.assertEquals( ai.list, 0 )
-        self.assertEquals( ai.enumValues, None )
-        self.assertEquals( ai.reference, 1 )
-        self.assertEquals( ai.subTypes, None )
+    def testAttributeListWithTypeAndSubTypes(self):
+        ai = parseAttributeType('files',
+                                'File(Archive, EJBJarFile, WARFile, EARFile, ApplicationClientFile, ModuleFile, Container, ReadOnlyDirectory, RARFile)*')
+        self.assertEquals(ai.name, 'files')
+        self.assertEquals(ai.type, 'File')
+        self.assertEquals(ai.list, 1)
+        self.assertEquals(ai.enumValues, None)
+        self.assertEquals(ai.reference, 0)
+        self.assertEquals(ai.subTypes,
+                          ['Archive', 'EJBJarFile', 'WARFile', 'EARFile', 'ApplicationClientFile', 'ModuleFile',
+                           'Container', 'ReadOnlyDirectory', 'RARFile'])
 
-    def testAttributeListOfReferences( self ):
-        ai = parseAttributeType( 'preferredCoordinatorServers', 'CoreGroupServer@*' )
-        self.assertEquals( ai.name, 'preferredCoordinatorServers' )
-        self.assertEquals( ai.type, 'CoreGroupServer' )
-        self.assertEquals( ai.list, 1 )
-        self.assertEquals( ai.enumValues, None )
-        self.assertEquals( ai.reference, 1 )
-        self.assertEquals( ai.subTypes, None )
+    def testAttributeReference(self):
+        ai = parseAttributeType('provider', 'J2EEResourceProvider@')
+        self.assertEquals(ai.name, 'provider')
+        self.assertEquals(ai.type, 'J2EEResourceProvider')
+        self.assertEquals(ai.list, 0)
+        self.assertEquals(ai.enumValues, None)
+        self.assertEquals(ai.reference, 1)
+        self.assertEquals(ai.subTypes, None)
+
+    def testAttributeListOfReferences(self):
+        ai = parseAttributeType('preferredCoordinatorServers', 'CoreGroupServer@*')
+        self.assertEquals(ai.name, 'preferredCoordinatorServers')
+        self.assertEquals(ai.type, 'CoreGroupServer')
+        self.assertEquals(ai.list, 1)
+        self.assertEquals(ai.enumValues, None)
+        self.assertEquals(ai.reference, 1)
+        self.assertEquals(ai.subTypes, None)

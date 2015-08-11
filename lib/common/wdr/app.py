@@ -1,37 +1,25 @@
-#
-# Copyright 2012-2015 Marcin Plonka <mplonka@gmail.com>
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-
 import logging
 import wdr
 
-( AdminApp, AdminConfig, AdminControl, AdminTask, Help ) = wdr.WsadminObjects().getObjects()
+(
+    AdminApp, AdminConfig, AdminControl, AdminTask, Help
+) = wdr.WsadminObjects().getObjects()
 
-logger = logging.getLogger( 'wdrApp' )
+logger = logging.getLogger('wdr.app')
+
 
 def listApplications():
     return AdminApp.list().splitlines()
 
+
 class AppAction:
-    def __init__( self ):
+    def __init__(self):
         self._options = {}
 
-    def listModules( self ):
-        return AdminApp.listModules( self.name ).splitlines()
+    def listModules(self):
+        return AdminApp.listModules(self.name).splitlines()
 
-    def __getattr__( self, name ):
+    def __getattr__(self, name):
         if name == '__methods__':
             return {}
         elif name == '__members__':
@@ -39,14 +27,14 @@ class AppAction:
         else:
             if name[0] == '-':
                 name = name[1:]
-            if not self._options.has_key( name ):
+            if not self._options.has_key(name):
                 self._options[name] = None
             return self._options[name]
 
-    def __getitem__( self, item ):
-        return self.__getattr__( item )
+    def __getitem__(self, item):
+        return self.__getattr__(item)
 
-    def __setattr__( self, name, value ):
+    def __setattr__(self, name, value):
         if name == '_options':
             self.__dict__[name] = value
             return value
@@ -54,106 +42,114 @@ class AppAction:
             self._options[name] = value
             return value
 
-    def __setitem__( self, item, value ):
-        return self.__setattr__( item, value )
+    def __setitem__(self, item, value):
+        return self.__setattr__(item, value)
 
-    def __delitem__( self, name ):
+    def __delitem__(self, name):
         del self._options[name]
         return None
 
-    def __delattr__( self, name ):
+    def __delattr__(self, name):
         del self._options[name]
         return None
 
-    def getOptions( self ):
+    def getOptions(self):
         options = []
-        for ( k, v ) in self._options.items():
-            options.append( '-%s' % k )
+        for (k, v) in self._options.items():
+            options.append('-%s' % k)
             if v is not None:
-                options.append( v )
+                options.append(v)
         return options
 
-class Install( AppAction ):
-    def __init__( self ):
-        AppAction.__init__( self )
 
-    def __call__( self, earFile ):
+class Install(AppAction):
+    def __init__(self):
+        AppAction.__init__(self)
+
+    def __call__(self, earFile):
         options = self.getOptions()
-        if logger.isEnabledFor( logging.DEBUG ):
-            logger.debug( 'installing application %s with options %s', earFile, options )
-        AdminApp.install( earFile, options )
+        logger.debug(
+            'installing application %s with options %s', earFile, options
+        )
+        AdminApp.install(earFile, options)
 
-class Uninstall( AppAction ):
-    def __init__( self ):
-        AppAction.__init__( self )
 
-    def __call__( self, name ):
-        if logger.isEnabledFor( logging.DEBUG ):
-            logger.debug( 'uninstalling application %s', name )
-        AdminApp.uninstall( name )
+class Uninstall(AppAction):
+    def __init__(self):
+        AppAction.__init__(self)
 
-class UpdateApp( AppAction ):
-    def __init__( self ):
-        AppAction.__init__( self )
+    def __call__(self, name):
+        logger.debug('uninstalling application %s', name)
+        AdminApp.uninstall(name)
 
-    def __call__( self, name ):
+
+class UpdateApp(AppAction):
+    def __init__(self):
+        AppAction.__init__(self)
+
+    def __call__(self, name):
         options = self.getOptions()
-        if logger.isEnabledFor( logging.DEBUG ):
-            logger.debug( 'updating application %s with options %s', name, options )
-        AdminApp.update( name, 'app', ['-operation', 'update'] + options )
+        logger.debug('updating application %s with options %s', name, options)
+        AdminApp.update(name, 'app', ['-operation', 'update'] + options)
 
-class UpdateFile( AppAction ):
-    def __init__( self ):
-        AppAction.__init__( self )
 
-    def __call__( self, name ):
+class UpdateFile(AppAction):
+    def __init__(self):
+        AppAction.__init__(self)
+
+    def __call__(self, name):
         options = self.getOptions()
-        if logger.isEnabledFor( logging.DEBUG ):
-            logger.debug( 'file updating application %s with options %s', name, options )
-        AdminApp.update( name, 'file', options )
+        logger.debug(
+            'file updating application %s with options %s', name, options
+        )
+        AdminApp.update(name, 'file', options)
 
-class UpdateModulefile( AppAction ):
-    def __init__( self ):
-        AppAction.__init__( self )
 
-    def __call__( self, name ):
+class UpdateModulefile(AppAction):
+    def __init__(self):
+        AppAction.__init__(self)
+
+    def __call__(self, name):
         options = self.getOptions()
-        if logger.isEnabledFor( logging.DEBUG ):
-            logger.debug( 'file updating application %s with options %s', name, options )
-        AdminApp.update( name, 'file', options )
+        logger.debug(
+            'file updating application %s with options %s', name, options
+        )
+        AdminApp.update(name, 'file', options)
 
-class UpdatePartialapp( AppAction ):
-    def __init__( self ):
-        AppAction.__init__( self )
 
-    def __call__( self, name ):
+class UpdatePartialapp(AppAction):
+    def __init__(self):
+        AppAction.__init__(self)
+
+    def __call__(self, name):
         options = self.getOptions()
-        if logger.isEnabledFor( logging.DEBUG ):
-            logger.debug( 'partial updating application %s with options %s', name, options )
-        AdminApp.update( name, 'partial', options )
+        logger.debug(
+            'partial updating application %s with options %s', name, options
+        )
+        AdminApp.update(name, 'partial', options)
 
-class Edit( AppAction ):
-    def __init__( self ):
-        AppAction.__init__( self )
 
-    def __call__( self, name ):
+class Edit(AppAction):
+    def __init__(self):
+        AppAction.__init__(self)
+
+    def __call__(self, name):
         options = self.getOptions()
-        if logger.isEnabledFor( logging.DEBUG ):
-            logger.debug( 'editing application %s with options %s', name, options )
-        AdminApp.update( name, options )
+        logger.debug('editing application %s with options %s', name, options)
+        AdminApp.update(name, options)
 
-class View( AppAction ):
-    def __init__( self ):
-        AppAction.__init__( self )
 
-    def __call__( self, name ):
+class View(AppAction):
+    def __init__(self):
+        AppAction.__init__(self)
+
+    def __call__(self, name):
         options = self.getOptions()
-        if len( options ):
-            if logger.isEnabledFor( logging.DEBUG ):
-                logger.debug( 'viewing application %s with options %s', name, options )
-            return AdminApp.view( name, options )
+        if len(options):
+            logger.debug(
+                'viewing application %s with options %s', name, options
+            )
+            return AdminApp.view(name, options)
         else:
-            if logger.isEnabledFor( logging.DEBUG ):
-                logger.debug( 'viewing application %s', name )
-            return AdminApp.view( name )
-
+            logger.debug('viewing application %s', name)
+            return AdminApp.view(name)
