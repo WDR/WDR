@@ -633,25 +633,30 @@ class ConfigObject:
                         else:
                             v = str(value)
                         atomicAttributes.append([name, v])
-            if len(emptyAttributes) > 0:
-                AdminConfig.unsetAttributes(str(self), emptyAttributes)
-            if len(atomicAttributes) > 0:
-                AdminConfig.modify(str(self), atomicAttributes)
-            for (n, v) in listAttributes:
-                currentValue = self._getConfigAttribute(n)
-                ai = getTypeInfo(self._type).attributes[n]
-                ti = getTypeInfo(ai.type)
-                cnv = ti.converter
-                if cnv:
-                    currentValue = join(
-                        map(cnv.toAdminConfig, currentValue), ';'
-                    )
-                else:
-                    currentValue = map(lambda e: str(e), currentValue)
-                if currentValue != v:
-                    AdminConfig.modify(str(self), [[n, []]])
-                    AdminConfig.modify(str(self), [[n, v]])
+            self.unset(emptyAttributes)
+            self._modifyAtomic(atomicAttributes)
+            self._modifyList(listAttributes)
         return self
+
+    def _modifyAtomic(self, atomicAttributes):
+        if len(atomicAttributes) > 0:
+            AdminConfig.modify(str(self), atomicAttributes)
+
+    def _modifyList(self, listAttributes):
+        for (n, v) in listAttributes:
+            currentValue = self._getConfigAttribute(n)
+            ai = getTypeInfo(self._type).attributes[n]
+            ti = getTypeInfo(ai.type)
+            cnv = ti.converter
+            if cnv:
+                currentValue = join(
+                    map(cnv.toAdminConfig, currentValue), ';'
+                )
+            else:
+                currentValue = map(lambda e: str(e), currentValue)
+            if currentValue != v:
+                AdminConfig.modify(str(self), [[n, []]])
+                AdminConfig.modify(str(self), [[n, v]])
 
     def remove(self):
         logger.debug('removing object %s', self)
@@ -659,10 +664,11 @@ class ConfigObject:
         return self
 
     def unset(self, _attributes):
-        logger.debug(
-            'unsetting attributes %s of ConfigObject %s', _attributes, self
-        )
-        AdminConfig.unsetAttributes(str(self), _attributes)
+        if len(_attributes) > 0:
+            logger.debug(
+                'unsetting attributes %s of ConfigObject %s', _attributes, self
+            )
+            AdminConfig.unsetAttributes(str(self), _attributes)
         return self
 
     def lookup1(self, _type, _criteria, _propertyName=None):
