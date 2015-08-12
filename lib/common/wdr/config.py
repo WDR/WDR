@@ -686,36 +686,70 @@ class ConfigObject:
 
     def lookup(self, _type, _criteria, _propertyName=None, attributeCache=None):
         attributeCache = attributeCache or AttributeValueCache()
+        candidates = []
+        candidates.extend(
+            self._lookupCandidatesInProperty(
+                _type, _criteria, _propertyName, attributeCache
+            )
+        )
+        candidates.extend(
+            self._lookupIndexedChildren(
+                _type, _criteria, _propertyName, attributeCache
+            )
+        )
+        candidates.extend(
+            self._lookupNonIndexedChildren(
+                _type, _criteria, _propertyName, attributeCache
+            )
+        )
+        return self._filterCandidates(candidates, _criteria, attributeCache)
+
+    def _lookupCandidatesInProperty(
+        self, _type, _criteria, _propertyName=None, attributeCache=None
+    ):
         name = _criteria.get('name', None)
         if _propertyName:
             if name:
-                candidates = [
+                return [
                     c for c in attributeCache.getAttribute(self, _propertyName)
                     if c._type == _type and c._id.name == name
                 ]
             else:
-                candidates = [
+                return [
                     c for c in attributeCache.getAttribute(self, _propertyName)
                     if c._type == _type
                 ]
         else:
-            myName = None
+            return []
+
+    def _lookupIndexedChildren(
+        self, _type, _criteria, _propertyName, attributeCache
+    ):
+        if _propertyName is None:
+            name = _criteria.get('name', '')
+            myName = ''
             if getTypeInfo(self._type).attributes.has_key('name'):
                 myName = attributeCache.getAttribute(self, 'name')
             if self._type in parents(_type):
-                indexedParents = getid('/%s:%s/' % (self._type, myName or ''))
+                indexedParents = getid('/%s:%s/' % (self._type, myName))
                 indexedCandidates = getid(
                     '/%s:%s/%s:%s/'
-                    % (self._type, myName or '', _type, name or '')
+                    % (self._type, myName, _type, name)
                 )
                 if len(indexedParents) == 1:
-                    candidates = indexedCandidates
+                    return indexedCandidates
                 else:
-                    candidates = [
+                    return [
                         c for c in self.listConfigObjects(_type)
                         if c in indexedCandidates
                     ]
-            else:
+        return []
+
+    def _lookupNonIndexedChildren(
+        self, _type, _criteria, _propertyName, attributeCache
+    ):
+        if _propertyName is None:
+            if self._type not in parents(_type):
                 logger.warning(
                     'using suboptimal lookup of %s objects within %s',
                     _type, self._type
@@ -728,9 +762,13 @@ class ConfigObject:
                             for grandchild in child.listConfigObjects(_type):
                                 if grandchild in candidates:
                                     candidates.remove(grandchild)
+                return candidates
+        return []
+
+    def _filterCandidates(self, candidates, criteria, attributeCache):
         result = []
         for obj in candidates:
-            for (k, v) in _criteria.items():
+            for (k, v) in criteria.items():
                 if attributeCache.getAttribute(obj, k) != v:
                     break
             else:
