@@ -1233,227 +1233,203 @@ def _importManifestConfigObject(
         typeName, parentObject, parentAttribute
     )
     if parentObject:
-        # knowing the parent, we can either create or modify the object
-        parentTypeName = parentObject._type
-        parentTypeInfo = wdr.config.getTypeInfo(parentTypeName)
-        if parentAttribute:
-            parentAttributeInfo = parentTypeInfo.attributes[parentAttribute]
-            if parentAttributeInfo.list:
-                if parentAttributeInfo.reference:
-                    # adding object reference to parent's attribute
-                    # (parent attribute is a list)
-                    if not manifestObject.isEmpty():
-                        raise Exception(
-                            '[%s] Objects being assigned to'
-                            + ' reference-attributes must not contain'
-                            + ' keys/attributes/children'
-                            % manifestObject.getSourceLocation()
-                        )
-                    if not manifestObject.reference:
-                        raise Exception(
-                            '[%s] Objects being assigned to'
-                            + ' reference-attributes must be references to'
-                            + ' other objects'
-                            % manifestObject.getSourceLocation()
-                        )
-                    if not anchors.has_key(manifestObject.reference):
-                        raise Exception(
-                            '[%s] Unresolved reference: %s'
-                            % (
-                                manifestObject.getSourceLocation(),
-                                manifestObject.reference
-                            )
-                        )
-                    parentObject[parentAttribute] = (
-                        parentObject[parentAttribute].append(
-                            anchors[manifestObject.reference]
-                        )
-                    )
-                    attributeCache.invalidate(parentObject, parentAttribute)
-                else:
-                    # adding object to a list
-                    matchingObjects = _findMatchingObjects(
-                        manifestObject,
-                        attributeCache.getAttribute(
-                            parentObject,
-                            parentAttribute
-                        ),
-                        attributeCache
-                    )
-                    if len(matchingObjects) == 0:
-                        configObject = _createConfigObject(
-                            manifestObject, parentObject, parentAttribute,
-                            attributeCache
-                        )
-                        _setAnchor(manifestObject, anchors, configObject)
-                        _updateConfigObjectComplexAttributes(
-                            configObject, manifestObject, anchors,
-                            attributeCache
-                        )
-                        _updateConfigObjectChildren(
-                            configObject, manifestObject, anchors,
-                            attributeCache
-                        )
-                    elif len(matchingObjects) == 1:
-                        configObject = matchingObjects[0]
-                        _setAnchor(manifestObject, anchors, configObject)
-                        _updateConfigObjectSimpleAttributes(
-                            configObject, manifestObject, attributeCache
-                        )
-                        _updateConfigObjectComplexAttributes(
-                            configObject, manifestObject, anchors,
-                            attributeCache
-                        )
-                        _updateConfigObjectChildren(
-                            configObject, manifestObject, anchors,
-                            attributeCache
-                        )
-                    else:
-                        raise Exception(
-                            '[%s] Multiple %s objects matched criteria'
-                            % (
-                                manifestObject.getSourceLocation(), typeName
-                            )
-                        )
-            else:
-                if parentAttributeInfo.reference:
-                    # assigning object reference to parent object's attribute
-                    if not manifestObject.isEmpty():
-                        raise Exception(
-                            '[%s] Objects being assigned to'
-                            + ' reference-attributes must not contain'
-                            + ' keys/attributes/children'
-                            % manifestObject.getSourceLocation()
-                        )
-                    if not manifestObject.reference:
-                        raise Exception(
-                            '[%s] Objects being assigned to'
-                            + ' reference-attributes must be references to'
-                            + 'other objects'
-                            % manifestObject.getSourceLocation()
-                        )
-                    if not anchors.has_key(manifestObject.reference):
-                        raise Exception(
-                            '[%s] Unresolved reference: %s'
-                            % (
-                                manifestObject.getSourceLocation(),
-                                manifestObject.reference
-                            )
-                        )
-                    parentObject[parentAttribute] = (
-                        anchors[manifestObject.reference]
-                    )
-                    attributeCache.invalidate(parentObject, parentAttribute)
-                else:
-                    # creating/modifying single object attribute
-                    if len(manifestObject.keys) != 0:
-                        raise Exception(
-                            '%s.%s is not a list, therefore no keys are'
-                            + ' allowed for its objects'
-                        )
-                    matchingObjects = [parentObject[parentAttribute]]
-                    if (
-                        len(matchingObjects) == 0
-                        or
-                        (
-                            len(matchingObjects) == 1
-                            and
-                            matchingObjects[0] is None
-                        )
-                    ):
-                        configObject = _createConfigObject(
-                            manifestObject, parentObject, parentAttribute,
-                            attributeCache
-                        )
-                        _setAnchor(manifestObject, anchors, configObject)
-                        _updateConfigObjectComplexAttributes(
-                            configObject, manifestObject, anchors,
-                            attributeCache
-                        )
-                        _updateConfigObjectChildren(
-                            configObject, manifestObject, anchors,
-                            attributeCache
-                        )
-                    elif len(matchingObjects) == 1:
-                        configObject = matchingObjects[0]
-                        _setAnchor(manifestObject, anchors, configObject)
-                        _updateConfigObjectKeys(
-                            configObject, manifestObject, attributeCache
-                        )
-                        _updateConfigObjectSimpleAttributes(
-                            configObject, manifestObject, attributeCache
-                        )
-                        _updateConfigObjectComplexAttributes(
-                            configObject, manifestObject, anchors,
-                            attributeCache
-                        )
-                        _updateConfigObjectChildren(
-                            configObject, manifestObject, anchors,
-                            attributeCache
-                        )
-                    else:
-                        raise Exception(
-                            '[%s] Multiple %s objects matched criteria'
-                            % (
-                                manifestObject.getSourceLocation(), typeName
-                            )
-                        )
-        else:
-            # parent attribute name not provided
-            if manifestObject.reference:
-                raise Exception(
-                    '[%s] Reference "%s" was not expected here'
-                    % (
-                        manifestObject.getSourceLocation(),
-                        manifestObject.reference
-                    )
-                )
-            matchingObjects = _findMatchingObjects(
-                manifestObject, parentObject.lookup(typeName, {}),
-                attributeCache
-            )
-            if len(matchingObjects) == 0:
-                configObject = _createConfigObject(
-                    manifestObject, parentObject, None, attributeCache
-                )
-                _setAnchor(manifestObject, anchors, configObject)
-                _updateConfigObjectComplexAttributes(
-                    configObject, manifestObject, anchors, attributeCache
-                )
-                _updateConfigObjectChildren(
-                    configObject, manifestObject, anchors, attributeCache
-                )
-            elif len(matchingObjects) == 1:
-                configObject = matchingObjects[0]
-                _setAnchor(manifestObject, anchors, configObject)
-                _updateConfigObjectSimpleAttributes(
-                    configObject, manifestObject, attributeCache
-                )
-                _updateConfigObjectComplexAttributes(
-                    configObject, manifestObject, anchors, attributeCache
-                )
-                _updateConfigObjectChildren(
-                    configObject, manifestObject, anchors, attributeCache
-                )
-            else:
-                raise Exception(
-                    '[%s] Multiple %s objects matched criteria'
-                    % (
-                        manifestObject.getSourceLocation(), typeName
-                    )
-                )
-    else:
-        # without knowing the parent, object can be only modified,
-        # no new object can be created
-        matchingObjects = _findMatchingObjects(
-            manifestObject,
-            wdr.config.listConfigObjects(typeName),
+        _importManifestConfigObjectWithParentContext(
+            manifestObject, anchors, parentObject, parentAttribute,
             attributeCache
         )
-        if len(matchingObjects) == 1:
-            configObject = matchingObjects[0]
-            _updateConfigObjectSimpleAttributes(
-                configObject, manifestObject, attributeCache
+    else:
+        _importManifestConfigObjectWithoutParentContext(
+            manifestObject, anchors, parentObject, parentAttribute,
+            attributeCache
+        )
+
+
+def _importManifestConfigObjectWithParentContext(
+    manifestObject, anchors, parentObject, parentAttribute, attributeCache
+):
+    # knowing the parent, we can either create or modify the object
+    typeName = manifestObject.type
+    parentTypeName = parentObject._type
+    parentTypeInfo = wdr.config.getTypeInfo(parentTypeName)
+    if parentAttribute:
+        parentAttributeInfo = parentTypeInfo.attributes[parentAttribute]
+        if parentAttributeInfo.list:
+            if parentAttributeInfo.reference:
+                # adding object reference to parent's attribute
+                # (parent attribute is a list)
+                if not manifestObject.isEmpty():
+                    raise Exception(
+                        '[%s] Objects being assigned to'
+                        + ' reference-attributes must not contain'
+                        + ' keys/attributes/children'
+                        % manifestObject.getSourceLocation()
+                    )
+                if not manifestObject.reference:
+                    raise Exception(
+                        '[%s] Objects being assigned to'
+                        + ' reference-attributes must be references to'
+                        + ' other objects'
+                        % manifestObject.getSourceLocation()
+                    )
+                if not anchors.has_key(manifestObject.reference):
+                    raise Exception(
+                        '[%s] Unresolved reference: %s'
+                        % (
+                            manifestObject.getSourceLocation(),
+                            manifestObject.reference
+                        )
+                    )
+                parentObject[parentAttribute] = (
+                    parentObject[parentAttribute].append(
+                        anchors[manifestObject.reference]
+                    )
+                )
+                attributeCache.invalidate(parentObject, parentAttribute)
+            else:
+                # adding object to a list
+                matchingObjects = _findMatchingObjects(
+                    manifestObject,
+                    attributeCache.getAttribute(
+                        parentObject,
+                        parentAttribute
+                    ),
+                    attributeCache
+                )
+                if len(matchingObjects) == 0:
+                    configObject = _createConfigObject(
+                        manifestObject, parentObject, parentAttribute,
+                        attributeCache
+                    )
+                    _setAnchor(manifestObject, anchors, configObject)
+                    _updateConfigObjectComplexAttributes(
+                        configObject, manifestObject, anchors,
+                        attributeCache
+                    )
+                    _updateConfigObjectChildren(
+                        configObject, manifestObject, anchors,
+                        attributeCache
+                    )
+                elif len(matchingObjects) == 1:
+                    configObject = matchingObjects[0]
+                    _setAnchor(manifestObject, anchors, configObject)
+                    _updateConfigObjectSimpleAttributes(
+                        configObject, manifestObject, attributeCache
+                    )
+                    _updateConfigObjectComplexAttributes(
+                        configObject, manifestObject, anchors,
+                        attributeCache
+                    )
+                    _updateConfigObjectChildren(
+                        configObject, manifestObject, anchors,
+                        attributeCache
+                    )
+                else:
+                    raise Exception(
+                        '[%s] Multiple %s objects matched criteria'
+                        % (
+                            manifestObject.getSourceLocation(), typeName
+                        )
+                    )
+        else:
+            if parentAttributeInfo.reference:
+                # assigning object reference to parent object's attribute
+                if not manifestObject.isEmpty():
+                    raise Exception(
+                        '[%s] Objects being assigned to'
+                        + ' reference-attributes must not contain'
+                        + ' keys/attributes/children'
+                        % manifestObject.getSourceLocation()
+                    )
+                if not manifestObject.reference:
+                    raise Exception(
+                        '[%s] Objects being assigned to'
+                        + ' reference-attributes must be references to'
+                        + 'other objects'
+                        % manifestObject.getSourceLocation()
+                    )
+                if not anchors.has_key(manifestObject.reference):
+                    raise Exception(
+                        '[%s] Unresolved reference: %s'
+                        % (
+                            manifestObject.getSourceLocation(),
+                            manifestObject.reference
+                        )
+                    )
+                parentObject[parentAttribute] = (
+                    anchors[manifestObject.reference]
+                )
+                attributeCache.invalidate(parentObject, parentAttribute)
+            else:
+                # creating/modifying single object attribute
+                if len(manifestObject.keys) != 0:
+                    raise Exception(
+                        '%s.%s is not a list, therefore no keys are'
+                        + ' allowed for its objects'
+                    )
+                matchingObjects = [parentObject[parentAttribute]]
+                if (
+                    len(matchingObjects) == 0
+                    or
+                    (
+                        len(matchingObjects) == 1
+                        and
+                        matchingObjects[0] is None
+                    )
+                ):
+                    configObject = _createConfigObject(
+                        manifestObject, parentObject, parentAttribute,
+                        attributeCache
+                    )
+                    _setAnchor(manifestObject, anchors, configObject)
+                    _updateConfigObjectComplexAttributes(
+                        configObject, manifestObject, anchors,
+                        attributeCache
+                    )
+                    _updateConfigObjectChildren(
+                        configObject, manifestObject, anchors,
+                        attributeCache
+                    )
+                elif len(matchingObjects) == 1:
+                    configObject = matchingObjects[0]
+                    _setAnchor(manifestObject, anchors, configObject)
+                    _updateConfigObjectKeys(
+                        configObject, manifestObject, attributeCache
+                    )
+                    _updateConfigObjectSimpleAttributes(
+                        configObject, manifestObject, attributeCache
+                    )
+                    _updateConfigObjectComplexAttributes(
+                        configObject, manifestObject, anchors,
+                        attributeCache
+                    )
+                    _updateConfigObjectChildren(
+                        configObject, manifestObject, anchors,
+                        attributeCache
+                    )
+                else:
+                    raise Exception(
+                        '[%s] Multiple %s objects matched criteria'
+                        % (
+                            manifestObject.getSourceLocation(), typeName
+                        )
+                    )
+    else:
+        # parent attribute name not provided
+        if manifestObject.reference:
+            raise Exception(
+                '[%s] Reference "%s" was not expected here'
+                % (
+                    manifestObject.getSourceLocation(),
+                    manifestObject.reference
+                )
+            )
+        matchingObjects = _findMatchingObjects(
+            manifestObject, parentObject.lookup(typeName, {}),
+            attributeCache
+        )
+        if len(matchingObjects) == 0:
+            configObject = _createConfigObject(
+                manifestObject, parentObject, None, attributeCache
             )
             _setAnchor(manifestObject, anchors, configObject)
             _updateConfigObjectComplexAttributes(
@@ -1462,12 +1438,17 @@ def _importManifestConfigObject(
             _updateConfigObjectChildren(
                 configObject, manifestObject, anchors, attributeCache
             )
-        elif len(matchingObjects) == 0:
-            raise Exception(
-                '[%s] No %s object matched criteria'
-                % (
-                    manifestObject.getSourceLocation(), typeName
-                )
+        elif len(matchingObjects) == 1:
+            configObject = matchingObjects[0]
+            _setAnchor(manifestObject, anchors, configObject)
+            _updateConfigObjectSimpleAttributes(
+                configObject, manifestObject, attributeCache
+            )
+            _updateConfigObjectComplexAttributes(
+                configObject, manifestObject, anchors, attributeCache
+            )
+            _updateConfigObjectChildren(
+                configObject, manifestObject, anchors, attributeCache
             )
         else:
             raise Exception(
@@ -1476,3 +1457,42 @@ def _importManifestConfigObject(
                     manifestObject.getSourceLocation(), typeName
                 )
             )
+
+
+def _importManifestConfigObjectWithoutParentContext(
+    manifestObject, anchors, parentObject, parentAttribute, attributeCache
+):
+    # without knowing the parent, object can be only modified,
+    # no new object can be created
+    typeName = manifestObject.type
+    matchingObjects = _findMatchingObjects(
+        manifestObject,
+        wdr.config.listConfigObjects(typeName),
+        attributeCache
+    )
+    if len(matchingObjects) == 1:
+        configObject = matchingObjects[0]
+        _updateConfigObjectSimpleAttributes(
+            configObject, manifestObject, attributeCache
+        )
+        _setAnchor(manifestObject, anchors, configObject)
+        _updateConfigObjectComplexAttributes(
+            configObject, manifestObject, anchors, attributeCache
+        )
+        _updateConfigObjectChildren(
+            configObject, manifestObject, anchors, attributeCache
+        )
+    elif len(matchingObjects) == 0:
+        raise Exception(
+            '[%s] No %s object matched criteria'
+            % (
+                manifestObject.getSourceLocation(), typeName
+            )
+        )
+    else:
+        raise Exception(
+            '[%s] Multiple %s objects matched criteria'
+            % (
+                manifestObject.getSourceLocation(), typeName
+            )
+        )
