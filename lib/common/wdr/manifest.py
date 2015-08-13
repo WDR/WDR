@@ -72,6 +72,9 @@ _appOptionPattern = re.compile(
     + r'(?P<value>.+?)?'
     + r'\s*$')
 _appOptionValuePattern = re.compile(r'^(?P<tabs>\t\t)(?P<value>.+?)\s*$')
+WDR_CHECKSUM_DESCRIPTION = (
+    'Checksum of deployed EAR file and application manifest'
+)
 
 
 def _defaultFilter(value):
@@ -459,6 +462,9 @@ class ApplicationObject:
 
     def __unicode__(self):
         return unicode(self.__str__())
+
+    def checksum(self):
+        return wdr.util.sha512(str(self))
 
 
 class _AppEventConsumer:
@@ -884,102 +890,110 @@ def _importApplicationManifest(filename, variables):
         fi.close()
 
 
+def _defaultManifestPath():
+    manifestPath = ['.']
+    sysPathReversed = sys.path[:]
+    sysPathReversed.reverse()
+    manifestPath.extend(sysPathReversed)
+    return manifestPath
+
+
+def _isApplicationInstalled(appName):
+    return appName in wdr.app.listApplications()
+
+
+def _updateApplication(mo, listener):
+    deployedObject = wdr.config.getid1(
+        '/Deployment:%s/' % mo.name
+    ).deployedObject
+    deployedChecksumProperties = deployedObject.lookup(
+        'Property',
+        {'name': 'wdr.checksum'},
+        'properties'
+    )
+    if deployedChecksumProperties:
+        deployedChecksum = deployedChecksumProperties[0].value
+    else:
+        deployedChecksum = ''
+    fileChecksum = wdr.util.generateSHA512(mo.archive)
+    manifestChecksum = mo.checksum()
+    calculatedChecksum = fileChecksum + ';' + manifestChecksum
+    if deployedChecksum == calculatedChecksum:
+        listener.skippedUpdate(mo.name, mo.archive)
+        return 0
+    else:
+        listener.beforeUpdate(mo.name, mo.archive)
+        logger.debug(
+            'application %s will be updated. '
+            + 'deployedChecksum(%s), '
+            + 'calculatedChecksum(%s)',
+            mo.name, deployedChecksum, calculatedChecksum
+        )
+        action = wdr.app.UpdateApp()
+        for (k, v) in mo.options.items():
+            action[k] = v or None
+        action.contents = mo.archive
+        action(mo.name)
+        deployedObject = wdr.config.getid1(
+            '/Deployment:%s/' % mo.name
+        ).deployedObject
+        deployedObject.assure(
+            'Property', {'name': 'wdr.checksum'}, 'properties',
+            value=calculatedChecksum,
+            description=WDR_CHECKSUM_DESCRIPTION
+        )
+        listener.afterUpdate(mo.name, mo.archive)
+        for extraOptionName in _extraOptionNamesOrdered:
+            if mo.extras.has_key(extraOptionName):
+                processExtraAppOption(
+                    mo, extraOptionName, mo.extras[extraOptionName]
+                )
+        return 1
+
+
+def _installApplication(mo, listener):
+    listener.beforeInstall(mo.name, mo.archive)
+    action = wdr.app.Install()
+    for (k, v) in mo.options.items():
+        action[k] = v or None
+    action['appname'] = mo.name
+    action(mo.archive)
+    fileChecksum = wdr.util.generateSHA512(mo.archive)
+    manifestChecksum = mo.checksum()
+    calculatedChecksum = fileChecksum + ';' + manifestChecksum
+    deployedObject = wdr.config.getid1(
+        '/Deployment:%s/' % mo.name
+    ).deployedObject
+    deployedObject.assure(
+        'Property',
+        {'name': 'wdr.checksum'},
+        'properties',
+        value=calculatedChecksum,
+        description=WDR_CHECKSUM_DESCRIPTION
+    )
+    listener.afterInstall(mo.name, mo.archive)
+    for extraOptionName in _extraOptionNamesOrdered:
+        if mo.extras.has_key(extraOptionName):
+            processExtraAppOption(
+                mo, extraOptionName, mo.extras[extraOptionName]
+            )
+
+
 def importApplicationManifest(
     filename, variables={}, listener=None, manifestPath=None
 ):
-    WDR_CHECKSUM_DESCRIPTION = (
-        'Checksum of deployed EAR file and application manifest'
-    )
-    if listener is None:
-        listener = ApplicationDeploymentListener()
-    if manifestPath is None:
-        manifestPath = ['.']
-        sysPathReversed = sys.path[:]
-        sysPathReversed.reverse()
-        manifestPath.extend(sysPathReversed)
+    listener = listener or ApplicationDeploymentListener()
+    manifestPath = manifestPath or _defaultManifestPath()
     affectedApplications = []
     for mo in _importApplicationManifest(
         _locateManifestFile(filename, manifestPath), variables
     ):
-        if mo.name in wdr.app.listApplications():
-            deployedObject = wdr.config.getid1(
-                '/Deployment:%s/' % mo.name
-            ).deployedObject
-            deployedChecksumProperties = deployedObject.lookup(
-                'Property',
-                {'name': 'wdr.checksum'},
-                'properties'
-            )
-            if deployedChecksumProperties:
-                deployedChecksum = deployedChecksumProperties[0].value
-            else:
-                deployedChecksum = ''
-            fileChecksum = wdr.util.generateSHA512(mo.archive)
-            manifestChecksum = wdr.util.sha512(str(mo))
-            calculatedChecksum = fileChecksum + ';' + manifestChecksum
-            if deployedChecksum == calculatedChecksum:
-                listener.skippedUpdate(mo.name, mo.archive)
-            else:
-                listener.beforeUpdate(mo.name, mo.archive)
-                logger.debug(
-                    'application %s will be updated. '
-                    + 'deployedChecksum(%s), '
-                    + 'calculatedChecksum(%s)',
-                    mo.name, deployedChecksum, calculatedChecksum
-                )
-                action = wdr.app.UpdateApp()
-                for (k, v) in mo.options.items():
-                    if v:
-                        action[k] = v
-                    else:
-                        action[k] = None
-                action.contents = mo.archive
-                action(mo.name)
-                deployedObject = wdr.config.getid1(
-                    '/Deployment:%s/' % mo.name
-                ).deployedObject
-                deployedObject.assure(
-                    'Property', {'name': 'wdr.checksum'}, 'properties',
-                    value=calculatedChecksum,
-                    description=WDR_CHECKSUM_DESCRIPTION
-                )
+        if _isApplicationInstalled(mo.name()):
+            if _updateApplication(mo, listener):
                 affectedApplications.append(mo.name)
-                listener.afterUpdate(mo.name, mo.archive)
-                for extraOptionName in _extraOptionNamesOrdered:
-                    if mo.extras.has_key(extraOptionName):
-                        processExtraAppOption(
-                            mo, extraOptionName, mo.extras[extraOptionName]
-                        )
         else:
-            listener.beforeInstall(mo.name, mo.archive)
-            action = wdr.app.Install()
-            for (k, v) in mo.options.items():
-                if v:
-                    action[k] = v
-                else:
-                    action[k] = None
-            action['appname'] = mo.name
-            action(mo.archive)
-            fileChecksum = wdr.util.generateSHA512(mo.archive)
-            manifestChecksum = wdr.util.sha512(str(mo))
-            calculatedChecksum = fileChecksum + ';' + manifestChecksum
-            deployedObject = wdr.config.getid1(
-                '/Deployment:%s/' % mo.name
-            ).deployedObject
-            deployedObject.assure(
-                'Property',
-                {'name': 'wdr.checksum'},
-                'properties',
-                value=calculatedChecksum,
-                description=WDR_CHECKSUM_DESCRIPTION
-            )
+            _installApplication(mo, listener)
             affectedApplications.append(mo.name)
-            listener.afterInstall(mo.name, mo.archive)
-            for extraOptionName in _extraOptionNamesOrdered:
-                if mo.extras.has_key(extraOptionName):
-                    processExtraAppOption(
-                        mo, extraOptionName, mo.extras[extraOptionName]
-                    )
     return affectedApplications
 
 
@@ -1042,11 +1056,7 @@ def _loadConfigurationManifest(filename, variables, manifestPath):
 
 
 def importConfigurationManifest(filename, variables={}, manifestPath=None):
-    if manifestPath is None:
-        manifestPath = ['.']
-        sysPathReversed = sys.path[:]
-        sysPathReversed.reverse()
-        manifestPath.extend(sysPathReversed)
+    manifestPath = manifestPath or _defaultManifestPath()
     anchors = {}
     attributeCache = wdr.config.AttributeValueCache()
     for mo in _loadConfigurationManifest(
