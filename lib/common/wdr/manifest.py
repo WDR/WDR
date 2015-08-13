@@ -404,7 +404,7 @@ class ApplicationObject:
         self.options = {}
         self.extras = {}
 
-    def __str__(self):
+    def _str_app_name(self):
         result = ''
         if self.name.find(' ') == -1:
             result += '%s ' % self.name
@@ -414,6 +414,10 @@ class ApplicationObject:
             result += '%s\n' % self.archive
         else:
             result += '"%s"\n' % self.archive
+        return result
+
+    def _str_extra_options(self):
+        result = ''
         extraOptionNames = self.extras.keys()
         extraOptionNames.sort()
         for k in extraOptionNames:
@@ -427,6 +431,10 @@ class ApplicationObject:
                         result += '\t\t%s\n' % c
             else:
                 result += '\t*%s %s\n' % (k, v)
+        return result
+
+    def _str_options(self):
+        result = ''
         optionNames = self.options.keys()
         optionNames.sort()
         for k in optionNames:
@@ -440,6 +448,13 @@ class ApplicationObject:
                         result += '\t\t%s\n' % c
             else:
                 result += '\t%s %s\n' % (k, v)
+        return result
+
+    def __str__(self):
+        result = ''
+        result += self._str_app_name()
+        result += self._str_extra_options()
+        result += self._str_options()
         return result
 
     def __unicode__(self):
