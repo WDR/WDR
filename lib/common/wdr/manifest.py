@@ -19,58 +19,57 @@ _genericPattern = re.compile(r'^(?P<tabs>\t*).*$')
 _commentPattern = re.compile(r'^(?:#\.*)|(?:\n)')
 _directivePattern = re.compile(
     r'^(?P<tabs>\t*)'
-    + r'@'
-    + r'\s*'
-    + r'(?P<name>[A-Za-z][a-zA-Z0-9_]*)'
-    + r'(?P<values>(?:\s*(?P<value>.+?))*)?'
-    + r'\s*$')
+    r'@'
+    r'\s*'
+    r'(?P<name>[A-Za-z][a-zA-Z0-9_]*)'
+    r'(?P<values>(?:\s*(?P<value>.+?))*)?'
+    r'\s*$')
 _typePattern = re.compile(
     r'^(?P<tabs>\t*)'
-    + r'(?P<type>[A-Za-z][a-zA-Z0-9_]*)'
-    + r'\s*'
-    + r'(?P<linkage>[&#][a-zA-Z0-9_]+)?'
-    + r'\s*$')
+    r'(?P<type>[A-Za-z][a-zA-Z0-9_]*)'
+    r'\s*'
+    r'(?P<linkage>[&#][a-zA-Z0-9_]+)?'
+    r'\s*$')
 _keyPattern = re.compile(
     r'^(?P<tabs>\t*)'
-    + r'\*'
-    + r'(?P<name>[A-Za-z][a-zA-Z0-9_]*)'
-    + r'\s*'
-    + r'(?P<value>.+?)?'
-    + r'\s*$')
+    r'\*'
+    r'(?P<name>[A-Za-z][a-zA-Z0-9_]*)'
+    r'\s*'
+    r'(?P<value>.+?)?'
+    r'\s*$')
 _attPattern = re.compile(
     r'^(?P<tabs>\t*)'
-    + r'-'
-    + r'(?P<name>[A-Za-z][a-zA-Z0-9_]*)'
-    + r'\s*'
-    + r'(?P<value>.+?)?'
-    + r'\s*$')
+    r'-'
+    r'(?P<name>[A-Za-z][a-zA-Z0-9_]*)'
+    r'\s*'
+    r'(?P<value>.+?)?'
+    r'\s*$')
 _variablePattern = re.compile(
     r'\$\['
-    + r'\s*'
-    + r'(?P<var>[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)'
-    + r'(?:'
+    r'\s*'
+    r'(?P<var>[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)'
+    r'(?:'
     + (
-        r''
-        + r'\s*'
-        + r'\|'
-        + r'\s*'
-        + r'(?P<filter>[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)'
-    )
-    + r')?'
-    + r'\s*'
-    + r'\]')
+        r'\s*'
+        r'\|'
+        r'\s*'
+        r'(?P<filter>[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)'
+    ) +
+    r')?'
+    r'\s*'
+    r'\]')
 _appNamePattern = re.compile(
     r'^'
-    + r'(?:(?:"(?P<qname>[^"]+)")|(?P<name>\S+))'
-    + r'\s+'
-    + r'(?:(?:"(?P<qpath>[^"]+)")|(?P<path>.+?))'
-    + r'\s*$')
+    r'(?:(?:"(?P<qname>[^"]+)")|(?P<name>\S+))'
+    r'\s+'
+    r'(?:(?:"(?P<qpath>[^"]+)")|(?P<path>.+?))'
+    r'\s*$')
 _appOptionPattern = re.compile(
     r'^(?P<tabs>\t)'
-    + r'(?P<name>\*?[a-zA-Z0-9_\.]+)'
-    + r'\s*'
-    + r'(?P<value>.+?)?'
-    + r'\s*$')
+    r'(?P<name>\*?[a-zA-Z0-9_\.]+)'
+    r'\s*'
+    r'(?P<value>.+?)?'
+    r'\s*$')
 _appOptionValuePattern = re.compile(r'^(?P<tabs>\t\t)(?P<value>.+?)\s*$')
 WDR_CHECKSUM_DESCRIPTION = (
     'Checksum of deployed EAR file and application manifest'
@@ -224,7 +223,7 @@ class ManifestConfigObject:
                 raise Exception(
                     '[%s] Invalid attribute %s specified for object %s(%s)'
                     % (
-                        self.getSourceLocation(), propName, typeName,self.keys
+                        self.getSourceLocation(), propName, typeName, self.keys
                     )
                 )
         result = parentObject._create(
@@ -276,7 +275,7 @@ class ManifestConfigObject:
                             ):
                                 logger.warning(
                                     '[%s] read-only attribute %s.%s'
-                                    + ' could not be modified',
+                                    ' could not be modified',
                                     self.getSourceLocation(), typeName,
                                     propName
                                 )
@@ -311,7 +310,7 @@ class ManifestConfigObject:
                         if msg.find('ADMG0014E') != -1:
                             logger.warning(
                                 '[%s] read-only attribute %s.%s'
-                                + ' could not be modified',
+                                ' could not be modified',
                                 self.getSourceLocation(), typeName, propName
                             )
                         else:
@@ -346,15 +345,15 @@ class ManifestConfigObject:
         if not self.isEmpty():
             raise Exception(
                 '[%s] Objects being assigned to'
-                + ' reference-attributes must not contain'
-                + ' keys/attributes/children'
+                ' reference-attributes must not contain'
+                ' keys/attributes/children'
                 % self.getSourceLocation()
             )
         if not self.reference:
             raise Exception(
                 '[%s] Objects being assigned to'
-                + ' reference-attributes must be references to'
-                + ' other objects'
+                ' reference-attributes must be references to'
+                ' other objects'
                 % self.getSourceLocation()
             )
         if not anchors.has_key(self.reference):
@@ -764,7 +763,7 @@ class _AppEventConsumer:
     def consumeApp(self, filename, line, lineno, variables):
         logger.error(
             'manifest parsing error'
-            + ' - unexpected application definition at line %d',
+            ' - unexpected application definition at line %d',
             lineno
         )
         raise LoadError(
@@ -1215,8 +1214,8 @@ def _updateApplication(mo, listener):
         listener.beforeUpdate(mo.name, mo.archive)
         logger.debug(
             'application %s will be updated. '
-            + 'deployedChecksum(%s), '
-            + 'calculatedChecksum(%s)',
+            'deployedChecksum(%s), '
+            'calculatedChecksum(%s)',
             mo.name, deployedChecksum, calculatedChecksum
         )
         action = wdr.app.UpdateApp()

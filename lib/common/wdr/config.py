@@ -20,23 +20,23 @@ def _compileRegularExpressions():
     configNamePattern = re.compile(
         r'('
         # config object ids may contain whitespaces and are being quoted then
-        + r'(?:'
-        + r'"'
-        + r'(?P<qname>[^"^\[^\]]*)'
-        + r'\((?P<qxmlPath>.+?)\|(?P<qxmlDoc>.+?\.xml)'
-        + r'#(?P<qxmlId>[a-zA-Z_0-9]+?)\)'
-        + r'"'
-        + r')'
+        r'(?:'
+        r'"'
+        r'(?P<qname>[^"^\[^\]]*)'
+        r'\((?P<qxmlPath>.+?)\|(?P<qxmlDoc>.+?\.xml)'
+        r'#(?P<qxmlId>[a-zA-Z_0-9]+?)\)'
+        r'"'
+        r')'
         #
-        + r'|'
+        r'|'
         # config object ids without whitespaces are not being quoted
-        + r'(?:'
-        + r'(?P<name>[^ ^"^\[^\]]*)'
-        + r'\((?P<xmlPath>.+?)\|(?P<xmlDoc>.+?\.xml)'
-        + r'#(?P<xmlId>[a-zA-Z_0-9]+?)\)'
-        + r')'
+        r'(?:'
+        r'(?P<name>[^ ^"^\[^\]]*)'
+        r'\((?P<xmlPath>.+?)\|(?P<xmlDoc>.+?\.xml)'
+        r'#(?P<xmlId>[a-zA-Z_0-9]+?)\)'
+        r')'
         #
-        + r')'
+        r')'
     )
     # expression matching list of object ids
     # lists of config objects are being returned as whitespace-separated strings
@@ -200,7 +200,7 @@ def getObjectType(
             raise
         logger.warning(
             'default method of retrieving object types has failed, '
-            + 'falling back to reflection-based mechanism'
+            'falling back to reflection-based mechanism'
         )
         # from now on, the default type retriever will be the one using
         # reflection
