@@ -39,7 +39,7 @@ def sync(quiet=0):
                         if not quiet:
                             logger.warning(
                                 'synchronization of %s'
-                                + ' did not complete successfully',
+                                ' did not complete successfully',
                                 node.name
                             )
                     break
@@ -47,7 +47,7 @@ def sync(quiet=0):
                     if not quiet:
                         logger.warning(
                             'unable to contact node synchronization service '
-                            + ' on node %s',
+                            ' on node %s',
                             node.name
                         )
     # we want to leave ConfigSession clean after sync in order to avoid

@@ -12,16 +12,16 @@ logger = logging.getLogger('wdr.task')
 _listPattern = re.compile(r'\[(.*)\]')
 _itemPattern = re.compile(
     r'(?<=\[)'
-    + r'(?P<key>\S+)'
-    + r'\s+'
-    + r'(?:'
+    r'(?P<key>\S+)'
+    r'\s+'
+    r'(?:'
     + (
         r''
         + r'\[(?P<valueQuoted>[^\]]+)\]'
         + r'|'
         + r'(?P<valueNotQuoted>[^ \[\]]+)'
-    )
-    + r')'
+    ) +
+    r')'
 )
 
 
