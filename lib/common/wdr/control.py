@@ -278,7 +278,8 @@ class MBean:
             self._id, typeOrTypes, propertiesOrPropertiesList, timeout
         )
 
-def getFirstMatchingMBean( domain='WebSphere', **attributes ):
+
+def getFirstMatchingMBean(domain='WebSphere', **attributes):
     """Find an MBean using the provided template. Returns the first matching
     MBean, or 'None' if no matches are found.
     Example:
@@ -287,13 +288,14 @@ def getFirstMatchingMBean( domain='WebSphere', **attributes ):
         name='applicationName'
         )"""
     template = '%s:*' % domain
-    for ( k, v ) in attributes.items():
-        template += ',%s=%s' % ( k, v )
+    for (k, v) in attributes.items():
+        template += ',%s=%s' % (k, v)
     result = AdminControl.completeObjectName(template)
     if result:
         return MBean(result)
     else:
         return None
+
 
 def queryMBeans(domain='WebSphere', **attributes):
     """Queries given the query criteria, retrieves an array of matching MBeans.

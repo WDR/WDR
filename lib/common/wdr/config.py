@@ -20,23 +20,23 @@ def _compileRegularExpressions():
     configNamePattern = re.compile(
         r'('
         # config object ids may contain whitespaces and are being quoted then
-        + r'(?:'
-        + r'"'
-        + r'(?P<qname>[^"^\[^\]]*)'
-        + r'\((?P<qxmlPath>.+?)\|(?P<qxmlDoc>.+?\.xml)'
-        + r'#(?P<qxmlId>[a-zA-Z_0-9]+?)\)'
-        + r'"'
-        + r')'
+        r'(?:'
+        r'"'
+        r'(?P<qname>[^"^\[^\]]*)'
+        r'\((?P<qxmlPath>.+?)\|(?P<qxmlDoc>.+?\.xml)'
+        r'#(?P<qxmlId>[a-zA-Z_0-9]+?)\)'
+        r'"'
+        r')'
         #
-        + r'|'
+        r'|'
         # config object ids without whitespaces are not being quoted
-        + r'(?:'
-        + r'(?P<name>[^ ^"^\[^\]]*)'
-        + r'\((?P<xmlPath>.+?)\|(?P<xmlDoc>.+?\.xml)'
-        + r'#(?P<xmlId>[a-zA-Z_0-9]+?)\)'
-        + r')'
+        r'(?:'
+        r'(?P<name>[^ ^"^\[^\]]*)'
+        r'\((?P<xmlPath>.+?)\|(?P<xmlDoc>.+?\.xml)'
+        r'#(?P<xmlId>[a-zA-Z_0-9]+?)\)'
+        r')'
         #
-        + r')'
+        r')'
     )
     # expression matching list of object ids
     # lists of config objects are being returned as whitespace-separated strings
@@ -200,7 +200,7 @@ def getObjectType(
             raise
         logger.warning(
             'default method of retrieving object types has failed, '
-            + 'falling back to reflection-based mechanism'
+            'falling back to reflection-based mechanism'
         )
         # from now on, the default type retriever will be the one using
         # reflection
@@ -633,25 +633,30 @@ class ConfigObject:
                         else:
                             v = str(value)
                         atomicAttributes.append([name, v])
-            if len(emptyAttributes) > 0:
-                AdminConfig.unsetAttributes(str(self), emptyAttributes)
-            if len(atomicAttributes) > 0:
-                AdminConfig.modify(str(self), atomicAttributes)
-            for (n, v) in listAttributes:
-                currentValue = self._getConfigAttribute(n)
-                ai = getTypeInfo(self._type).attributes[n]
-                ti = getTypeInfo(ai.type)
-                cnv = ti.converter
-                if cnv:
-                    currentValue = join(
-                        map(cnv.toAdminConfig, currentValue), ';'
-                    )
-                else:
-                    currentValue = map(lambda e: str(e), currentValue)
-                if currentValue != v:
-                    AdminConfig.modify(str(self), [[n, []]])
-                    AdminConfig.modify(str(self), [[n, v]])
+            self.unset(emptyAttributes)
+            self._modifyAtomic(atomicAttributes)
+            self._modifyList(listAttributes)
         return self
+
+    def _modifyAtomic(self, atomicAttributes):
+        if len(atomicAttributes) > 0:
+            AdminConfig.modify(str(self), atomicAttributes)
+
+    def _modifyList(self, listAttributes):
+        for (n, v) in listAttributes:
+            currentValue = self._getConfigAttribute(n)
+            ai = getTypeInfo(self._type).attributes[n]
+            ti = getTypeInfo(ai.type)
+            cnv = ti.converter
+            if cnv:
+                currentValue = join(
+                    map(cnv.toAdminConfig, currentValue), ';'
+                )
+            else:
+                currentValue = map(lambda e: str(e), currentValue)
+            if currentValue != v:
+                AdminConfig.modify(str(self), [[n, []]])
+                AdminConfig.modify(str(self), [[n, v]])
 
     def remove(self):
         logger.debug('removing object %s', self)
@@ -659,10 +664,11 @@ class ConfigObject:
         return self
 
     def unset(self, _attributes):
-        logger.debug(
-            'unsetting attributes %s of ConfigObject %s', _attributes, self
-        )
-        AdminConfig.unsetAttributes(str(self), _attributes)
+        if len(_attributes) > 0:
+            logger.debug(
+                'unsetting attributes %s of ConfigObject %s', _attributes, self
+            )
+            AdminConfig.unsetAttributes(str(self), _attributes)
         return self
 
     def lookup1(self, _type, _criteria, _propertyName=None):
@@ -680,36 +686,70 @@ class ConfigObject:
 
     def lookup(self, _type, _criteria, _propertyName=None, attributeCache=None):
         attributeCache = attributeCache or AttributeValueCache()
+        candidates = []
+        candidates.extend(
+            self._lookupCandidatesInProperty(
+                _type, _criteria, _propertyName, attributeCache
+            )
+        )
+        candidates.extend(
+            self._lookupIndexedChildren(
+                _type, _criteria, _propertyName, attributeCache
+            )
+        )
+        candidates.extend(
+            self._lookupNonIndexedChildren(
+                _type, _criteria, _propertyName, attributeCache
+            )
+        )
+        return self._filterCandidates(candidates, _criteria, attributeCache)
+
+    def _lookupCandidatesInProperty(
+        self, _type, _criteria, _propertyName=None, attributeCache=None
+    ):
         name = _criteria.get('name', None)
         if _propertyName:
             if name:
-                candidates = [
+                return [
                     c for c in attributeCache.getAttribute(self, _propertyName)
                     if c._type == _type and c._id.name == name
                 ]
             else:
-                candidates = [
+                return [
                     c for c in attributeCache.getAttribute(self, _propertyName)
                     if c._type == _type
                 ]
         else:
-            myName = None
+            return []
+
+    def _lookupIndexedChildren(
+        self, _type, _criteria, _propertyName, attributeCache
+    ):
+        if _propertyName is None:
+            name = _criteria.get('name', '')
+            myName = ''
             if getTypeInfo(self._type).attributes.has_key('name'):
                 myName = attributeCache.getAttribute(self, 'name')
             if self._type in parents(_type):
-                indexedParents = getid('/%s:%s/' % (self._type, myName or ''))
+                indexedParents = getid('/%s:%s/' % (self._type, myName))
                 indexedCandidates = getid(
                     '/%s:%s/%s:%s/'
-                    % (self._type, myName or '', _type, name or '')
+                    % (self._type, myName, _type, name)
                 )
                 if len(indexedParents) == 1:
-                    candidates = indexedCandidates
+                    return indexedCandidates
                 else:
-                    candidates = [
+                    return [
                         c for c in self.listConfigObjects(_type)
                         if c in indexedCandidates
                     ]
-            else:
+        return []
+
+    def _lookupNonIndexedChildren(
+        self, _type, _criteria, _propertyName, attributeCache
+    ):
+        if _propertyName is None:
+            if self._type not in parents(_type):
                 logger.warning(
                     'using suboptimal lookup of %s objects within %s',
                     _type, self._type
@@ -722,9 +762,13 @@ class ConfigObject:
                             for grandchild in child.listConfigObjects(_type):
                                 if grandchild in candidates:
                                     candidates.remove(grandchild)
+                return candidates
+        return []
+
+    def _filterCandidates(self, candidates, criteria, attributeCache):
         result = []
         for obj in candidates:
-            for (k, v) in _criteria.items():
+            for (k, v) in criteria.items():
                 if attributeCache.getAttribute(obj, k) != v:
                     break
             else:
