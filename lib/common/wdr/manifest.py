@@ -177,6 +177,296 @@ class ManifestConfigObject:
             result += c._toString(indent + 1)
         return result
 
+    def apply(self, anchors, parentObject, parentAttribute, attributeCache):
+        typeName = self.type
+        logger.debug(
+            'importing object type %s as child of object %s and property %s',
+            typeName, parentObject, parentAttribute
+        )
+        if parentObject:
+            self._applyWithParentContext(
+                anchors, parentObject, parentAttribute, attributeCache
+            )
+        else:
+            self._applyWithoutParentContext(
+                anchors, parentObject, parentAttribute, attributeCache
+            )
+
+    def _filterMatching(self, candidateList, attributeCache):
+        matchingList = []
+        for o in candidateList:
+            if o._type == self.type:
+                for (k, v) in self.keys.items():
+                    if attributeCache.getAttribute(o, k) != v:
+                        break
+                else:
+                    matchingList.append(o)
+        return matchingList
+
+    def _create(self, parentObject, parentAttribute, attributeCache):
+        typeName = self.type
+        typeInfo = wdr.config.getTypeInfo(typeName)
+        simpleAttributes = []
+        for (propName, propValue) in self.keys.items():
+            if typeInfo.attributes.has_key(propName):
+                if wdr.config.getTypeInfo(
+                    typeInfo.attributes[propName].type
+                ).converter:
+                    simpleAttributes.append([propName, propValue])
+        for propName in self._orderedAttributeNames:
+            propValue = self.attributes[propName]
+            if typeInfo.attributes.has_key(propName):
+                if wdr.config.getTypeInfo(
+                    typeInfo.attributes[propName].type
+                ).converter:
+                    simpleAttributes.append([propName, propValue])
+            else:
+                raise Exception(
+                    '[%s] Invalid attribute %s specified for object %s(%s)'
+                    % (
+                        self.getSourceLocation(), propName, typeName,self.keys
+                    )
+                )
+        result = parentObject._create(
+            typeName, parentAttribute, simpleAttributes
+        )
+        if parentAttribute is not None:
+            attributeCache.invalidate(parentObject, parentAttribute)
+        return result
+
+    def _setAnchor(self, anchors, configObject):
+        if self.anchor:
+            if anchors.has_key(self.anchor):
+                raise Exception(
+                    '[%s] Duplicate anchor: %s'
+                    % (self.getSourceLocation(), self.anchor)
+                )
+            else:
+                logger.debug(
+                    'setting anchor %s to %s', self.anchor, configObject
+                )
+                anchors[self.anchor] = configObject
+
+    def _updateSimpleAttributes(self, configObject, attributeCache):
+        typeName = self.type
+        typeInfo = wdr.config.getTypeInfo(typeName)
+        for propName in self._orderedAttributeNames:
+            propValue = self.attributes[propName]
+            if typeInfo.attributes.has_key(propName):
+                attributeInfo = typeInfo.attributes[propName]
+                attributeTypeInfo = wdr.config.getTypeInfo(attributeInfo.type)
+                if attributeTypeInfo.converter:
+                    if attributeInfo.list:
+                        if propValue:
+                            newPropValue = propValue.split(';')
+                        else:
+                            newPropValue = propValue
+                    else:
+                        newPropValue = propValue
+                    try:
+                        configObject._modify([[propName, newPropValue]])
+                        attributeCache.invalidate(configObject, propName)
+                    except com.ibm.ws.scripting.ScriptingException, ex:
+                        msg = '' + ex.message
+                        if msg.find('ADMG0014E') != -1:
+                            if (
+                                configObject._getConfigAttribute(propName)
+                                !=
+                                newPropValue
+                            ):
+                                logger.warning(
+                                    '[%s] read-only attribute %s.%s'
+                                    + ' could not be modified',
+                                    self.getSourceLocation(), typeName,
+                                    propName
+                                )
+                        else:
+                            raise
+            else:
+                raise Exception(
+                    '[%s] Invalid attribute %s specified for object %s(%s)'
+                    % (
+                        self.getSourceLocation(), propName, typeName, self.keys
+                    )
+                )
+
+    def _updateKeys(self, configObject, attributeCache):
+        typeName = self.type
+        typeInfo = wdr.config.getTypeInfo(typeName)
+        for (propName, propValue) in self.keys.items():
+            if typeInfo.attributes.has_key(propName):
+                attributeInfo = typeInfo.attributes[propName]
+                attributeTypeInfo = wdr.config.getTypeInfo(attributeInfo.type)
+                if attributeTypeInfo.converter:
+                    try:
+                        if attributeInfo.list:
+                            configObject._modify(
+                                [[propName, propValue.split(';')]]
+                            )
+                        else:
+                            configObject._modify([[propName, propValue]])
+                        attributeCache.invalidate(configObject, propName)
+                    except com.ibm.ws.scripting.ScriptingException, ex:
+                        msg = '' + ex.message
+                        if msg.find('ADMG0014E') != -1:
+                            logger.warning(
+                                '[%s] read-only attribute %s.%s'
+                                + ' could not be modified',
+                                self.getSourceLocation(), typeName, propName
+                            )
+                        else:
+                            raise
+
+    def _updateComplexAttributes(self, configObject, anchors, attributeCache):
+        typeName = self.type
+        typeInfo = wdr.config.getTypeInfo(typeName)
+        for propName in self._orderedAttributeNames:
+            propValue = self.attributes[propName]
+            if typeInfo.attributes.has_key(propName):
+                attributeInfo = typeInfo.attributes[propName]
+                attributeTypeInfo = wdr.config.getTypeInfo(attributeInfo.type)
+                if not attributeTypeInfo.converter:
+                    for mo in propValue:
+                        mo.apply(
+                            anchors, configObject, propName, attributeCache
+                        )
+            else:
+                raise Exception(
+                    '[%s] Invalid attribute %s specified for object %s(%s)'
+                    % (self.getSourceLocation(), propName, typeName, self.keys)
+                )
+
+    def _updateChildren(self, configObject, anchors, attributeCache):
+        for mo in self.children:
+            mo.apply(anchors, configObject, None, attributeCache)
+
+    def _updateRefOrRefList(
+        self, anchors, parentObject, parentAttribute, attributeCache
+    ):
+        if not self.isEmpty():
+            raise Exception(
+                '[%s] Objects being assigned to'
+                + ' reference-attributes must not contain'
+                + ' keys/attributes/children'
+                % self.getSourceLocation()
+            )
+        if not self.reference:
+            raise Exception(
+                '[%s] Objects being assigned to'
+                + ' reference-attributes must be references to'
+                + ' other objects'
+                % self.getSourceLocation()
+            )
+        if not anchors.has_key(self.reference):
+            raise Exception(
+                '[%s] Unresolved reference: %s'
+                % (self.getSourceLocation(), self.reference)
+            )
+        parentTypeName = parentObject._type
+        parentTypeInfo = wdr.config.getTypeInfo(parentTypeName)
+        parentAttributeInfo = parentTypeInfo.attributes[parentAttribute]
+        if parentAttributeInfo.list:
+            referenceList = parentObject[parentAttribute]
+            referenceList.append(anchors[self.reference])
+            parentObject[parentAttribute] = referenceList
+            attributeCache.invalidate(parentObject, parentAttribute)
+        else:
+            parentObject[parentAttribute] = anchors[self.reference]
+            attributeCache.invalidate(parentObject, parentAttribute)
+
+    def _applyToChild(
+        self, anchors, parentObject, parentAttribute, attributeCache
+    ):
+        typeName = self.type
+        if parentAttribute is None:
+            matchingObjects = self._filterMatching(
+                parentObject.lookup(typeName, {}), attributeCache
+            )
+        else:
+            matchingObjects = self._filterMatching(
+                attributeCache.getAttribute(parentObject, parentAttribute),
+                attributeCache
+            )
+        if (
+            len(matchingObjects) == 0
+            or
+            (
+                len(matchingObjects) == 1 and matchingObjects[0] is None
+            )
+        ):
+            configObject = self._create(
+                parentObject, parentAttribute, attributeCache
+            )
+            self._setAnchor(anchors, configObject)
+            self._updateComplexAttributes(configObject, anchors, attributeCache)
+            self._updateChildren(configObject, anchors, attributeCache)
+        elif len(matchingObjects) == 1:
+            configObject = matchingObjects[0]
+            self._setAnchor(anchors, configObject)
+            self._updateKeys(configObject, attributeCache)
+            self._updateSimpleAttributes(configObject, attributeCache)
+            self._updateComplexAttributes(configObject, anchors, attributeCache)
+            self._updateChildren(configObject, anchors, attributeCache)
+        else:
+            raise Exception(
+                '[%s] Multiple %s objects matched criteria'
+                % (self.getSourceLocation(), typeName)
+            )
+
+    def _applyWithParentContext(
+        self, anchors, parentObject, parentAttribute, attributeCache
+    ):
+        # knowing the parent, we can either create or modify the object
+        parentTypeName = parentObject._type
+        parentTypeInfo = wdr.config.getTypeInfo(parentTypeName)
+        if parentAttribute:
+            parentAttributeInfo = parentTypeInfo.attributes[parentAttribute]
+            if parentAttributeInfo.reference:
+                self._updateRefOrRefList(
+                    anchors, parentObject, parentAttribute, attributeCache
+                )
+            else:
+                self._applyToChild(
+                    anchors, parentObject, parentAttribute, attributeCache
+                )
+        else:
+            # parent attribute name not provided
+            if self.reference:
+                raise Exception(
+                    '[%s] Reference "%s" was not expected here'
+                    % (self.getSourceLocation(), self.reference)
+                )
+            else:
+                self._applyToChild(
+                    anchors, parentObject, parentAttribute, attributeCache
+                )
+
+    def _applyWithoutParentContext(
+        self, anchors, parentObject, parentAttribute, attributeCache
+    ):
+        # without knowing the parent, object can be only modified,
+        # no new object can be created
+        typeName = self.type
+        matchingObjects = self._filterMatching(
+            wdr.config.listConfigObjects(typeName), attributeCache
+        )
+        if len(matchingObjects) == 1:
+            configObject = matchingObjects[0]
+            self._updateSimpleAttributes(configObject, attributeCache)
+            self._setAnchor(anchors, configObject)
+            self._updateComplexAttributes(configObject, anchors, attributeCache)
+            self._updateChildren(configObject, anchors, attributeCache)
+        elif len(matchingObjects) == 0:
+            raise Exception(
+                '[%s] No %s object matched criteria'
+                % (self.getSourceLocation(), typeName)
+            )
+        else:
+            raise Exception(
+                '[%s] Multiple %s objects matched criteria'
+                % (self.getSourceLocation(), typeName)
+            )
+
 
 class LoadError:
     def __init__(self, message, filename='', line='', lineno=0):
@@ -1064,488 +1354,4 @@ def importConfigurationManifest(filename, variables={}, manifestPath=None):
         variables,
         manifestPath
     ):
-        _importManifestConfigObject(mo, anchors, None, None, attributeCache)
-
-
-def _findMatchingObjects(manifestObject, candidateList, attributeCache):
-    matchingList = []
-    for o in candidateList:
-        if o._type == manifestObject.type:
-            for (k, v) in manifestObject.keys.items():
-                if attributeCache.getAttribute(o, k) != v:
-                    break
-            else:
-                matchingList.append(o)
-    return matchingList
-
-
-def _createConfigObject(
-    manifestObject,
-    parentObject,
-    parentAttribute,
-    attributeCache
-):
-    typeName = manifestObject.type
-    typeInfo = wdr.config.getTypeInfo(typeName)
-    simpleAttributes = []
-    for (propName, propValue) in manifestObject.keys.items():
-        if typeInfo.attributes.has_key(propName):
-            if wdr.config.getTypeInfo(
-                typeInfo.attributes[propName].type
-            ).converter:
-                simpleAttributes.append([propName, propValue])
-    for propName in manifestObject._orderedAttributeNames:
-        propValue = manifestObject.attributes[propName]
-        if typeInfo.attributes.has_key(propName):
-            if wdr.config.getTypeInfo(
-                typeInfo.attributes[propName].type
-            ).converter:
-                simpleAttributes.append([propName, propValue])
-        else:
-            raise Exception(
-                '[%s] Invalid attribute %s specified for object %s(%s)'
-                % (
-                    manifestObject.getSourceLocation(), propName, typeName,
-                    manifestObject.keys
-                )
-            )
-    result = parentObject._create(typeName, parentAttribute, simpleAttributes)
-    if parentAttribute is not None:
-        attributeCache.invalidate(parentObject, parentAttribute)
-    return result
-
-
-def _setAnchor(manifestObject, anchors, configObject):
-    if manifestObject.anchor:
-        if anchors.has_key(manifestObject.anchor):
-            raise Exception(
-                '[%s] Duplicate anchor: %s'
-                % (
-                    manifestObject.getSourceLocation(),
-                    manifestObject.anchor
-                )
-            )
-        else:
-            logger.debug(
-                'setting anchor %s to %s', manifestObject.anchor, configObject
-            )
-            anchors[manifestObject.anchor] = configObject
-
-
-def _updateConfigObjectSimpleAttributes(
-    configObject, manifestObject, attributeCache
-):
-    typeName = manifestObject.type
-    typeInfo = wdr.config.getTypeInfo(typeName)
-    for propName in manifestObject._orderedAttributeNames:
-        propValue = manifestObject.attributes[propName]
-        if typeInfo.attributes.has_key(propName):
-            attributeInfo = typeInfo.attributes[propName]
-            attributeTypeInfo = wdr.config.getTypeInfo(attributeInfo.type)
-            if attributeTypeInfo.converter:
-                if attributeInfo.list:
-                    if propValue:
-                        newPropValue = propValue.split(';')
-                    else:
-                        newPropValue = propValue
-                else:
-                    newPropValue = propValue
-                try:
-                    configObject._modify([[propName, newPropValue]])
-                    attributeCache.invalidate(configObject, propName)
-                except com.ibm.ws.scripting.ScriptingException, ex:
-                    msg = '' + ex.message
-                    if msg.find('ADMG0014E') != -1:
-                        if (
-                            configObject._getConfigAttribute(propName)
-                            !=
-                            newPropValue
-                        ):
-                            logger.warning(
-                                '[%s] read-only attribute %s.%s'
-                                + ' could not be modified',
-                                manifestObject.getSourceLocation(), typeName,
-                                propName
-                            )
-                    else:
-                        raise
-
-
-def _updateConfigObjectKeys(configObject, manifestObject, attributeCache):
-    typeName = manifestObject.type
-    typeInfo = wdr.config.getTypeInfo(typeName)
-    for (propName, propValue) in manifestObject.keys.items():
-        if typeInfo.attributes.has_key(propName):
-            attributeInfo = typeInfo.attributes[propName]
-            attributeTypeInfo = wdr.config.getTypeInfo(attributeInfo.type)
-            if attributeTypeInfo.converter:
-                try:
-                    if attributeInfo.list:
-                        configObject._modify([[propName, propValue.split(';')]])
-                    else:
-                        configObject._modify([[propName, propValue]])
-                    attributeCache.invalidate(configObject, propName)
-                except com.ibm.ws.scripting.ScriptingException, ex:
-                    msg = '' + ex.message
-                    if msg.find('ADMG0014E') != -1:
-                        logger.warning(
-                            '[%s] read-only attribute %s.%s'
-                            + ' could not be modified',
-                            manifestObject.getSourceLocation(), typeName,
-                            propName
-                        )
-                    else:
-                        raise
-
-
-def _updateConfigObjectComplexAttributes(
-    configObject, manifestObject, anchors, attributeCache
-):
-    typeName = manifestObject.type
-    typeInfo = wdr.config.getTypeInfo(typeName)
-    for propName in manifestObject._orderedAttributeNames:
-        propValue = manifestObject.attributes[propName]
-        if typeInfo.attributes.has_key(propName):
-            attributeInfo = typeInfo.attributes[propName]
-            attributeTypeInfo = wdr.config.getTypeInfo(attributeInfo.type)
-            if not attributeTypeInfo.converter:
-                for obj in propValue:
-                    _importManifestConfigObject(
-                        obj, anchors, configObject, propName, attributeCache
-                    )
-
-
-def _updateConfigObjectChildren(
-    configObject, manifestObject, anchors, attributeCache
-):
-    for obj in manifestObject.children:
-        _importManifestConfigObject(
-            obj, anchors, configObject, None, attributeCache
-        )
-
-
-def _importManifestConfigObject(
-    manifestObject, anchors, parentObject, parentAttribute, attributeCache
-):
-    typeName = manifestObject.type
-    logger.debug(
-        'importing object type %s as child of object %s and property %s',
-        typeName, parentObject, parentAttribute
-    )
-    if parentObject:
-        _importManifestConfigObjectWithParentContext(
-            manifestObject, anchors, parentObject, parentAttribute,
-            attributeCache
-        )
-    else:
-        _importManifestConfigObjectWithoutParentContext(
-            manifestObject, anchors, parentObject, parentAttribute,
-            attributeCache
-        )
-
-
-def _importManifestConfigObjectIntoAttrReferenceList(
-    manifestObject, anchors, parentObject, parentAttribute, attributeCache
-):
-    if not manifestObject.isEmpty():
-        raise Exception(
-            '[%s] Objects being assigned to'
-            + ' reference-attributes must not contain'
-            + ' keys/attributes/children'
-            % manifestObject.getSourceLocation()
-        )
-    if not manifestObject.reference:
-        raise Exception(
-            '[%s] Objects being assigned to'
-            + ' reference-attributes must be references to'
-            + ' other objects'
-            % manifestObject.getSourceLocation()
-        )
-    if not anchors.has_key(manifestObject.reference):
-        raise Exception(
-            '[%s] Unresolved reference: %s'
-            % (
-                manifestObject.getSourceLocation(),
-                manifestObject.reference
-            )
-        )
-    parentObject[parentAttribute] = (
-        parentObject[parentAttribute].append(
-            anchors[manifestObject.reference]
-        )
-    )
-    attributeCache.invalidate(parentObject, parentAttribute)
-
-
-def _importManifestConfigObjectIntoAttrObjectList(
-    manifestObject, anchors, parentObject, parentAttribute, attributeCache
-):
-    # adding object to a list
-    matchingObjects = _findMatchingObjects(
-        manifestObject,
-        attributeCache.getAttribute(
-            parentObject,
-            parentAttribute
-        ),
-        attributeCache
-    )
-    if len(matchingObjects) == 0:
-        configObject = _createConfigObject(
-            manifestObject, parentObject, parentAttribute,
-            attributeCache
-        )
-        _setAnchor(manifestObject, anchors, configObject)
-        _updateConfigObjectComplexAttributes(
-            configObject, manifestObject, anchors,
-            attributeCache
-        )
-        _updateConfigObjectChildren(
-            configObject, manifestObject, anchors,
-            attributeCache
-        )
-    elif len(matchingObjects) == 1:
-        configObject = matchingObjects[0]
-        _setAnchor(manifestObject, anchors, configObject)
-        _updateConfigObjectSimpleAttributes(
-            configObject, manifestObject, attributeCache
-        )
-        _updateConfigObjectComplexAttributes(
-            configObject, manifestObject, anchors,
-            attributeCache
-        )
-        _updateConfigObjectChildren(
-            configObject, manifestObject, anchors,
-            attributeCache
-        )
-    else:
-        raise Exception(
-            '[%s] Multiple %s objects matched criteria'
-            % (
-                manifestObject.getSourceLocation(), manifestObject.type
-            )
-        )
-
-
-def _importManifestConfigObjectIntoAttrReference(
-    manifestObject, anchors, parentObject, parentAttribute, attributeCache
-):
-    # assigning object reference to parent object's attribute
-    if not manifestObject.isEmpty():
-        raise Exception(
-            '[%s] Objects being assigned to'
-            + ' reference-attributes must not contain'
-            + ' keys/attributes/children'
-            % manifestObject.getSourceLocation()
-        )
-    if not manifestObject.reference:
-        raise Exception(
-            '[%s] Objects being assigned to'
-            + ' reference-attributes must be references to'
-            + 'other objects'
-            % manifestObject.getSourceLocation()
-        )
-    if not anchors.has_key(manifestObject.reference):
-        raise Exception(
-            '[%s] Unresolved reference: %s'
-            % (
-                manifestObject.getSourceLocation(),
-                manifestObject.reference
-            )
-        )
-    parentObject[parentAttribute] = (
-        anchors[manifestObject.reference]
-    )
-    attributeCache.invalidate(parentObject, parentAttribute)
-
-
-def _importManifestConfigObjectIntoAttrObject(
-    manifestObject, anchors, parentObject, parentAttribute, attributeCache
-):
-    # creating/modifying single object attribute
-    if len(manifestObject.keys) != 0:
-        raise Exception(
-            '%s.%s is not a list, therefore no keys are'
-            + ' allowed for its objects'
-        )
-    matchingObjects = [parentObject[parentAttribute]]
-    if (
-        len(matchingObjects) == 0
-        or
-        (
-            len(matchingObjects) == 1
-            and
-            matchingObjects[0] is None
-        )
-    ):
-        configObject = _createConfigObject(
-            manifestObject, parentObject, parentAttribute,
-            attributeCache
-        )
-        _setAnchor(manifestObject, anchors, configObject)
-        _updateConfigObjectComplexAttributes(
-            configObject, manifestObject, anchors,
-            attributeCache
-        )
-        _updateConfigObjectChildren(
-            configObject, manifestObject, anchors,
-            attributeCache
-        )
-    elif len(matchingObjects) == 1:
-        configObject = matchingObjects[0]
-        _setAnchor(manifestObject, anchors, configObject)
-        _updateConfigObjectKeys(
-            configObject, manifestObject, attributeCache
-        )
-        _updateConfigObjectSimpleAttributes(
-            configObject, manifestObject, attributeCache
-        )
-        _updateConfigObjectComplexAttributes(
-            configObject, manifestObject, anchors,
-            attributeCache
-        )
-        _updateConfigObjectChildren(
-            configObject, manifestObject, anchors,
-            attributeCache
-        )
-    else:
-        raise Exception(
-            '[%s] Multiple %s objects matched criteria'
-            % (
-                manifestObject.getSourceLocation(), manifestObject.type
-            )
-        )
-
-
-def _importManifestConfigObjectIntoChildReference(
-    manifestObject, anchors, parentObject, parentAttribute, attributeCache
-):
-    raise Exception(
-        '[%s] Reference "%s" was not expected here'
-        % (
-            manifestObject.getSourceLocation(),
-            manifestObject.reference
-        )
-    )
-
-
-def _importManifestConfigObjectIntoChildObject(
-    manifestObject, anchors, parentObject, parentAttribute, attributeCache
-):
-    typeName = manifestObject.type
-    matchingObjects = _findMatchingObjects(
-        manifestObject, parentObject.lookup(typeName, {}),
-        attributeCache
-    )
-    if len(matchingObjects) == 0:
-        configObject = _createConfigObject(
-            manifestObject, parentObject, None, attributeCache
-        )
-        _setAnchor(manifestObject, anchors, configObject)
-        _updateConfigObjectComplexAttributes(
-            configObject, manifestObject, anchors, attributeCache
-        )
-        _updateConfigObjectChildren(
-            configObject, manifestObject, anchors, attributeCache
-        )
-    elif len(matchingObjects) == 1:
-        configObject = matchingObjects[0]
-        _setAnchor(manifestObject, anchors, configObject)
-        _updateConfigObjectSimpleAttributes(
-            configObject, manifestObject, attributeCache
-        )
-        _updateConfigObjectComplexAttributes(
-            configObject, manifestObject, anchors, attributeCache
-        )
-        _updateConfigObjectChildren(
-            configObject, manifestObject, anchors, attributeCache
-        )
-    else:
-        raise Exception(
-            '[%s] Multiple %s objects matched criteria'
-            % (
-                manifestObject.getSourceLocation(), typeName
-            )
-        )
-
-
-def _importManifestConfigObjectWithParentContext(
-    manifestObject, anchors, parentObject, parentAttribute, attributeCache
-):
-    # knowing the parent, we can either create or modify the object
-    parentTypeName = parentObject._type
-    parentTypeInfo = wdr.config.getTypeInfo(parentTypeName)
-    if parentAttribute:
-        parentAttributeInfo = parentTypeInfo.attributes[parentAttribute]
-        if parentAttributeInfo.list:
-            if parentAttributeInfo.reference:
-                _importManifestConfigObjectIntoAttrReferenceList(
-                    manifestObject, anchors, parentObject, parentAttribute,
-                    attributeCache
-                )
-            else:
-                _importManifestConfigObjectIntoAttrObjectList(
-                    manifestObject, anchors, parentObject, parentAttribute,
-                    attributeCache
-                )
-        else:
-            if parentAttributeInfo.reference:
-                _importManifestConfigObjectIntoAttrReference(
-                    manifestObject, anchors, parentObject, parentAttribute,
-                    attributeCache
-                )
-            else:
-                _importManifestConfigObjectIntoAttrObject(
-                    manifestObject, anchors, parentObject, parentAttribute,
-                    attributeCache
-                )
-    else:
-        # parent attribute name not provided
-        if manifestObject.reference:
-            _importManifestConfigObjectIntoChildReference(
-                manifestObject, anchors, parentObject, parentAttribute,
-                attributeCache
-            )
-        else:
-            _importManifestConfigObjectIntoChildObject(
-                manifestObject, anchors, parentObject, parentAttribute,
-                attributeCache
-            )
-
-
-def _importManifestConfigObjectWithoutParentContext(
-    manifestObject, anchors, parentObject, parentAttribute, attributeCache
-):
-    # without knowing the parent, object can be only modified,
-    # no new object can be created
-    typeName = manifestObject.type
-    matchingObjects = _findMatchingObjects(
-        manifestObject,
-        wdr.config.listConfigObjects(typeName),
-        attributeCache
-    )
-    if len(matchingObjects) == 1:
-        configObject = matchingObjects[0]
-        _updateConfigObjectSimpleAttributes(
-            configObject, manifestObject, attributeCache
-        )
-        _setAnchor(manifestObject, anchors, configObject)
-        _updateConfigObjectComplexAttributes(
-            configObject, manifestObject, anchors, attributeCache
-        )
-        _updateConfigObjectChildren(
-            configObject, manifestObject, anchors, attributeCache
-        )
-    elif len(matchingObjects) == 0:
-        raise Exception(
-            '[%s] No %s object matched criteria'
-            % (
-                manifestObject.getSourceLocation(), typeName
-            )
-        )
-    else:
-        raise Exception(
-            '[%s] Multiple %s objects matched criteria'
-            % (
-                manifestObject.getSourceLocation(), typeName
-            )
-        )
+        mo.apply(anchors, None, None, attributeCache)
