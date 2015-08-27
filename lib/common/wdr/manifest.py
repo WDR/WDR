@@ -1292,7 +1292,7 @@ def importApplicationManifest(
     for mo in _importApplicationManifest(
         _locateManifestFile(filename, manifestPath), variables
     ):
-        if _isApplicationInstalled(mo.name()):
+        if _isApplicationInstalled(mo.name):
             if _updateApplication(mo, listener):
                 affectedApplications.append(mo.name)
         else:
