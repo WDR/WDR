@@ -16,7 +16,7 @@ import wdr.task
 logger = logging.getLogger('wdr.manifest')
 
 _genericPattern = re.compile(r'^(?P<tabs>\t*).*$')
-_commentPattern = re.compile(r'^(?:#\.*)|(?:\n)')
+_commentPattern = re.compile(r'^(?:\s*#\.*)|(?:\s*)$')
 _directivePattern = re.compile(
     r'^(?P<tabs>\t*)'
     r'@'
