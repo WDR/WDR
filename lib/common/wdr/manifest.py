@@ -26,6 +26,8 @@ _directivePattern = re.compile(
     r'\s*$')
 _typePattern = re.compile(
     r'^(?P<tabs>\t*)'
+    r'(?:(?P<operation>[!?+])\s*)?'
+    r'\s*'
     r'(?P<type>[A-Za-z][a-zA-Z0-9_]*)'
     r'\s*'
     r'(?P<linkage>[&#][a-zA-Z0-9_]+)?'
@@ -119,9 +121,19 @@ def substituteVariables(value, variables):
     )
 
 
+class Operations:
+    names = {
+        '+': 'assure',
+        '?': 'customize',
+        '!': 'remove',
+    }
+    assure, customize, remove = names.keys()
+
+
 class ManifestConfigObject:
     def __init__(self, type, filename=None, linenumber=0):
         self.type = type
+        self.operation = Operations.assure
         self.filename = filename
         self.linenumber = linenumber
         self.children = []
@@ -154,12 +166,27 @@ class ManifestConfigObject:
 
     def _toString(self, indent):
         result = ''
+        opcode = ''
+        if self.operation != Operations.assure:
+            opcode = self.operation
         if self.anchor:
-            result += "%s%s #%s\n" % ("\t" * indent, self.type, self.anchor)
+            result += (
+                "%s%s%s #%s\n"
+                %
+                ("\t" * indent, opcode, self.type, self.anchor)
+            )
         elif self.reference:
-            result += "%s%s &%s\n" % ("\t" * indent, self.type, self.reference)
+            result += (
+                "%s%s%s &%s\n"
+                %
+                ("\t" * indent, opcode, self.type, self.reference)
+            )
         else:
-            result += "%s%s\n" % ("\t" * indent, self.type)
+            result += (
+                "%s%s%s\n"
+                %
+                ("\t" * indent, opcode, self.type)
+            )
         for (k, v) in self.keys.items():
             result += "%s*%s %s\n" % ("\t" * (indent + 1), k, v)
         for k in self._orderedAttributeNames:
@@ -175,6 +202,16 @@ class ManifestConfigObject:
         for c in self.children:
             result += c._toString(indent + 1)
         return result
+
+    def mapOperation(self, opcode):
+        if opcode is None:
+            return Operations.assure
+        if not Operations.names.has_key(opcode):
+            raise Exception(
+                '[%s] Invalid operation code: "%s"'
+                % (self.getSourceLocation(), opcode)
+            )
+        return opcode
 
     def apply(self, anchors, parentObject, parentAttribute, attributeCache):
         typeName = self.type
@@ -194,8 +231,6 @@ class ManifestConfigObject:
     def _filterMatching(self, candidateList, attributeCache):
         matchingList = []
         for o in candidateList:
-            if o is None:
-                continue
             if o._type == self.type:
                 for (k, v) in self.keys.items():
                     if attributeCache.getAttribute(o, k) != v:
@@ -234,6 +269,20 @@ class ManifestConfigObject:
         if parentAttribute is not None:
             attributeCache.invalidate(parentObject, parentAttribute)
         return result
+
+    def _remove(self, configObject, anchors, attributeCache):
+        if self.children or self.attributes:
+            raise Exception(
+                '[%s] Objects being removed '
+                'must not have attributes nor children'
+                % self.getSourceLocation()
+            )
+        if self.reference:
+            raise Exception(
+                '[%s] Remove not implemented yet' % self.getSourceLocation()
+            )
+        else:
+            configObject.remove()
 
     def _setAnchor(self, anchors, configObject):
         if self.anchor:
@@ -367,12 +416,21 @@ class ManifestConfigObject:
         parentTypeInfo = wdr.config.getTypeInfo(parentTypeName)
         parentAttributeInfo = parentTypeInfo.attributes[parentAttribute]
         if parentAttributeInfo.list:
+            anchor = anchors[self.reference]
             referenceList = parentObject[parentAttribute]
-            referenceList.append(anchors[self.reference])
+            if self.operation in (Operations.assure, Operations.customize):
+                referenceList.append(anchor)
+            elif self.operation == Operations.remove:
+                if anchor in referenceList:
+                    referenceList.remove(anchor)
             parentObject[parentAttribute] = referenceList
             attributeCache.invalidate(parentObject, parentAttribute)
         else:
-            parentObject[parentAttribute] = anchors[self.reference]
+            if self.operation in (Operations.assure, Operations.customize):
+                anchor = anchors[self.reference]
+                parentObject[parentAttribute] = anchor
+            elif self.operation == Operations.remove:
+                parentObject[parentAttribute] = None
             attributeCache.invalidate(parentObject, parentAttribute)
 
     def _applyToChild(
@@ -384,23 +442,10 @@ class ManifestConfigObject:
                 parentObject.lookup(typeName, {}), attributeCache
             )
         else:
-            parentTypeName = parentObject._type
-            parentTypeInfo = wdr.config.getTypeInfo(parentTypeName)
-            parentAttributeInfo = parentTypeInfo.attributes[parentAttribute]
-            if parentAttributeInfo.list:
-                matchingObjects = self._filterMatching(
-                    attributeCache.getAttribute(parentObject, parentAttribute),
-                    attributeCache
-                )
-            else:
-                matchingObjects = self._filterMatching(
-                    [
-                        attributeCache.getAttribute(
-                            parentObject, parentAttribute
-                        )
-                    ],
-                    attributeCache
-                )
+            matchingObjects = self._filterMatching(
+                attributeCache.getAttribute(parentObject, parentAttribute),
+                attributeCache
+            )
         if (
             len(matchingObjects) == 0
             or
@@ -408,19 +453,31 @@ class ManifestConfigObject:
                 len(matchingObjects) == 1 and matchingObjects[0] is None
             )
         ):
-            configObject = self._create(
-                parentObject, parentAttribute, attributeCache
-            )
-            self._setAnchor(anchors, configObject)
-            self._updateComplexAttributes(configObject, anchors, attributeCache)
-            self._updateChildren(configObject, anchors, attributeCache)
+            if self.operation == Operations.assure:
+                configObject = self._create(
+                    parentObject, parentAttribute, attributeCache
+                )
+                self._setAnchor(anchors, configObject)
+                self._updateComplexAttributes(
+                    configObject, anchors, attributeCache
+                )
+                self._updateChildren(configObject, anchors, attributeCache)
+            elif self.operation == Operations.remove:
+                pass
+            elif self.operation == Operations.customize:
+                pass
         elif len(matchingObjects) == 1:
             configObject = matchingObjects[0]
-            self._setAnchor(anchors, configObject)
-            self._updateKeys(configObject, attributeCache)
-            self._updateSimpleAttributes(configObject, attributeCache)
-            self._updateComplexAttributes(configObject, anchors, attributeCache)
-            self._updateChildren(configObject, anchors, attributeCache)
+            if self.operation in (Operations.assure, Operations.customize):
+                self._setAnchor(anchors, configObject)
+                self._updateKeys(configObject, attributeCache)
+                self._updateSimpleAttributes(configObject, attributeCache)
+                self._updateComplexAttributes(
+                    configObject, anchors, attributeCache
+                )
+                self._updateChildren(configObject, anchors, attributeCache)
+            elif self.operation == Operations.remove:
+                self._remove(configObject, anchors, attributeCache)
         else:
             raise Exception(
                 '[%s] Multiple %s objects matched criteria'
@@ -466,15 +523,23 @@ class ManifestConfigObject:
         )
         if len(matchingObjects) == 1:
             configObject = matchingObjects[0]
-            self._updateSimpleAttributes(configObject, attributeCache)
-            self._setAnchor(anchors, configObject)
-            self._updateComplexAttributes(configObject, anchors, attributeCache)
-            self._updateChildren(configObject, anchors, attributeCache)
+            if self.operation in (Operations.assure, Operations.customize):
+                self._updateSimpleAttributes(configObject, attributeCache)
+                self._setAnchor(anchors, configObject)
+                self._updateComplexAttributes(
+                    configObject, anchors, attributeCache
+                )
+                self._updateChildren(configObject, anchors, attributeCache)
+            elif self.operation == Operations.remove:
+                self._remove(configObject, anchors, attributeCache)
         elif len(matchingObjects) == 0:
-            raise Exception(
-                '[%s] No %s object matched criteria'
-                % (self.getSourceLocation(), typeName)
-            )
+            if self.operation == Operations.assure:
+                raise Exception(
+                    '[%s] No %s object matched criteria'
+                    % (self.getSourceLocation(), typeName)
+                )
+            elif self.operation in (Operations.customize, Operations.remove):
+                pass
         else:
             raise Exception(
                 '[%s] Multiple %s objects matched criteria'
@@ -543,8 +608,10 @@ class _ObjectConsumer(_ConfigEventConsumer):
     def consumeObject(self, filename, line, lineno, manifestPath):
         mat = _typePattern.match(line)
         name = mat.group('type')
+        opcode = mat.group('operation')
         linkage = mat.group('linkage')
         obj = ManifestConfigObject(name, filename, lineno)
+        obj.operation = obj.mapOperation(opcode)
         if linkage:
             if linkage[0] == '#':
                 obj.anchor = linkage[1:]
@@ -643,8 +710,10 @@ class _ObjectDataConsumer(_ConfigEventConsumer):
     def consumeObject(self, filename, line, lineno, manifestPath):
         mat = _typePattern.match(line)
         name = mat.group('type')
+        opcode = mat.group('operation')
         linkage = mat.group('linkage')
         obj = ManifestConfigObject(name, filename, lineno)
+        obj.operation = obj.mapOperation(opcode)
         if linkage:
             if linkage[0] == '#':
                 obj.anchor = linkage[1:]
