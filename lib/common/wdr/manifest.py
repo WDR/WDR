@@ -231,6 +231,8 @@ class ManifestConfigObject:
     def _filterMatching(self, candidateList, attributeCache):
         matchingList = []
         for o in candidateList:
+            if o is None:
+                continue
             if o._type == self.type:
                 for (k, v) in self.keys.items():
                     if attributeCache.getAttribute(o, k) != v:
@@ -442,10 +444,23 @@ class ManifestConfigObject:
                 parentObject.lookup(typeName, {}), attributeCache
             )
         else:
-            matchingObjects = self._filterMatching(
-                attributeCache.getAttribute(parentObject, parentAttribute),
-                attributeCache
-            )
+            parentTypeName = parentObject._type
+            parentTypeInfo = wdr.config.getTypeInfo(parentTypeName)
+            parentAttributeInfo = parentTypeInfo.attributes[parentAttribute]
+            if parentAttributeInfo.list:
+                matchingObjects = self._filterMatching(
+                    attributeCache.getAttribute(parentObject, parentAttribute),
+                    attributeCache
+                )
+            else:
+                matchingObjects = self._filterMatching(
+                    [
+                        attributeCache.getAttribute(
+                            parentObject, parentAttribute
+                        )
+                    ],
+                    attributeCache
+                )
         if (
             len(matchingObjects) == 0
             or
