@@ -1,0 +1,5 @@
+Cell
+	*name $[ cellName ]
+	VariableMap
+		-entries
+			@include wdrtest/manifests/imports/variables.wdrc

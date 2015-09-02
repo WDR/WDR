@@ -1,0 +1,11 @@
+Cell
+	*name $[ cellName ]
+	Node
+		*name $[ nodeName ]
+		JDBCProvider
+			*name DB2 Provider
+			-providerType DB2 Using IBM JCC Driver
+			-description DB2 Provider
+			-implementationClassName com.ibm.db2.jcc.DB2XADataSource
+			-classpath a;b;c
+			-xa true

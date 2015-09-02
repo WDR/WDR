@@ -1,0 +1,8 @@
+Cell
+	*name $[ cellName ]
+	Node
+		*name $[ nodeName ]
+		Server
+			*name $[ serverName ]
+			-developmentMode true
+			-parallelStartEnabled false

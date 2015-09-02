@@ -1,0 +1,12 @@
+Cell
+	*name $[ cellName ]
+	Node
+		*name $[ nodeName ]
+		Server
+			*name $[ serverName ]
+			?JDBCProvider
+				*name Derby JDBC Provider
+				-description customized
+				DataSource
+					*name Default Datasource
+					-jndiName DefaultDatasource_WDR

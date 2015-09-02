@@ -1,0 +1,6 @@
+VariableSubstitutionEntry
+	*symbolicName var1
+	-value val1
+VariableSubstitutionEntry
+	*symbolicName var2
+	-value val2

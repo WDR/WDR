@@ -1,0 +1,10 @@
+Cell
+	*name $[ cellName ]
+	VariableMap
+		-entries
+			VariableSubstitutionEntry
+				*symbolicName $[ list | first ]
+				-value val1
+			VariableSubstitutionEntry
+				*symbolicName $[ list | last ]
+				-value val2

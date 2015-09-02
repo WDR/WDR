@@ -1,0 +1,12 @@
+Cell
+	*name $[ cellName ]
+	Node
+		*name $[ nodeName ]
+		Server
+			*name $[ serverName ]
+			-processDefinitions
+				JavaProcessDef
+					-jvmEntries
+						JavaVirtualMachine
+							-initialHeapSize 12345
+							-maximumHeapSize 67890

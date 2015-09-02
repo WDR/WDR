@@ -1,0 +1,12 @@
+Cell
+	MailProvider
+		*name Built-in Mail Provider
+		-protocolProviders
+			ProtocolProvider #smtp_protocol
+				*protocol smtp
+		MailSession
+			*name test mail session
+			-jndiName mail/test
+			-mailTransportHost smtp.example.com
+			-mailTransportProtocol
+				ProtocolProvider &smtp_protocol

@@ -1,0 +1,7 @@
+Cell
+	*name $[ cellName ]
+	Node
+		*name $[ nodeName ]
+		Server
+			*name $[ serverName ]
+			-developmentMode invalid value
