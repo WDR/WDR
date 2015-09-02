@@ -1,0 +1,5 @@
+Cell
+	*name $[ cellName ]
+	VariableMap
+		-entries
+			@include variables.wdrc

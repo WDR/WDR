@@ -1,0 +1,15 @@
+Cell
+	*name $[ cellName ]
+	Node
+		*name $[ nodeName ]
+		Server
+			*name $[ serverName ]
+			-customServices
+				CustomService #second
+					*displayName second
+				CustomService
+					*displayName with dependencies
+					-classname
+					-classpath
+					-prerequisiteServices
+						!CustomService &second

@@ -1,0 +1,14 @@
+Cell
+	*name $[ cellName ]
+	Node
+		*name $[ nodeName ]
+		Server
+			*name $[ serverName ]
+			-processDefinitions
+				JavaProcessDef
+					-jvmEntries
+						JavaVirtualMachine
+							-systemProperties
+								?Property
+									*name com.ibm.security.jgss.debug
+									-value on
