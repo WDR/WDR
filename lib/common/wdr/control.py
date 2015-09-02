@@ -472,6 +472,17 @@ class StringAttributeConverter(AttributeConverter):
         return value
 
 
+class StringListAttributeConverter(AttributeConverter):
+    def __init__(self):
+        AttributeConverter.__init__(self)
+
+    def fromAdminControl(self, value):
+        return value.splitlines()
+
+    def toAdminControl(self, value):
+        return value
+
+
 _typeRegistry = {
     'int': IntegerAttributeConverter(),
     'java.lang.Integer': IntegerAttributeConverter(),
@@ -481,7 +492,8 @@ _typeRegistry = {
     'java.lang.Float': FloatAttributeConverter(),
     'boolean': BooleanAttributeConverter(),
     'java.lang.Boolean': BooleanAttributeConverter(),
-    'java.lang.String': StringAttributeConverter()
+    'java.lang.String': StringAttributeConverter(),
+    '[Ljava.lang.String;': StringListAttributeConverter(),
 }
 
 
