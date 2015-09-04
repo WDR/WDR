@@ -851,8 +851,18 @@ class ApplicationObject:
     def __unicode__(self):
         return unicode(self.__str__())
 
+    def _canonical_string(self):
+        result = ''
+        if self.name.find(' ') == -1:
+            result += '%s\n' % self.name
+        else:
+            result += '"%s"\n' % self.name
+        result += self._str_extra_options()
+        result += self._str_options()
+        return result
+
     def checksum(self):
-        return wdr.util.sha512(str(self))
+        return wdr.util.sha512(self._canonical_string())
 
 
 class _AppEventConsumer:
