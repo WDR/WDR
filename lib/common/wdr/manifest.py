@@ -1286,7 +1286,8 @@ def _importEmbeddedApplicationManifest(filename, variables):
         filename, 'META-INF/manifest.wdra'
     )
     if manifestContent is None:
-        raise Exception()
+        logger.error('Embedded manifest not found in %s', filename)
+        raise Exception('Embedded manifest not found in %s', filename)
     lines = str(manifestContent).splitlines()
     consumer = _EmbeddedAppConsumer(manifestObjects)
     _parseApplicationManifest(
