@@ -121,6 +121,84 @@ def substituteVariables(value, variables):
     )
 
 
+def _construct_ServerCluster(
+    manifestObject, parentObject, parentAttribute, attributeCache
+):
+    args = [
+        '-clusterConfig', [
+            '-clusterName',
+            manifestObject.keys.get('name')
+            or
+            manifestObject.attributes.get('name'),
+            '-preferLocal', 'true'
+        ]
+    ]
+    logger.debug('creating cluster %s', args)
+    result = wdr.config.ConfigObject(
+        wdr.config._parseConfigId(AdminTask.createCluster(args))
+    )
+    return result
+
+
+def _construct_ClusterMember(
+    manifestObject, parentObject, parentAttribute, attributeCache
+):
+    if parentObject._type != 'ServerCluster':
+        raise Exception
+    cluster = parentObject
+    members = attributeCache.getAttribute(cluster, 'members')
+    args = [
+        '-clusterName', attributeCache.getAttribute(cluster, 'name'),
+        '-memberConfig', [
+            '-memberNode',
+            manifestObject.keys.get('nodeName')
+            or
+            manifestObject.attributes.get('nodeName'),
+            '-memberName',
+            manifestObject.keys.get('memberName')
+            or
+            manifestObject.attributes.get('memberName'),
+            '-memberWeight', '2',
+            '-genUniquePorts', 'true',
+            '-replicatorEntry', 'false'
+        ],
+    ]
+    if len(members) == 0:
+        args.extend(
+            [
+                '-firstMember',
+                [
+                    '-templateName', 'default',
+                    '-nodeGroup', 'DefaultNodeGroup',
+                    '-coreGroup', 'DefaultCoreGroup'
+                ]
+            ]
+        )
+    logger.debug('creating cluster member %s', args)
+    result = wdr.config.ConfigObject(
+        wdr.config._parseConfigId(
+            AdminTask.createClusterMember(args)
+        )
+    )
+    attributeCache.invalidate(cluster, 'members')
+    attributeCache.invalidate(cluster)
+    return result
+
+
+def _construct_J2CActivationSpec(
+    manifestObject, parentObject, parentAttribute, attributeCache
+):
+    # TODO implement
+    raise Exception('not implemented yet')
+
+
+_constructors = {
+    'ServerCluster': _construct_ServerCluster,
+    'ClusterMember': _construct_ClusterMember,
+    'J2CActivationSpec': _construct_J2CActivationSpec,
+}
+
+
 class Operations:
     names = {
         '+': 'assure',
@@ -265,9 +343,15 @@ class ManifestConfigObject:
                         self.getSourceLocation(), propName, typeName, self.keys
                     )
                 )
-        result = parentObject._create(
-            typeName, parentAttribute, simpleAttributes
-        )
+        constructor = _constructors.get(typeName)
+        if constructor:
+            result = constructor(
+                self, parentObject, parentAttribute, attributeCache
+            )
+        else:
+            result = parentObject._create(
+                typeName, parentAttribute, simpleAttributes
+            )
         if parentAttribute is not None:
             attributeCache.invalidate(parentObject, parentAttribute)
         return result
