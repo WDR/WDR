@@ -144,7 +144,10 @@ def _construct_ClusterMember(
     manifestObject, parentObject, parentAttribute, attributeCache
 ):
     if parentObject._type != 'ServerCluster':
-        raise Exception
+        raise Exception(
+            'ClusterMember objects can be created only in the context'
+            ' of ServerCluster'
+        )
     cluster = parentObject
     members = attributeCache.getAttribute(cluster, 'members')
     args = [
@@ -188,8 +191,45 @@ def _construct_ClusterMember(
 def _construct_J2CActivationSpec(
     manifestObject, parentObject, parentAttribute, attributeCache
 ):
-    # TODO implement
-    raise Exception('not implemented yet')
+    if parentObject._type != 'J2CResourceAdapter':
+        raise Exception(
+            'J2CActivationSpec objects can be created only in the context'
+            ' of J2CResourceAdapter'
+        )
+    adapter = parentObject
+    args = [
+        '-name',
+        manifestObject.keys.get('name')
+        or
+        manifestObject.attributes.get('name'),
+        '-jndiName',
+        manifestObject.keys.get('jndiName')
+        or
+        manifestObject.attributes.get('jndiName')
+        or
+        '',
+        '-destinationJndiName',
+        manifestObject.keys.get('destinationJndiName')
+        or
+        manifestObject.attributes.get('destinationJndiName')
+        or
+        '',
+        '-authenticationAlias',
+        manifestObject.keys.get('authenticationAlias')
+        or
+        manifestObject.attributes.get('authenticationAlias')
+        or
+        '',
+        '-messageListenerType', 'javax.jms.MessageListener'
+    ]
+    logger.debug(
+        'creating activation spec in %s with arguments %s', adapter, args
+    )
+    result = wdr.config.ConfigObject(
+        AdminTask.createJ2CActivationSpec(str(adapter), args)
+    )
+    attributeCache.invalidate(adapter, 'j2cActivationSpec')
+    return result
 
 
 _constructors = {
