@@ -1,0 +1,22 @@
+Cell
+	*name $[ cellName ]
+	Node
+		*name $[ nodeName ]
+		Server
+			*name $[ serverName ]
+			-customServices
+				CustomService
+					*displayName first
+					-classname
+					-classpath
+Cell
+	*name $[ cellName ]
+	Node
+		*name $[ nodeName ]
+		Server
+			*name $[ serverName ]
+			-customServices
+				CustomService
+					*displayName first
+					-classname
+					-classpath
