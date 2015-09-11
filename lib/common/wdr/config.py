@@ -425,12 +425,14 @@ class AttributeValueCache:
     def invalidate(self, configObject=None, attributeName=None):
         if configObject is None:
             self.cache.clear()
-        elif self.cache.has_key(configObject):
+            return
+        oid = str(configObject)
+        if self.cache.has_key(oid):
             if attributeName is not None:
-                if self.cache[configObject].has_key(attributeName):
-                    del self.cache[configObject][attributeName]
+                if self.cache[oid].has_key(attributeName):
+                    del self.cache[oid][attributeName]
             else:
-                self.cache[configObject].clear()
+                self.cache[oid].clear()
 
 
 class ConfigObject:

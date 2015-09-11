@@ -479,6 +479,21 @@ class HierarchiesManifestImportTest(AbstractConfigTest):
         self.assertEquals(db2provider.name, 'DB2 Provider')
         self.assertEquals(len(db2provider.propertySet.resourceProperties), 2)
 
+    def testRepeatedObjects(self):
+        importConfigurationManifest(
+            'wdrtest/manifests/hierarchies/repeated_objects.wdrc', topology
+        )
+        server = getid1(
+            '/Cell:%(cellName)s/Node:%(nodeName)s/Server:%(serverName)s/'
+            % topology
+        )
+        referenceList = server.lookup1(
+            'CustomService',
+            {
+                'displayName': 'first',
+            },
+            'customServices'
+        )
 
 class IncludesAndImportsTest(AbstractConfigTest):
     def testImportValid(self):
