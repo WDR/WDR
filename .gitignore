@@ -5,3 +5,4 @@ wdr.log
 /runtimes.bat
 /logs/
 .*
+tmp/
