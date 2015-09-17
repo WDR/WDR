@@ -36,13 +36,16 @@ def _compileRegularExpressions():
         r'#(?P<xmlId>[a-zA-Z_0-9]+?)\)'
         r')'
         #
+        r'|'
+        r'(?:\*+)'
+        #
         r')'
     )
     # expression matching list of object ids
     # lists of config objects are being returned as whitespace-separated strings
     # surrounded by square brackets, for compatility with Jacl
     configNameListPattern = re.compile(
-        r'^"?\[(?:(%s) *)*\]"?$' % configNamePattern.pattern)
+        r'^(?:"?\[(?:(%s) *)*\]"?)|(?:\*+)$' % configNamePattern.pattern)
     attributeTypePattern = re.compile('[, \(\)]+')
     return (configNamePattern, configNameListPattern, attributeTypePattern)
 
