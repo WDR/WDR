@@ -111,6 +111,8 @@ def _lookupVariable(expression, filterExpression, variables):
 
 
 def substituteVariables(value, variables):
+    if not value:
+        return value
     return re.sub(
         _variablePattern,
         (
