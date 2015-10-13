@@ -8,6 +8,7 @@ import wdr
 from wdr.config import * # noqa
 from wdr.control import * # noqa
 from wdr.manifest import * # noqa
+import wdr.util
 
 (
     AdminApp, AdminConfig, AdminControl, AdminTask, Help
@@ -17,7 +18,7 @@ logger = logging.getLogger('wdr.tools')
 
 _diagnosticComments = 0
 
-_defaultExportConfig = {}
+_defaultExportSpec = {}
 
 
 class ManifestGenerationAdminApp:
@@ -631,20 +632,34 @@ def exportApplicationManifest(appName, customTaskProcessors={}):
     return manifest
 
 
+def _normalizeExportSpecs(exportSpecs):
+    exportSpec = {}
+    for es in exportSpecs:
+        for (k, v) in es.items():
+            exportSpec[k] = v.copy()
+    for (k, v) in exportSpec.items():
+        for p in v.get('parents', []):
+            items = exportSpec.get(p, {}).get('items', [])
+            if {'child': k} not in items:
+                items.append({'child': k})
+            exportSpec.get(p, {})['items'] = items
+    return exportSpec
+
+
 def exportConfigurationManifestToFile(
     configObjects,
     filename,
-    exportConfig=None
+    *exportSpecs
 ):
-    if not exportConfig:
-        exportConfig = _defaultExportConfig
+    exportSpec = _normalizeExportSpecs(exportSpecs)
     fi = open(filename, 'w')
     try:
+        s = {}
         fi.write(
             reduce(
                 lambda x, y: x + str(y),
                 [
-                    exportConfigurationManifest(co, exportConfig)
+                    exportConfigurationManifest(co, exportSpec, s)
                     for co in configObjects
                 ],
                 ''
@@ -654,16 +669,16 @@ def exportConfigurationManifestToFile(
         fi.close()
 
 
-def exportConfigurationManifest(configObject, exportConfig):
+def exportConfigurationManifest(configObject, exportSpec, exportedObjects):
     typeName = configObject._type
     typeInfo = wdr.config.getTypeInfo(typeName)
     result = wdr.manifest.ManifestConfigObject(typeName)
-    if exportConfig.has_key(typeName):
-        typeExportConfig = exportConfig[typeName]
+    if exportSpec.has_key(typeName):
+        typeExportSpec = exportSpec[typeName]
     else:
         return result
     attributes = configObject.getAllAttributes()
-    for n in typeExportConfig['keys']:
+    for n in typeExportSpec.get('keys', []):
         if attributes.has_key(n):
             attInfo = typeInfo.attributes[n]
             attTypeInfo = wdr.config.getTypeInfo(attInfo.type)
@@ -675,42 +690,111 @@ def exportConfigurationManifest(configObject, exportConfig):
                     )
                 else:
                     result.keys[n] = attTypeInfo.converter.toAdminConfig(v)
-    for n in typeExportConfig['attributes']:
-        if attributes.has_key(n):
-            attInfo = typeInfo.attributes[n]
-            attTypeInfo = wdr.config.getTypeInfo(attInfo.type)
-            v = attributes[n]
-            if attTypeInfo.converter:
-                if attInfo.list:
-                    result.attributes[n] = ';'.join(
-                        [attTypeInfo.converter.toAdminConfig(e) for e in v]
-                    )
+    for item in typeExportSpec.get('items', []):
+        if item.get('attribute'):
+            name = item['attribute']
+            if attributes.has_key(name):
+                attInfo = typeInfo.attributes[name]
+                attTypeInfo = wdr.config.getTypeInfo(attInfo.type)
+                v = attributes[name]
+                if attTypeInfo.converter:
+                    if attInfo.list:
+                        result.items.append(
+                            {
+                                'attribute': 1,
+                                'name': name,
+                                'value': ';'.join(
+                                    [
+                                        attTypeInfo.converter.toAdminConfig(e)
+                                        for e in v
+                                    ]
+                                ),
+                            }
+                        )
+                    else:
+                        result.items.append(
+                            {
+                                'attribute': 1,
+                                'name': name,
+                                'value': attTypeInfo.converter.toAdminConfig(v),
+                            }
+                        )
                 else:
-                    result.attributes[n] = (
-                        attTypeInfo.converter.toAdminConfig(v)
-                    )
-            else:
-                if attInfo.list:
-                    values = result.attributes.get(n, [])
-                    result.attributes[n] = values
-                    for e in v:
-                        if exportConfig.has_key(e._type):
-                            values.append(
-                                exportConfigurationManifest(e, exportConfig)
+                    if attInfo.list:
+                        values = []
+                        for e in v:
+                            if exportSpec.has_key(e._type):
+                                values.append(
+                                    exportConfigurationManifest(
+                                        e, exportSpec, exportedObjects
+                                    )
+                                )
+                        if values:
+                            result.items.append(
+                                {
+                                    'attribute': 1,
+                                    'name': name,
+                                    'value': values,
+                                }
                             )
-                else:
-                    result.attributes[n] = exportConfigurationManifest(
-                        v, exportConfig
-                    )
-            result._orderedAttributeNames.append(n)
-    childTypes = []
-    if typeExportConfig.has_key('children'):
-        childTypes = typeExportConfig['children']
-    for c in childTypes:
-        result.children.extend(
-            [
-                exportConfigurationManifest(co, exportConfig)
-                for co in configObject.lookup(c, {})
-            ]
-        )
+                    else:
+                        if exportSpec.has_key(v._type):
+                            result.items.append(
+                                {
+                                    'attribute': 1,
+                                    'name': name,
+                                    'value': exportConfigurationManifest(
+                                        v, exportSpec, exportedObjects
+                                    ),
+                                }
+                            )
+        elif item.get('ref'):
+            name = item['ref']
+            if attributes.has_key(name):
+                attInfo = typeInfo.attributes[name]
+                attTypeInfo = wdr.config.getTypeInfo(attInfo.type)
+                if not attTypeInfo.converter:
+                    values = []
+                    if attInfo.list:
+                        v = attributes[name]
+                        for e in v:
+                            if exportedObjects.has_key(str(e)):
+                                exportedObject = exportedObjects[str(e)]
+                                exportedObject['manifestObject'].anchor = \
+                                    exportedObject['id']
+                                mo = wdr.manifest.ManifestConfigObject(
+                                    exportedObject['manifestObject'].type
+                                )
+                                mo.reference = exportedObject['id']
+                                values.append(mo)
+                    else:
+                        v = attributes[name]
+                        if v and exportedObjects.has_key(str(v)):
+                            exportedObject = exportedObjects[str(v)]
+                            exportedObject['manifestObject'].anchor = \
+                                exportedObject['id']
+                            mo = wdr.manifest.ManifestConfigObject(
+                                exportedObject['manifestObject'].type
+                            )
+                            mo.reference = exportedObject['id']
+                            values.append(mo)
+                    if values:
+                        result.items.append(
+                            {
+                                'attribute': 1,
+                                'name': name,
+                                'value': values,
+                            }
+                        )
+        elif item.get('child'):
+            c = item['child']
+            for co in configObject.lookup(c, {}):
+                result.items.append(
+                    {
+                        'child': 1,
+                        'value': exportConfigurationManifest(
+                            co, exportSpec, exportedObjects
+                        ),
+                    }
+                )
     return result
