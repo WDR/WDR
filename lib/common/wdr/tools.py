@@ -635,7 +635,7 @@ def exportApplicationManifest(appName, customTaskProcessors={}):
 def _normalizeExportSpecs(exportSpecs):
     exportSpec = {}
     for es in exportSpecs:
-        for (k, v) in es.items():
+        for (k, v) in (callable(es) and es().items() or es.items()):
             exportSpec[k] = v.copy()
     for (k, v) in exportSpec.items():
         for p in v.get('parents', []):
