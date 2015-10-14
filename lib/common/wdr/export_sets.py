@@ -27,7 +27,6 @@ topology = d(
         items=[
             d(attribute='maxFilePermissionForApps'),
             d(attribute='properties'),
-            d(child='ServerCluster'),
         ],
     ),
     Server=d(
