@@ -110,6 +110,8 @@ def _lookupVariable(expression, filterExpression, variables):
 
 
 def substituteVariables(value, variables):
+    if not value:
+        return value
     return re.sub(
         _variablePattern,
         (
@@ -118,6 +120,124 @@ def substituteVariables(value, variables):
         ),
         value
     )
+
+
+def _construct_ServerCluster(
+    manifestObject, parentObject, parentAttribute, attributeCache
+):
+    args = [
+        '-clusterConfig', [
+            '-clusterName',
+            manifestObject.keys.get('name')
+            or
+            manifestObject.getAttribute('name'),
+            '-preferLocal', 'true'
+        ]
+    ]
+    logger.debug('creating cluster %s', args)
+    result = wdr.config.ConfigObject(
+        wdr.config._parseConfigId(AdminTask.createCluster(args))
+    )
+    return result
+
+
+def _construct_ClusterMember(
+    manifestObject, parentObject, parentAttribute, attributeCache
+):
+    if parentObject._type != 'ServerCluster':
+        raise Exception(
+            'ClusterMember objects can be created only in the context'
+            ' of ServerCluster'
+        )
+    cluster = parentObject
+    members = attributeCache.getAttribute(cluster, 'members')
+    args = [
+        '-clusterName', attributeCache.getAttribute(cluster, 'name'),
+        '-memberConfig', [
+            '-memberNode',
+            manifestObject.keys.get('nodeName')
+            or
+            manifestObject.getAttribute('nodeName'),
+            '-memberName',
+            manifestObject.keys.get('memberName')
+            or
+            manifestObject.getAttribute('memberName'),
+            '-memberWeight', '2',
+            '-genUniquePorts', 'true',
+            '-replicatorEntry', 'false'
+        ],
+    ]
+    if len(members) == 0:
+        args.extend(
+            [
+                '-firstMember',
+                [
+                    '-templateName', 'default',
+                    '-nodeGroup', 'DefaultNodeGroup',
+                    '-coreGroup', 'DefaultCoreGroup'
+                ]
+            ]
+        )
+    logger.debug('creating cluster member %s', args)
+    result = wdr.config.ConfigObject(
+        wdr.config._parseConfigId(
+            AdminTask.createClusterMember(args)
+        )
+    )
+    attributeCache.invalidate(cluster, 'members')
+    attributeCache.invalidate(cluster)
+    return result
+
+
+def _construct_J2CActivationSpec(
+    manifestObject, parentObject, parentAttribute, attributeCache
+):
+    if parentObject._type != 'J2CResourceAdapter':
+        raise Exception(
+            'J2CActivationSpec objects can be created only in the context'
+            ' of J2CResourceAdapter'
+        )
+    adapter = parentObject
+    args = [
+        '-name',
+        manifestObject.keys.get('name')
+        or
+        manifestObject.getAttribute('name'),
+        '-jndiName',
+        manifestObject.keys.get('jndiName')
+        or
+        manifestObject.getAttribute('jndiName')
+        or
+        '',
+        '-destinationJndiName',
+        manifestObject.keys.get('destinationJndiName')
+        or
+        manifestObject.getAttribute('destinationJndiName')
+        or
+        '',
+        '-authenticationAlias',
+        manifestObject.keys.get('authenticationAlias')
+        or
+        manifestObject.getAttribute('authenticationAlias')
+        or
+        '',
+        '-messageListenerType', 'javax.jms.MessageListener'
+    ]
+    logger.debug(
+        'creating activation spec in %s with arguments %s', adapter, args
+    )
+    result = wdr.config.ConfigObject(
+        AdminTask.createJ2CActivationSpec(str(adapter), args)
+    )
+    attributeCache.invalidate(adapter, 'j2cActivationSpec')
+    return result
+
+
+_constructors = {
+    'ServerCluster': _construct_ServerCluster,
+    'ClusterMember': _construct_ClusterMember,
+    'J2CActivationSpec': _construct_J2CActivationSpec,
+}
 
 
 class Operations:
@@ -135,20 +255,16 @@ class ManifestConfigObject:
         self.operation = Operations.assure
         self.filename = filename
         self.linenumber = linenumber
-        self.children = []
         self.keys = {}
-        self.attributes = {}
+        self.items = []
         self.anchor = None
         self.reference = None
-        self._orderedAttributeNames = []
 
     def isEmpty(self):
         return (
-            len(self.children) == 0
+            len(self.items) == 0
             and
             len(self.keys) == 0
-            and
-            len(self.attributes) == 0
         )
 
     def __str__(self):
@@ -188,19 +304,28 @@ class ManifestConfigObject:
             )
         for (k, v) in self.keys.items():
             result += "%s*%s %s\n" % ("\t" * (indent + 1), k, v)
-        for k in self._orderedAttributeNames:
-            v = self.attributes[k]
-            if isinstance(v, ListType):
-                result += "%s-%s\n" % ("\t" * (indent + 1), k)
-                for c in v:
-                    result += c._toString(indent + 2)
-            elif isinstance(v, ManifestConfigObject):
-                result += v._toString(indent + 1)
-            else:
-                result += "%s-%s %s\n" % ("\t" * (indent + 1), k, v)
-        for c in self.children:
-            result += c._toString(indent + 1)
+        for item in self.items:
+            if item.get('attribute'):
+                name = item['name']
+                value = item['value']
+                if isinstance(value, ListType):
+                    result += "%s-%s\n" % ("\t" * (indent + 1), name)
+                    for c in value:
+                        result += c._toString(indent + 2)
+                elif isinstance(value, ManifestConfigObject):
+                    result += "%s-%s\n" % ("\t" * (indent + 1), name)
+                    result += value._toString(indent + 2)
+                else:
+                    result += "%s-%s %s\n" % ("\t" * (indent + 1), name, value)
+            elif item.get('child'):
+                result += item['value']._toString(indent + 1)
         return result
+
+    def getAttribute(self, name):
+        for item in self.items:
+            if item.get('attribute'):
+                return item['value']
+        return None
 
     def mapOperation(self, opcode):
         if opcode is None:
@@ -244,35 +369,44 @@ class ManifestConfigObject:
         typeName = self.type
         typeInfo = wdr.config.getTypeInfo(typeName)
         simpleAttributes = []
-        for (propName, propValue) in self.keys.items():
-            if typeInfo.attributes.has_key(propName):
+        for (name, value) in self.keys.items():
+            if typeInfo.attributes.has_key(name):
                 if wdr.config.getTypeInfo(
-                    typeInfo.attributes[propName].type
+                    typeInfo.attributes[name].type
                 ).converter:
-                    simpleAttributes.append([propName, propValue])
-        for propName in self._orderedAttributeNames:
-            propValue = self.attributes[propName]
-            if typeInfo.attributes.has_key(propName):
-                if wdr.config.getTypeInfo(
-                    typeInfo.attributes[propName].type
-                ).converter:
-                    simpleAttributes.append([propName, propValue])
-            else:
-                raise Exception(
-                    '[%s] Invalid attribute %s specified for object %s(%s)'
-                    % (
-                        self.getSourceLocation(), propName, typeName, self.keys
+                    simpleAttributes.append([name, value])
+        for item in self.items:
+            if item.get('attribute'):
+                name = item['name']
+                value = item['value']
+                if typeInfo.attributes.has_key(name):
+                    if wdr.config.getTypeInfo(
+                        typeInfo.attributes[name].type
+                    ).converter:
+                        simpleAttributes.append([name, value])
+                else:
+                    raise Exception(
+                        '[%s] Invalid attribute %s specified for object %s(%s)'
+                        % (
+                            self.getSourceLocation(), name, typeName,
+                            self.keys
+                        )
                     )
-                )
-        result = parentObject._create(
-            typeName, parentAttribute, simpleAttributes
-        )
+        constructor = _constructors.get(typeName)
+        if constructor:
+            result = constructor(
+                self, parentObject, parentAttribute, attributeCache
+            )
+        else:
+            result = parentObject._create(
+                typeName, parentAttribute, simpleAttributes
+            )
         if parentAttribute is not None:
             attributeCache.invalidate(parentObject, parentAttribute)
         return result
 
     def _remove(self, configObject, anchors, attributeCache):
-        if self.children or self.attributes:
+        if self.items:
             raise Exception(
                 '[%s] Objects being removed '
                 'must not have attributes nor children'
@@ -301,69 +435,69 @@ class ManifestConfigObject:
     def _updateSimpleAttributes(self, configObject, attributeCache):
         typeName = self.type
         typeInfo = wdr.config.getTypeInfo(typeName)
-        for propName in self._orderedAttributeNames:
-            propValue = self.attributes[propName]
-            if typeInfo.attributes.has_key(propName):
-                attributeInfo = typeInfo.attributes[propName]
+        for item in self.items:
+            if item.get('attribute'):
+                name = item['name']
+                value = item['value']
+                if not typeInfo.attributes.has_key(name):
+                    raise Exception(
+                        '[%s] Invalid attribute %s specified for object %s(%s)'
+                        % (
+                            self.getSourceLocation(), name, typeName, self.keys
+                        )
+                    )
+                attributeInfo = typeInfo.attributes[name]
                 attributeTypeInfo = wdr.config.getTypeInfo(attributeInfo.type)
                 if attributeTypeInfo.converter:
                     if attributeInfo.list:
-                        if propValue:
-                            newPropValue = propValue.split(';')
+                        if value:
+                            newValue = value.split(';')
                         else:
-                            newPropValue = propValue
+                            newValue = value
                     else:
-                        newPropValue = propValue
+                        newValue = value
                     try:
-                        configObject._modify([[propName, newPropValue]])
-                        attributeCache.invalidate(configObject, propName)
+                        configObject._modify([[name, newValue]])
+                        attributeCache.invalidate(configObject, name)
                     except com.ibm.ws.scripting.ScriptingException, ex:
                         msg = '' + ex.message
                         if msg.find('ADMG0014E') != -1:
                             if (
-                                configObject._getConfigAttribute(propName)
+                                configObject._getConfigAttribute(name)
                                 !=
-                                newPropValue
+                                newValue
                             ):
                                 logger.warning(
                                     '[%s] read-only attribute %s.%s'
                                     ' could not be modified',
-                                    self.getSourceLocation(), typeName,
-                                    propName
+                                    self.getSourceLocation(), typeName, name
                                 )
                         else:
                             raise
-            else:
-                raise Exception(
-                    '[%s] Invalid attribute %s specified for object %s(%s)'
-                    % (
-                        self.getSourceLocation(), propName, typeName, self.keys
-                    )
-                )
 
     def _updateKeys(self, configObject, attributeCache):
         typeName = self.type
         typeInfo = wdr.config.getTypeInfo(typeName)
-        for (propName, propValue) in self.keys.items():
-            if typeInfo.attributes.has_key(propName):
-                attributeInfo = typeInfo.attributes[propName]
+        for (name, value) in self.keys.items():
+            if typeInfo.attributes.has_key(name):
+                attributeInfo = typeInfo.attributes[name]
                 attributeTypeInfo = wdr.config.getTypeInfo(attributeInfo.type)
                 if attributeTypeInfo.converter:
                     try:
                         if attributeInfo.list:
                             configObject._modify(
-                                [[propName, propValue.split(';')]]
+                                [[name, value.split(';')]]
                             )
                         else:
-                            configObject._modify([[propName, propValue]])
-                        attributeCache.invalidate(configObject, propName)
+                            configObject._modify([[name, value]])
+                        attributeCache.invalidate(configObject, name)
                     except com.ibm.ws.scripting.ScriptingException, ex:
                         msg = '' + ex.message
                         if msg.find('ADMG0014E') != -1:
                             logger.warning(
                                 '[%s] read-only attribute %s.%s'
                                 ' could not be modified',
-                                self.getSourceLocation(), typeName, propName
+                                self.getSourceLocation(), typeName, name
                             )
                         else:
                             raise
@@ -371,25 +505,27 @@ class ManifestConfigObject:
     def _updateComplexAttributes(self, configObject, anchors, attributeCache):
         typeName = self.type
         typeInfo = wdr.config.getTypeInfo(typeName)
-        for propName in self._orderedAttributeNames:
-            propValue = self.attributes[propName]
-            if typeInfo.attributes.has_key(propName):
-                attributeInfo = typeInfo.attributes[propName]
+        for item in self.items:
+            if item.get('attribute'):
+                name = item['name']
+                value = item['value']
+                if not typeInfo.attributes.has_key(name):
+                    raise Exception(
+                        '[%s] Invalid attribute %s specified for object %s(%s)'
+                        % (self.getSourceLocation(), name, typeName, self.keys)
+                    )
+                attributeInfo = typeInfo.attributes[name]
                 attributeTypeInfo = wdr.config.getTypeInfo(attributeInfo.type)
                 if not attributeTypeInfo.converter:
-                    for mo in propValue:
+                    for mo in value:
                         mo.apply(
-                            anchors, configObject, propName, attributeCache
+                            anchors, configObject, name, attributeCache
                         )
-            else:
-                raise Exception(
-                    '[%s] Invalid attribute %s specified for object %s(%s)'
-                    % (self.getSourceLocation(), propName, typeName, self.keys)
-                )
 
     def _updateChildren(self, configObject, anchors, attributeCache):
-        for mo in self.children:
-            mo.apply(anchors, configObject, None, attributeCache)
+        for item in self.items:
+            if item.get('child'):
+                item['value'].apply(anchors, configObject, None, attributeCache)
 
     def _updateRefOrRefList(
         self, anchors, parentObject, parentAttribute, attributeCache
@@ -704,13 +840,22 @@ class _ObjectDataConsumer(_ConfigEventConsumer):
         value = mat.group('value')
         if value is None:
             values = []
-            self.parentObject.attributes[name] = values
-            self.parentObject._orderedAttributeNames.append(name)
+            self.parentObject.items.append(
+                {
+                    'attribute': 1,
+                    'name': name,
+                    'value': values,
+                }
+            )
             return [self, _ObjectConsumer(values)]
         else:
             try:
-                self.parentObject.attributes[name] = (
-                    substituteVariables(value, variables)
+                self.parentObject.items.append(
+                    {
+                        'attribute': 1,
+                        'name': name,
+                        'value': substituteVariables(value, variables),
+                    }
                 )
             except:
                 logger.error(
@@ -718,7 +863,6 @@ class _ObjectDataConsumer(_ConfigEventConsumer):
                     lineno
                 )
                 raise
-            self.parentObject._orderedAttributeNames.append(name)
             return [self, _ConfigEventConsumer()]
 
     def consumeObject(self, filename, line, lineno, manifestPath):
@@ -733,7 +877,12 @@ class _ObjectDataConsumer(_ConfigEventConsumer):
                 obj.anchor = linkage[1:]
             else:
                 obj.reference = linkage[1:]
-        self.parentObject.children.append(obj)
+        self.parentObject.items.append(
+            {
+                'child': 1,
+                'value': obj,
+            }
+        )
         return [self, _ObjectDataConsumer(obj)]
 
     def consumeDirective(self, filename, line, lineno, variables, manifestPath):
@@ -741,25 +890,33 @@ class _ObjectDataConsumer(_ConfigEventConsumer):
         name = mat.group('name')
         values = mat.group('values').split()
         if 'include' == name:
-            self.parentObject.children.extend(
-                _loadConfigurationManifest(
-                    _locateManifestFile(
-                        values[0],
-                        [os.path.dirname(filename)]
-                    ),
-                    variables,
-                    manifestPath
+            for child in _loadConfigurationManifest(
+                _locateManifestFile(
+                    values[0],
+                    [os.path.dirname(filename)]
+                ),
+                variables,
+                manifestPath
+            ):
+                self.parentObject.items.append(
+                    {
+                        'child': 1,
+                        'value': child,
+                    }
                 )
-            )
             return [self]
         elif 'import' == name:
-            self.parentObject.children.extend(
-                _loadConfigurationManifest(
-                    _locateManifestFile(values[0], manifestPath),
-                    variables,
-                    manifestPath
+            for child in _loadConfigurationManifest(
+                _locateManifestFile(values[0], manifestPath),
+                variables,
+                manifestPath
+            ):
+                self.parentObject.items.append(
+                    {
+                        'child': 1,
+                        'value': child,
+                    }
                 )
-            )
             return [self]
         logger.error(
             'manifest parsing error - unexpected directive at line %d', lineno
