@@ -908,11 +908,9 @@ class _ObjectDataConsumer(_ConfigEventConsumer):
             return [self]
         elif 'import' == name:
             for child in _loadConfigurationManifest(
-                _loadConfigurationManifest(
-                    _locateManifestFile(values[0], manifestPath),
-                    variables,
-                    manifestPath
-                )
+                _locateManifestFile(values[0], manifestPath),
+                variables,
+                manifestPath
             ):
                 self.parentObject.items.append(
                     {
