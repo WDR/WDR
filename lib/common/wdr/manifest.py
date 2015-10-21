@@ -63,8 +63,7 @@ _variablePattern = re.compile(
 _appNamePattern = re.compile(
     r'^'
     r'(?:(?:"(?P<qname>[^"]+)")|(?P<name>\S+))'
-    r'\s+'
-    r'(?:(?:"(?P<qpath>[^"]+)")|(?P<path>.+?))'
+    r'(?:\s+(?:(?:"(?P<qpath>[^"]+)")|(?P<path>.+?)))?'
     r'\s*$')
 _appOptionPattern = re.compile(
     r'^(?P<tabs>\t)'
@@ -918,6 +917,22 @@ class _AppConsumer(_AppEventConsumer):
         return [self, _AppOptionConsumer(obj)]
 
 
+class _EmbeddedAppConsumer(_AppEventConsumer):
+    def __init__(self, parentList):
+        _AppEventConsumer.__init__(self)
+        self.parentList = parentList
+
+    def consumeApp(self, filename, line, lineno, variables):
+        mat = _appNamePattern.match(line)
+        name = mat.group('name')
+        if name is None:
+            name = mat.group('qname')
+        name = substituteVariables(name, variables)
+        obj = ApplicationObject(name, filename)
+        self.parentList.append(obj)
+        return [self, _AppOptionConsumer(obj)]
+
+
 class _AppOptionConsumer(_AppEventConsumer):
     def __init__(self, parentObject):
         _AppEventConsumer.__init__(self)
@@ -1255,37 +1270,64 @@ def _importApplicationManifest(filename, variables):
     fi = open(filename, 'r')
     try:
         manifestObjects = []
-        stack = [_AppConsumer(manifestObjects)]
-        lineno = 0
-        for line in fi.readlines():
-            lineno += 1
-            imat = _genericPattern.match(line)
-            if not imat:
-                logger.error('wrong indentation in line %d', lineno)
-                raise LoadError('Wrong indentation', filename, line, lineno)
-            indent = len(imat.group('tabs'))
-            if len(stack) < indent + 1:
-                return manifestObjects
-            if _appNamePattern.match(line):
-                stack = stack[0:indent] + stack[indent].consumeApp(
-                    filename, line, lineno, variables
-                )
-            elif _appOptionPattern.match(line):
-                stack = stack[0:indent] + stack[indent].consumeOption(
-                    filename, line, lineno, variables
-                )
-            elif _appOptionValuePattern.match(line):
-                stack = stack[0:indent] + stack[indent].consumeOptionValue(
-                    filename, line, lineno, variables
-                )
-            elif _commentPattern.match(line):
-                stack[indent].consumeComment(filename, line, lineno)
-            else:
-                logger.error('invalid manifest statement in line %s', lineno)
-                raise LoadError('Not recognized', filename, line, lineno)
+        lines = fi.readlines()
+        consumer = _AppConsumer(manifestObjects)
+        _parseApplicationManifest(
+            filename, lines, variables, consumer, manifestObjects
+        )
         return manifestObjects
     finally:
         fi.close()
+
+
+def _importEmbeddedApplicationManifest(filename, variables):
+    manifestObjects = []
+    manifestContent = wdr.util.readZipEntry(
+        filename, 'META-INF/manifest.wdra'
+    )
+    if manifestContent is None:
+        logger.error('Embedded manifest not found in %s', filename)
+        raise Exception('Embedded manifest not found in %s', filename)
+    lines = str(manifestContent).splitlines()
+    consumer = _EmbeddedAppConsumer(manifestObjects)
+    _parseApplicationManifest(
+        filename, lines, variables, consumer, manifestObjects
+    )
+    return manifestObjects
+
+
+def _parseApplicationManifest(
+    filename, lines, variables, consumer, manifestObjects
+):
+    # stack = [_AppConsumer(manifestObjects)]
+    stack = [consumer]
+    lineno = 0
+    for line in lines:
+        lineno += 1
+        imat = _genericPattern.match(line)
+        if not imat:
+            logger.error('wrong indentation in line %d', lineno)
+            raise LoadError('Wrong indentation', filename, line, lineno)
+        indent = len(imat.group('tabs'))
+        if len(stack) < indent + 1:
+            return manifestObjects
+        if _appNamePattern.match(line):
+            stack = stack[0:indent] + stack[indent].consumeApp(
+                filename, line, lineno, variables
+            )
+        elif _appOptionPattern.match(line):
+            stack = stack[0:indent] + stack[indent].consumeOption(
+                filename, line, lineno, variables
+            )
+        elif _appOptionValuePattern.match(line):
+            stack = stack[0:indent] + stack[indent].consumeOptionValue(
+                filename, line, lineno, variables
+            )
+        elif _commentPattern.match(line):
+            stack[indent].consumeComment(filename, line, lineno)
+        else:
+            logger.error('invalid manifest statement in line %s', lineno)
+            raise LoadError('Not recognized', filename, line, lineno)
 
 
 def _defaultManifestPath():
@@ -1385,6 +1427,24 @@ def importApplicationManifest(
     affectedApplications = []
     for mo in _importApplicationManifest(
         _locateManifestFile(filename, manifestPath), variables
+    ):
+        if _isApplicationInstalled(mo.name):
+            if _updateApplication(mo, listener):
+                affectedApplications.append(mo.name)
+        else:
+            _installApplication(mo, listener)
+            affectedApplications.append(mo.name)
+    return affectedApplications
+
+
+def importApplicationEmbeddedManifest(
+    filename, variables={}, listener=None, manifestPath=None
+):
+    listener = listener or ApplicationDeploymentListener()
+    manifestPath = manifestPath or _defaultManifestPath()
+    affectedApplications = []
+    for mo in _importEmbeddedApplicationManifest(
+        filename, variables
     ):
         if _isApplicationInstalled(mo.name):
             if _updateApplication(mo, listener):

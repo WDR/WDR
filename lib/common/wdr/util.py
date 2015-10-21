@@ -4,6 +4,7 @@ import java.io
 import java.lang
 import java.math
 import java.security
+import java.util.zip
 import com.ibm.websphere.crypto
 import logging
 import string
@@ -264,6 +265,30 @@ def sha512(str):
     md = java.security.MessageDigest.getInstance('SHA512')
     md.update(java.lang.String(str).getBytes('UTF-8'))
     return _toHex(md.digest())
+
+
+def readZipEntry(filename, entryname):
+    content = None
+    fis = java.io.BufferedInputStream(java.io.FileInputStream(filename))
+    try:
+        zis = java.util.zip.ZipInputStream(fis)
+        while 1:
+            entry = zis.nextEntry
+            if entry is None:
+                break
+            if entry.name == entryname and not entry.directory:
+                buf = jarray.zeros(1024, 'b')
+                b = 1
+                baos = java.io.ByteArrayOutputStream()
+                while b > 0:
+                    b = zis.read(buf)
+                    if b > 0:
+                        baos.write(buf, 0, b)
+                content = java.lang.String(baos.toByteArray(), 'UTF-8')
+            zis.closeEntry()
+    finally:
+        fis.close()
+    return content
 
 
 def _mergeVariables(d, u):
