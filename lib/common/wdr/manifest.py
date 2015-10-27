@@ -223,7 +223,7 @@ def _construct_J2CActivationSpec(
         '',
         '-messageListenerType', 'javax.jms.MessageListener'
     ]
-    logger.debug(
+    logger.info(
         'creating activation spec in %s with arguments %s', adapter, args
     )
     result = wdr.config.ConfigObject(
@@ -323,7 +323,7 @@ class ManifestConfigObject:
 
     def getAttribute(self, name):
         for item in self.items:
-            if item.get('attribute'):
+            if item.get('attribute') and item['name']==name:
                 return item['value']
         return None
 
