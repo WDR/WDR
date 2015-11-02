@@ -22,7 +22,7 @@ def _compileRegularExpressions():
         # config object ids may contain whitespaces and are being quoted then
         r'(?:'
         r'"'
-        r'(?P<qname>[^"^\[^\]]*)'
+        r'(?P<qname>[^"\[\]]*)'
         r'\((?P<qxmlPath>.+?)\|(?P<qxmlDoc>.+?\.xml)'
         r'#(?P<qxmlId>[a-zA-Z_0-9]+?)\)'
         r'"'
@@ -31,7 +31,7 @@ def _compileRegularExpressions():
         r'|'
         # config object ids without whitespaces are not being quoted
         r'(?:'
-        r'(?P<name>[^ ^"^\[^\]]*)'
+        r'(?P<name>[^ "\[\]]*)'
         r'\((?P<xmlPath>.+?)\|(?P<xmlDoc>.+?\.xml)'
         r'#(?P<xmlId>[a-zA-Z_0-9]+?)\)'
         r')'
@@ -41,16 +41,20 @@ def _compileRegularExpressions():
         #
         r')'
     )
+    maskedAttributePattern = re.compile('\*+')
     # expression matching list of object ids
     # lists of config objects are being returned as whitespace-separated strings
     # surrounded by square brackets, for compatility with Jacl
-    configNameListPattern = re.compile(
-        r'^(?:"?\[(?:(%s) *)*\]"?)|(?:\*+)$' % configNamePattern.pattern)
+    configNameListPattern = re.compile(r'^(?:"?\[.*\]"?)|(\*+)$')
     attributeTypePattern = re.compile('[, \(\)]+')
-    return (configNamePattern, configNameListPattern, attributeTypePattern)
+    return (
+        configNamePattern, configNameListPattern, attributeTypePattern,
+        maskedAttributePattern
+    )
 
 (
-    _configNamePattern, _configNameListPattern, _attributeTypePattern
+    _configNamePattern, _configNameListPattern, _attributeTypePattern,
+    _maskedAttributePattern
 ) = _compileRegularExpressions()
 
 
@@ -275,7 +279,7 @@ def _parseConfigIdList(configIdList):
     listMatcher = _configNameListPattern.match(configIdList)
     if listMatcher:
         result = []
-        if listMatcher.group(1):
+        if not _maskedAttributePattern.match(configIdList):
             for el in _configNamePattern.findall(listMatcher.group(0)):
                 result.append(_parseConfigId(el[0]))
         return result

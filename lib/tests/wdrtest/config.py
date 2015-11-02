@@ -259,6 +259,31 @@ class ConfigIdParsingTest(unittest.TestCase):
         self.assertEquals(cfgIds[0].xmlDoc, 'server.xml')
         self.assertEquals(cfgIds[0].xmlId, 'Property_1')
 
+    def testMaskedList(self):
+        strIds = '*****'
+        self.assert_(_isConfigIdList(strIds))
+        cfgIds = _parseConfigIdList(strIds)
+        self.assertEquals(len(cfgIds), 0)
+
+    def testReallyLongList(self):
+        strIds = (
+            '['
+            + ' '.join(
+                [
+                    '(cells/wdrCell|virtualhosts.xml#MimeEntry_%s)' % i
+                    for i in range(500)
+                ]
+            )
+            + ']'
+        )
+        ids = _parseConfigIdList(strIds)
+        self.assertEquals(len(ids), 500)
+        for i in range(500):
+            self.assertEquals(
+                '(cells/wdrCell|virtualhosts.xml#MimeEntry_%s)' % i,
+                str(ids[i])
+            )
+
     def testTwoElementList(self):
         strIds = (
             ''
@@ -671,6 +696,29 @@ class AttributeReadTest(AbstractConfigTest):
         )
         self.assertFalse(srv.developmentMode)
         self.assertTrue(srv.parallelStartEnabled)
+
+    def testGetMasked(self):
+        sec = getid1(
+            '/Cell:%(cellName)s/Security:/' % topology
+        )
+        self.assertEquals(sec.wsPasswords, [])
+
+    def testGetAllAttributesFromServerObject(self):
+        srv = getid1(
+            '/Cell:%(cellName)s/Node:%(nodeName)s'
+            '/Server:%(serverName)s/'
+            % topology
+        )
+        allAttributes = srv.getAllAttributes()
+        self.assertFalse(allAttributes['developmentMode'])
+        self.assertTrue(allAttributes['parallelStartEnabled'])
+
+    def testGetAllAttributesFromSecurityObject(self):
+        sec = getid1(
+            '/Cell:%(cellName)s/Security:/' % topology
+        )
+        allAttributes = sec.getAllAttributes()
+        self.assertEquals(allAttributes['wsPasswords'], [])
 
 
 class AttributeWriteTest(AbstractConfigTest):
