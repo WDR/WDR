@@ -675,7 +675,7 @@ def exportConfigurationManifest(configObject, exportSpec, exportedObjects):
     result = wdr.manifest.ManifestConfigObject(typeName)
     exportedObjects[str(configObject)] = exportedObjects.get(
         str(configObject), {
-            'id': str(configObject),
+            'id': wdr.util.sha1(str(configObject)),
             'manifestObject': result,
             'configObject': configObject,
         }
