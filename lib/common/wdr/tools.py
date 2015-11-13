@@ -673,6 +673,13 @@ def exportConfigurationManifest(configObject, exportSpec, exportedObjects):
     typeName = configObject._type
     typeInfo = wdr.config.getTypeInfo(typeName)
     result = wdr.manifest.ManifestConfigObject(typeName)
+    exportedObjects[str(configObject)] = exportedObjects.get(
+        str(configObject), {
+            'id': str(configObject),
+            'manifestObject': result,
+            'configObject': configObject,
+        }
+    )
     if exportSpec.has_key(typeName):
         typeExportSpec = exportSpec[typeName]
     else:
