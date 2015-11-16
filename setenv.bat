@@ -49,9 +49,13 @@ set RUNTIME_NAME=was80
 
 goto RUNTIME_SET
 
+:NOT_WAS_8
+
 if "%WAS_RUNTIME%" == "was85" goto :WAS85
 if "%WAS_RUNTIME%" == "was85_client" goto :WAS85
 goto NOT_WAS_85
+
+:WAS85
 
 set WAS_HOME=%WAS85_RUNTIME_HOME%
 set WSADMIN_CLASS_PATH=%WAS_HOME%\optionalLibraries\jython\jython.jar;%WAS_HOME%\runtimes\com.ibm.ws.admin.client_8.5.0.jar;%WAS_HOME%\plugins\com.ibm.ws.security.crypto.jar
@@ -60,7 +64,7 @@ set RUNTIME_NAME=was85
 
 goto RUNTIME_SET
 
-:NOT_WAS85
+:NOT_WAS_85
 
 goto RUNTIME_NOT_SET
 
