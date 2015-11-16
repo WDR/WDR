@@ -430,6 +430,50 @@ def connection_pool():
     )
 
 
+def jndi():
+    return d(
+        CORBAObjectNameSpaceBinding=d(
+            keys=['name'],
+            items=[
+                d(attribute='nameInNameSpace'),
+                d(attribute='corbanameUrl'),
+                d(attribute='federatedContext'),
+            ],
+            parents=['Cell', 'Node', 'Server', 'ServerCluster'],
+        ),
+        EjbNameSpaceBinding=d(
+            keys=['name'],
+            items=[
+                d(attribute='nameInNameSpace'),
+                d(attribute='ejbJndiName'),
+                d(attribute='applicationServerName'),
+                d(attribute='bindingLocation'),
+                d(attribute='applicationNodeName'),
+            ],
+            parents=['Cell', 'Node', 'Server', 'ServerCluster'],
+        ),
+        IndirectLookupNameSpaceBinding=d(
+            keys=['name'],
+            items=[
+                d(attribute='nameInNameSpace'),
+                d(attribute='providerURL'),
+                d(attribute='jndiName'),
+                d(attribute='initialContextFactory'),
+                d(attribute='otherCtxProperties'),
+            ],
+            parents=['Cell', 'Node', 'Server', 'ServerCluster'],
+        ),
+        StringNameSpaceBinding=d(
+            keys=['name'],
+            items=[
+                d(attribute='nameInNameSpace'),
+                d(attribute='stringToBind'),
+            ],
+            parents=['Cell', 'Node', 'Server', 'ServerCluster'],
+        ),
+    )
+
+
 def class_loader():
     return d(
         Classloader=d(
