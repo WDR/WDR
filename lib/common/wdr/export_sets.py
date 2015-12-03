@@ -2687,3 +2687,14 @@ def properties():
             ],
         ),
     )
+
+
+def all():
+    result = {}
+    for esf in [
+        class_loader, components, connection_pool, env, j2c, j2c_advanced, jdbc,
+        jms, mail, object_pool, processes, properties, security, server_index,
+        services, topology, variables, virtual_host, work_manager
+    ]:
+        result.update(esf())
+    return result
