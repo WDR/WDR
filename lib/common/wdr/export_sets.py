@@ -2451,7 +2451,7 @@ def object_pool():
                 d(attribute='providerType'),
                 d(attribute='referenceables'),
             ],
-            parents=['Cell', 'Node', 'Server'],
+            parents=['Cell', 'Node', 'Server', 'ServerCluster'],
         ),
         ObjectPoolManagerInfo=d(
             keys=['name'],
@@ -2491,7 +2491,7 @@ def work_manager():
                 d(attribute='providerType'),
                 d(attribute='referenceables'),
             ],
-            parents=['Cell', 'Node', 'Server'],
+            parents=['Cell', 'Node', 'Server', 'ServerCluster'],
         ),
         WorkManagerInfo=d(
             keys=['name'],
@@ -2528,7 +2528,7 @@ def work_manager():
                 d(attribute='providerType'),
                 d(attribute='referenceables'),
             ],
-            parents=['Cell', 'Node', 'Server'],
+            parents=['Cell', 'Node', 'Server', 'ServerCluster'],
         ),
         TimerManagerInfo=d(
             keys=['name'],
@@ -2556,7 +2556,7 @@ def work_manager():
                 d(attribute='providerType'),
                 d(attribute='referenceables'),
             ],
-            parents=['Cell', 'Node', 'Server'],
+            parents=['Cell', 'Node', 'Server', 'ServerCluster'],
         ),
         SchedulerConfiguration=d(
             keys=['name'],
