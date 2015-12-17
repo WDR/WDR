@@ -223,7 +223,7 @@ def _construct_J2CActivationSpec(
         '',
         '-messageListenerType', 'javax.jms.MessageListener'
     ]
-    logger.info(
+    logger.debug(
         'creating activation spec in %s with arguments %s', adapter, args
     )
     result = wdr.config.ConfigObject(
