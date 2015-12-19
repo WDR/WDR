@@ -1,0 +1,6 @@
+Cell
+	*name $[ cellName ]
+	Node
+		*name $[ nodeName ]
+		JDBCProvider <non existent template>
+			*name Provider based on non-existent template

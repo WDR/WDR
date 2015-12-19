@@ -442,6 +442,36 @@ class AttributeValueCache:
                 self.cache[oid].clear()
 
 
+def getTemplates(typeName, templateId):
+    typeTemplates = _templateRegistry.get(templateId)
+    if typeTemplates is None:
+        typeTemplates = {}
+        for t in [
+            configObject(t)
+            for t in AdminConfig.listTemplates(typeName).splitlines()
+        ]:
+            for id in (
+                t._id.name,
+                '%s|%s#%s' % (t._id.xmlPath, t._id.xmlDoc, t._id.xmlId),
+                str(t),
+            ):
+                templateList = typeTemplates.get(id, [])
+                templateList.append(t)
+                typeTemplates[id] = templateList
+        _templateRegistry[typeName] = typeTemplates
+    return typeTemplates.get(templateId)
+
+
+def getTemplate(typeName, templateId):
+    templateList = getTemplates(typeName, templateId)
+    if templateList and len(templateList) == 1:
+        return templateList[0]
+    else:
+        raise Exception(
+            'Template <%s> not found or is not unique' % templateId
+        )
+
+
 class ConfigObject:
     def __init__(self, _id):
         self._id = _id
@@ -595,17 +625,31 @@ class ConfigObject:
             createAttributes.append([k, v])
         return self._create(_type, _propertyName, createAttributes)
 
-    def _create(self, type, propertyName, attributes):
+    def _create(self, type, propertyName, attributes, templateName=None):
         logger.debug(
             'creating object %s with attributes %s for property %s.%s',
             type, attributes, str(self), propertyName
         )
-        if propertyName:
-            newConfigId = AdminConfig.create(
-                type, str(self), attributes, propertyName
-            )
+        if templateName:
+            template = getTemplate(type, templateName)
         else:
-            newConfigId = AdminConfig.create(type, str(self), attributes)
+            template = None
+        if propertyName:
+            if template:
+                newConfigId = AdminConfig.createUsingTemplate(
+                    type, str(self), attributes, propertyName, str(template)
+                )
+            else:
+                newConfigId = AdminConfig.create(
+                    type, str(self), attributes, propertyName
+                )
+        else:
+            if template:
+                newConfigId = AdminConfig.createUsingTemplate(
+                    type, str(self), attributes, str(template)
+                )
+            else:
+                newConfigId = AdminConfig.create(type, str(self), attributes)
         logger.debug('created %s', newConfigId)
         return ConfigObject(_parseConfigId(newConfigId))
 
@@ -827,4 +871,7 @@ _typeRegistry = {
     'Boolean': TypeInfo('Boolean', {}, [], [], BooleanAttributeConverter()),
     'String': TypeInfo('String', {}, [], [], StringAttributeConverter()),
     'ENUM': TypeInfo('ENUM', {}, [], [], EnumAttributeConverter())
+}
+
+_templateRegistry = {
 }
