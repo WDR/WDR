@@ -1,0 +1,6 @@
+Cell
+	*name $[ cellName ]
+	Node
+		*name $[ nodeName ]
+		Server <default(templates/servertypes/APPLICATION_SERVER/servers/default|server.xml#Server_1)>
+			*name DefaultServerFromTemplate

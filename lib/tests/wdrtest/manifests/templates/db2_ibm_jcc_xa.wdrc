@@ -1,0 +1,7 @@
+Cell
+	*name $[ cellName ]
+	Node
+		*name $[ nodeName ]
+		JDBCProvider <DB2 Using IBM JCC Driver (XA)>
+			*name Template based provider
+			-description Created from "DB2 Using IBM JCC Driver (XA)" template

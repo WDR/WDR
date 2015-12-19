@@ -495,6 +495,7 @@ class HierarchiesManifestImportTest(AbstractConfigTest):
             'customServices'
         )
 
+
 class IncludesAndImportsTest(AbstractConfigTest):
     def testImportValid(self):
         cellVariables = getid1(
@@ -844,3 +845,91 @@ class CustomizeTest(AbstractConfigTest):
             % topology
         )
         self.assertEquals(dataSources, [])
+
+
+class TemplatesTest(AbstractConfigTest):
+
+    def test_db2_ibm_jcc_xa(self):
+        providers = getid(
+            '/Cell:%(cellName)s/Node:%(nodeName)s/JDBCProvider:/'
+            % topology
+        )
+        self.assertEquals(providers, [])
+        importConfigurationManifest(
+            'wdrtest/manifests/templates/db2_ibm_jcc_xa.wdrc', topology
+        )
+        providers = getid(
+            '/Cell:%(cellName)s/Node:%(nodeName)s/JDBCProvider:/'
+            % topology
+        )
+        self.assertEquals(len(providers), 1)
+        db2provider = providers[0]
+        self.assertEquals(
+            db2provider.name,
+            'Template based provider'
+        )
+        self.assertEquals(
+            db2provider.description,
+            'Created from "DB2 Using IBM JCC Driver (XA)" template'
+        )
+        self.assertEquals(
+            db2provider.providerType, 'DB2 Using IBM JCC Driver (XA)'
+        )
+        self.assertTrue(db2provider.xa)
+
+    def test_db2_ibm_jcc_xa_using_full_id(self):
+        providers = getid(
+            '/Cell:%(cellName)s/Node:%(nodeName)s/JDBCProvider:/'
+            % topology
+        )
+        self.assertEquals(providers, [])
+        importConfigurationManifest(
+            'wdrtest/manifests/templates/db2_ibm_jcc_xa_using_full_id.wdrc',
+            topology
+        )
+        providers = getid(
+            '/Cell:%(cellName)s/Node:%(nodeName)s/JDBCProvider:/'
+            % topology
+        )
+        self.assertEquals(len(providers), 1)
+        db2provider = providers[0]
+        self.assertEquals(
+            db2provider.name,
+            'Template based provider'
+        )
+        self.assertEquals(
+            db2provider.description,
+            'Created from "DB2 Using IBM JCC Driver (XA)" template'
+        )
+        self.assertEquals(
+            db2provider.providerType, 'DB2 Using IBM JCC Driver (XA)'
+        )
+        self.assertTrue(db2provider.xa)
+
+    def test_non_unique_template(self):
+        try:
+            importConfigurationManifest(
+                'wdrtest/manifests/templates/non_unique_template.wdrc',
+                topology
+            )
+        except:
+            return
+        self.fail('non-unique template name should raise exception')
+
+    def test_web_server(self):
+        self.assertEqual(0, len(getid('/Server:DefaultServerFromTemplate/')))
+        importConfigurationManifest(
+            'wdrtest/manifests/templates/default_server.wdrc',
+            topology
+        )
+        self.assertEqual(1, len(getid('/Server:DefaultServerFromTemplate/')))
+
+    def test_non_existent_template(self):
+        try:
+            importConfigurationManifest(
+                'wdrtest/manifests/templates/non_existent_template.wdrc',
+                topology
+            )
+        except:
+            return
+        self.fail('non-unique template name should raise exception')

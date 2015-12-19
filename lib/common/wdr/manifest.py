@@ -29,8 +29,14 @@ _typePattern = re.compile(
     r'(?:(?P<operation>[!?+])\s*)?'
     r'\s*'
     r'(?P<type>[A-Za-z][a-zA-Z0-9_]*)'
-    r'\s*'
-    r'(?P<linkage>[&#][a-zA-Z0-9_]+)?'
+    r'(?:'
+    r'\s+'
+    r'(?P<linkage>[&#][a-zA-Z0-9_]+)'
+    r')?'
+    r'(?:'
+    r'\s+'
+    r'\<(?P<templateName>.*)\>'
+    r')?'
     r'\s*$')
 _keyPattern = re.compile(
     r'^(?P<tabs>\t*)'
@@ -259,6 +265,7 @@ class ManifestConfigObject:
         self.items = []
         self.anchor = None
         self.reference = None
+        self.templateName = None
 
     def isEmpty(self):
         return (
@@ -399,7 +406,7 @@ class ManifestConfigObject:
             )
         else:
             result = parentObject._create(
-                typeName, parentAttribute, simpleAttributes
+                typeName, parentAttribute, simpleAttributes, self.templateName
             )
         if parentAttribute is not None:
             attributeCache.invalidate(parentObject, parentAttribute)
@@ -760,6 +767,7 @@ class _ObjectConsumer(_ConfigEventConsumer):
         name = mat.group('type')
         opcode = mat.group('operation')
         linkage = mat.group('linkage')
+        templateName = mat.group('templateName')
         obj = ManifestConfigObject(name, filename, lineno)
         obj.operation = obj.mapOperation(opcode)
         if linkage:
@@ -767,6 +775,7 @@ class _ObjectConsumer(_ConfigEventConsumer):
                 obj.anchor = linkage[1:]
             else:
                 obj.reference = linkage[1:]
+        obj.templateName = templateName
         self.parentList.append(obj)
         return [self, _ObjectDataConsumer(obj)]
 
@@ -870,6 +879,7 @@ class _ObjectDataConsumer(_ConfigEventConsumer):
         name = mat.group('type')
         opcode = mat.group('operation')
         linkage = mat.group('linkage')
+        templateName = mat.group('templateName')
         obj = ManifestConfigObject(name, filename, lineno)
         obj.operation = obj.mapOperation(opcode)
         if linkage:
@@ -877,6 +887,7 @@ class _ObjectDataConsumer(_ConfigEventConsumer):
                 obj.anchor = linkage[1:]
             else:
                 obj.reference = linkage[1:]
+        obj.templateName = templateName
         self.parentObject.items.append(
             {
                 'child': 1,
