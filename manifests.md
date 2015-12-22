@@ -63,15 +63,41 @@ Application & configuration manifests are tab-indented text files. They can be i
 
 The application manifests describe application deployment options. Manifest importing process detects changes made to application binaries and the manifest itself and, depending on the result of comparisons, installs the application, updates it or simply skips changes.
 
+The manifests can be "standalone" files, but they can also be embedded in the
+application binary itself under the `META-INF/manifest.wdra` location.
+
+Standalone manifests are more suitable if you mainly look after WAS
+infrastructure and do not control the build of application archives. You'll
+probably choose to keep them in some sort of version-controlled repository,
+together with scripts and configuration manifests.
+
+Embedded manifests on the other hand are part of the application archive
+itself and are version-controlled together with application code. During
+the build process, they need to be included into application archive under
+`META-INF/manifest.wdra` path. You should probably choose embedded manifests if
+you are in control of application build process, especially if you also store
+application archives in a binary repository like Artifactory or Nexus and/or
+the application manifests change frequently, deployment rollbacks are a
+concern, etc.
+
 ## Creating application manifests
 
-Application manifests can be edited manually or generated based on snippets of "command assistance logs" by [wdr.tools.ManifestGenerationAdminApp](reference/wdr.tools.ManifestGenerationAdminApp.class.html) object or [wdr.tools.exportApplicationManifestToFile](reference/wdr.tools.exportApplicationManifestToFile.html).
+Application manifests can be edited manually or generated based on existing
+deployment using
+[wdr.tools.exportApplicationManifestToFile](reference/wdr.tools.exportApplicationManifestToFile.html)
+function.
 
 ## Importing application manifests
 
-Application manifests can be imported using [wdr.manifest.importApplicationManifest](reference/wdr.manifest.importApplicationManifest.html) function.
+Application manifests can be imported using
 
-## Application manifest syntax
+* [wdr.manifest.importApplicationManifest](reference/wdr.manifest.importApplicationManifest.html)
+    for importing standalone manifests
+
+* [wdr.manifest.importApplicationEmbeddedManifest](reference/wdr.manifest.importApplicationEmbeddedManifest.html)
+    for importing embedded manifests
+
+## Application manifest syntax and structure
 
 An example application manifest may look as follows
 
@@ -104,9 +130,22 @@ An example application manifest may look as follows
 
 ### Application name and path to application archive
 
-The first line of the manifest contains application name (as displayed in AdminConsole) and path to EAR file. The path is relative to application manifest. Note that the first line is not indented.
+The first line of the manifest contains application name (as displayed in
+AdminConsole) and path to EAR/WAR archive. The path is relative to application
+manifest. Note that the first line is not indented.
+
+The application name is mandatory.
+
+The path to archive is mandatory for standalone manifests. Embedded manifests
+must not have archive path.
+
+The first line in standalone manifests will look as follows:
 
     ApplicationName path/to/application.ear
+
+Embedded manifests will specify only the applicaiton name:
+
+    ApplicationName
 
 ### WDR-specific options
 
@@ -245,11 +284,11 @@ In short: you can safely import the same manifest over and over.
 
 ## Authoring configuration manifests
 
-Configuration manifests are **tab-indented** files. You can create and modify them using any text editor.
-
-> Future versions of WDR will have a functionality to export existing configuration objects into configuration manifests.
-> If you feel comfortable with Python/Jython, wsadmin and WDR, you may be interested in an experimental implementation of [wdr.tools.exportConfigurationManifestToFile](reference/wdr.tools.exportConfigurationManifestToFile.html) function.
-> > Your feedback on configuration export feature is really important.
+Configuration manifests are **tab-indented** files. You can create and modify
+them using any text editor. They can also be exported from existing
+environment using
+[wdr.tools.exportConfigurationManifestToFile](reference/wdr.tools.exportConfigurationManifestToFile.html)
+function.
 
 When authoring configuration manifests, you will find `WebSphere Application And Configuration Model Documentation` useful as a reference of object types and their attributes. This reference documentation can be found `<WAS_HOME>/web/configDocs` directory.
 
