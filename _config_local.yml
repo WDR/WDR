@@ -3,6 +3,7 @@ markdown: kramdown
 
 title : WDR
 tagline: wsadmin Jython library aiming at simplifying WebSphere Application Server scripting
+keywords: WebSphere,wsadmin,Jython,automation,DevOps
 
 disclaimer: All trademarks belong to their respective owners
 

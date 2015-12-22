@@ -25,6 +25,7 @@ See [thin client installation](install_thin_client.html) for details.
 # First steps
 
 WDR provides you with a set of functions and objects to work with WAS configuration, runtime and applications. The entire code is split into 3 main modules similarly to wsadmin model: config, control and app. The main goal of the framework is to help you make your scripts be more Pythonic. The fundamental rules of the API are:
+
 * Use Python types wherever possible. For example, lists must be treated lists, no more splitline().
 * Allow dot-notation wherever possible. No more "showAttribute", "modify", "getAttribute", "invoke".
 * Allow accessing ALL configuration/runtime types, attributes and operations by doing live introspection of WAS object.
@@ -44,6 +45,7 @@ reset()
 {% endhighlight %}
 
 The above script:
+
 * extracts list of JDBCProvider objects, retrieves first element from the list and assigns it to `firstProvider` variable
 * prints 'name' attribute of JDBCProvider object
 * prints 'description' attribute
@@ -113,8 +115,6 @@ In this section we'll use `MBean` instances to access 'simple type' JMX attribut
 Not surprisingly, accessing JMX MBean attributes with WDR is achievable with familiar dot-notation.
 
 {% highlight python %}
-{% endhighlight %}
-{% highlight python %}
 dmgr = getMBean1(type='Server', name='dmgr')
 print 'state:                 ' + dmgr.state
 print 'pid:                   ' + dmgr.pid
@@ -155,6 +155,7 @@ appMgr.startApplication('isclite')
 ##### Special note on overloaded operations
 
 Some MBeans overload JMX operations, for example `NodeAgent` has two different versions of 'launchProcess':
+
 * Boolean launchProcess(String processName)
 * Boolean launchProcess(String processName, Integer timeout)
 
@@ -168,4 +169,3 @@ nodeAgent.launchProcess[ ['java.lang.String', 'java.lang.Integer'] ] ( 'wdrClust
 {% endhighlight %}
 
 The above mechanism works for all operations, even those which are not overloaded. For readability of your scripts, you'll probably avoid it unless it's really necessary to disambiguate.
-
