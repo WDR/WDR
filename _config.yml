@@ -2,7 +2,7 @@ highlighter: pygments
 markdown: kramdown
 
 title : WDR
-tagline: Jython framework aiming at simplifying WebSphere Application Server scripting
+tagline: wsadmin Jython library aiming at simplifying WebSphere Application Server scripting
 
 disclaimer: All trademarks belong to their respective owners
 

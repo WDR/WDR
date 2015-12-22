@@ -153,3 +153,7 @@ finally:
     reset()
 {% endhighlight %}
 
+## See also
+
+* [importApplicationEmbeddedManifest](wdr.manifest.importApplicationEmbeddedManifest.html)
+* [exportApplicationManifestToFile](wdr.tools.exportApplicationManifestToFile.html)

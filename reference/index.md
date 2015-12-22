@@ -74,4 +74,4 @@ Functions and classes from `wdr.tools` package need to be fully qualified in you
 
 [wdr.tools.exportApplicationManifestToFile](wdr.tools.exportApplicationManifestToFile.html)
 
-[wdr.tools.ManifestGenerationAdminApp](wdr.tools.ManifestGenerationAdminApp.class.html)
+[wdr.tools.exportConfigurationManifestToFile](wdr.tools.exportConfigurationManifestToFile.html)
