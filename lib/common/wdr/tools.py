@@ -112,7 +112,10 @@ def processAppDeploymentOptions(task, manifest, columnNames):
                 if not value:
                     value = '3'
                 manifest.options[optionName] = value
-            elif optionName == 'installed.ear.destination':
+            elif optionName in (
+                'installed.ear.destination',
+                'edition.desc',
+            ):
                 pass
             else:
                 manifest.options[optionName] = firstRow[optionName]['value']
