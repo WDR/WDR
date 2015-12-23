@@ -30,6 +30,8 @@ short_title: API reference
 
 [importApplicationManifest](wdr.manifest.importApplicationManifest.html)
 
+[importApplicationEmbeddedManifest](wdr.manifest.importApplicationEmbeddedManifest.html)
+
 [importConfigurationManifest](wdr.manifest.importConfigurationManifest.html)
 
 [jmxmbean](wdr.control.jmxmbean.html)
