@@ -2478,6 +2478,113 @@ def object_pool():
     )
 
 
+def dyna_cache():
+    return d(
+        CacheProvider=d(
+            keys=['name'],
+            items=[
+                d(attribute='classpath'),
+                d(attribute='description'),
+                d(attribute='isolatedClassLoader'),
+                d(attribute='nativepath'),
+                d(attribute='propertySet'),
+                d(attribute='providerType'),
+                d(attribute='referenceables'),
+            ],
+            parents=['Cell', 'Node', 'Server', 'ServerCluster'],
+        ),
+        ObjectCacheInstance=d(
+            keys=['name'],
+            items=[
+                d(attribute='cacheReplication'),
+                d(attribute='cacheSize'),
+                d(attribute='category'),
+                d(attribute='defaultPriority'),
+                d(attribute='description'),
+                d(attribute='disableDependencyId'),
+                d(attribute='diskCacheCleanupFrequency'),
+                d(attribute='diskCacheCustomPerformanceSettings'),
+                d(attribute='diskCacheEntrySizeInMB'),
+                d(attribute='diskCacheEvictionPolicy'),
+                d(attribute='diskCachePerformanceLevel'),
+                d(attribute='diskCacheSizeInEntries'),
+                d(attribute='diskCacheSizeInGB'),
+                d(attribute='diskOffloadLocation'),
+                d(attribute='enableCacheReplication'),
+                d(attribute='enableDiskOffload'),
+                d(attribute='flushToDiskOnStop'),
+                d(attribute='hashSize'),
+                d(attribute='jndiName'),
+                d(attribute='memoryCacheEvictionPolicy'),
+                d(attribute='memoryCacheSizeInMB'),
+                d(attribute='propertySet'),
+                d(attribute='providerType'),
+                d(attribute='pushFrequency'),
+                d(attribute='replicationType'),
+                d(attribute='useListenerContext'),
+                d(ref='referenceable'),
+            ],
+            parents=[
+                'CacheProvider'
+            ],
+        ),
+        ServletCacheInstance=d(
+            keys=['name'],
+            items=[
+                d(attribute='cacheReplication'),
+                d(attribute='cacheSize'),
+                d(attribute='category'),
+                d(attribute='defaultPriority'),
+                d(attribute='description'),
+                d(attribute='diskCacheCleanupFrequency'),
+                d(attribute='diskCacheCustomPerformanceSettings'),
+                d(attribute='diskCacheEntrySizeInMB'),
+                d(attribute='diskCacheEvictionPolicy'),
+                d(attribute='diskCachePerformanceLevel'),
+                d(attribute='diskCacheSizeInEntries'),
+                d(attribute='diskCacheSizeInGB'),
+                d(attribute='diskOffloadLocation'),
+                d(attribute='enableCacheReplication'),
+                d(attribute='enableDiskOffload'),
+                d(attribute='flushToDiskOnStop'),
+                d(attribute='hashSize'),
+                d(attribute='jndiName'),
+                d(attribute='memoryCacheEvictionPolicy'),
+                d(attribute='memoryCacheSizeInMB'),
+                d(attribute='propertySet'),
+                d(attribute='providerType'),
+                d(attribute='pushFrequency'),
+                d(attribute='replicationType'),
+                d(attribute='useListenerContext'),
+                d(ref='referenceable'),
+            ],
+            parents=[
+                'CacheProvider'
+            ],
+        ),
+        DiskCacheCustomPerformanceSettings=d(
+            items=[
+                d(attribute='maxBufferedCacheIdsPerMetaEntry'),
+                d(attribute='maxBufferedDependencyIds'),
+                d(attribute='maxBufferedTemplates'),
+            ],
+        ),
+        DiskCacheEvictionPolicy=d(
+            items=[
+                d(attribute='algorithm'),
+                d(attribute='highThreshold'),
+                d(attribute='lowThreshold'),
+            ],
+        ),
+        MemoryCacheEvictionPolicy=d(
+            items=[
+                d(attribute='highThreshold'),
+                d(attribute='lowThreshold'),
+            ],
+        ),
+    )
+
+
 def work_manager():
     return d(
         WorkManagerProvider=d(
@@ -2694,7 +2801,7 @@ def all():
     for esf in [
         class_loader, components, connection_pool, env, j2c, j2c_advanced, jdbc,
         jms, mail, object_pool, processes, properties, security, server_index,
-        services, topology, variables, virtual_host, work_manager
+        services, topology, variables, virtual_host, dyna_cache, work_manager
     ]:
         result.update(esf())
     return result
