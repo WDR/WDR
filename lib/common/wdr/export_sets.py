@@ -1584,7 +1584,7 @@ def services():
                 d(attribute='factories'),
                 d(attribute='properties'),
                 d(attribute='transportChannels'),
-                d(ref='chains'),
+                d(attribute='chains'),
             ],
         ),
         Chain=d(
