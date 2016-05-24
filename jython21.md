@@ -1,61 +1,38 @@
 ---
 layout: page
-title: Jython 2.1 and wsadmin
+title: Jython 2.1, wsadmin and WDR
 ---
 
 # Jython 2.1 is obsolete
 
-Jython version being used by wsadmin is really old. It is ancient in terms of Internet. Version 2.1 was released on 25th of Sep 2002 [according to SourceForge](http://sourceforge.net/projects/jython/files/jython/).
+Jython version being used by wsadmin is really old. It is acutally ancient in terms of Internet. Version 2.1 was released on 25th of Sep 2002 [according to SourceForge](http://sourceforge.net/projects/jython/files/jython/).
 
-Jython 2.1 is really lacking in many areas and it bites badly those who try to implement some more complex solutions based on wsadmin. There has been a lot of improvements in Jython since 2.1.
+Jython 2.1 is lacking in many areas and it bites badly those who try to implement some more complex solutions based on wsadmin. There has been a lot of improvements in Jython since 2.1.
 
 # Does IBM have an idea how to update Jython in WAS?
 
-It seems that IBM attempted to update Jython in 2008, but they failed for some reason. The issue tracker of Jython project has some traces of that attempt:
+It seems that IBM attempted to update Jython in 2008, but they failed for some reason. The issue tracker of Jython project has some traces of that attempt and
+the reasons (be it valid or not) why it was not done:
 
 * [Issue 1163](http://bugs.jython.org/issue1163) Jython 2.1 converts string to unicode
 
 * [Issue 1792](http://bugs.jython.org/issue1792) Jython returns unicode string when using Jython 2.5.2 in WebSphere Application Server
 
-I really can not understand why they have not added another value for `-lang` option. That option accepts `jython` and `jacl` currently. Why it could not accept `jython25` or simply `jython-latest`?
+IMHO it could have been done by allowing new values for wsadmin's `-lang` option, like 'jython25' or 'jython-latest', but for some reason it hasn't been done like this either.
 
-# Ancient version of Jython in WAS impacts WDR and you
+WDR's design goal was to be work smoothly on unmodified installation of WebSphere, which made WDR's development a bit harder. The biggest challenge was lack of parsers for any human-readable serialization languages (YAML, TOML, JSON, etc.) and a need to invent our own document format.
 
-One of fundamental requirements of WDR was to be 100% compatible with default wsadmin in order to allow seamless migration from "legacy" wsadmin scripts to WDR. That means that WDR must work with Jython 2.1.
+# WDR's support statement for Jython
 
-If you ever wonder why WDR does not use YAML, JSON or at least XML, why the old class notation is being used, why a legacy version of "logging" is bundled with WDR, etc - you get the answer. It is not our fault. Complain to "market leader" being 11 years behind with Jython (so far).
+WDR officially supports Jython 2.1. Scripts you write are 100% compatible with unmodified installation of the product.
 
-# Does anyone support Jython 2.1?
+WDR is known to work without issues with Jython 2.5. Jython 2.7 also works, but only in non-interactive sessions; interactive sesssion with wsadmin and Jython 2.7 does not start due to API incompatibilities.
 
-You may get frustrated working with Jython 2.1 also when trying to install a standalone version of Jython 2.1. In order to save you some time, please be adviced: it is not installable on a modern OS:
-
-* Jython 2.1 installer crashes when running on a decent JVM (may also crash a less decent JVM).
-
-* Jython 2.1 can only be installed using JDK 1.3. That JDK also will not install on a decent OS.
-
-Instead of wasting time trying to install it, rather copy it from existing WAS installation. You may wonder how IBM "supports" that old Jython release...
-
-IBM support seems to be also impacted occasionally. Then they seek help from Open Source Community without getting it, obviously:
-
-* [Issue 1360](http://bugs.jython.org/issue1360) The write permission is required on jython.jar ?
-
-# Is there a solution?
-
-No. There are only _workarounds_ to the problem. _THE SOLUTION_ is in hands of IBM.
-
-It would be really nice if IBM could catch up a bit. The question is: how to convince them to update Jython?
-
-The official support channel probably will not work. If you open a PMR and complain on pre-historical Jython, your PMR may get closed with "works as designed" explanation (Jython 2.1 is explicitly listed in WAS documentation). The other option is to open a "feature request" and hope for change in one of subsequent releases. Chances are bad that such request can gain enough attention at IBM. The only way to push it forward is probably to name and shame, hoping that one day IBM is going to be ashamed enough, update Jython and obsolete this page...
-
-In the interim you have two choices, each of them has some drawbacks:
-
-* Stay with Jython 2.1 if compatibility with default istallation is important. You will have to live with all the shortcomings of Jython 2.1 though.
-
-* Upgrade your Jython, preferably by adding it to [thin client installation](install_thin_client.html) and benefit from all the improvements made. Compatibility of your scripts will be impacted though.
+Future versions of WDR *must* work 100% with Jython 2.1 and any other versions of Jython shipped with WebSphere. WDR *should* work with newer versions of Jython, as long as wsadmin is able to start the interpreter correctly.
 
 # Archived pages
 
-Over time, some pages mentioned here may become unavailable. Should it be the case, you may check the following links:
+Over time, some pages references from here may become unavailable. Should it be the case, you may check the following links:
 
 * Jython releases
 
