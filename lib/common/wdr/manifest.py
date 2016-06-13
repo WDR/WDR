@@ -1691,3 +1691,35 @@ def importConfigurationManifest(filename, variables={}, manifestPath=None):
         manifestPath
     ):
         mo.apply(anchors, None, None, attributeCache)
+
+def uninstallApplicationManifest(
+    filename, variables={}, listener=None, manifestPath=None
+):
+    listener = listener or ApplicationDeploymentListener()
+    manifestPath = manifestPath or _defaultManifestPath()
+    affectedApplications = []
+    for mo in _importApplicationManifest(
+        _locateManifestFile(filename, manifestPath), variables
+    ):
+        if _isApplicationInstalled(mo.name):
+            if _removeApplication(mo, listener):
+                affectedApplications.append(mo.name)
+    return affectedApplications
+
+def _removeApplication(mo, listener):
+    deployedObject = wdr.config.getid1(
+        '/Deployment:%s/' % mo.name
+    ).deployedObject
+    listener.beforeUpdate(mo.name, mo.archive)
+    logger.debug(
+        'application %s will be removed. ',
+        mo.name
+    )
+    action = wdr.app.Uninstall()
+    for (k, v) in mo.options.items():
+        action[k] = v or None
+    action.contents = mo.archive
+    action(mo.name)
+    listener.afterUpdate(mo.name, mo.archive)
+    return 1
+
