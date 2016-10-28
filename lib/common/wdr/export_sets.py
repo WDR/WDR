@@ -2692,6 +2692,37 @@ def work_manager():
     )
 
 
+def url():
+    return d(
+        URLProvider=d(
+            keys=['name'],
+            items=[
+                d(attribute='classpath'),
+                d(attribute='description'),
+                d(attribute='isolatedClassLoader'),
+                d(attribute='nativepath'),
+                d(attribute='propertySet'),
+                d(attribute='protocol'),
+                d(attribute='providerType'),
+                d(attribute='streamHandlerClassName'),
+            ],
+            parents=['Cell', 'Node', 'Server', 'ServerCluster'],
+        ),
+        URL=d(
+            keys=['name'],
+            items=[
+                d(attribute='category'),
+                d(attribute='description'),
+                d(attribute='jndiName'),
+                d(attribute='propertySet'),
+                d(attribute='providerType'),
+                d(attribute='spec'),
+            ],
+            parents=['URLProvider'],
+        ),
+    )
+
+
 def properties():
     return d(
         Property=d(
@@ -2801,7 +2832,7 @@ def all():
     for esf in [
         class_loader, components, connection_pool, env, j2c, j2c_advanced, jdbc,
         jms, mail, object_pool, processes, properties, security, server_index,
-        services, topology, variables, virtual_host, dyna_cache, work_manager
+        services, topology, variables, virtual_host, dyna_cache, url, work_manager
     ]:
         result.update(esf())
     return result
