@@ -42,6 +42,23 @@ dmgr = getMBean1(type='Server', process='dmgr')
 dmgr.restart()
 ```
 
+## Configuration using manifests
+
+```
+Server
+    *name sever1
+    -processDefinitions
+        JavaProcessDef
+            -jvmEntries
+                JavaVirtualMachine
+                    -maximumHeapSize 1024
+                    -systemProperties
+                        Property
+                            *name java.awt.headless
+                            -value true
+```
+
+
 # Getting started
 
 * Clone the latest repository with `git clone https://github.com/WDR/WDR.git`
