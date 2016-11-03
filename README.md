@@ -1,8 +1,6 @@
 WDR
 ===
 
-[![Join the chat at https://gitter.im/WDR/WDR](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/WDR/WDR?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 Jython library which aims to greatly simplify WebSphere scripting.
 
 # Features
