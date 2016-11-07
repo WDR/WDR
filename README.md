@@ -68,5 +68,5 @@ Server
 
 # Visit WDR home page for more...
 
-For more documentation and examples check [WDR home page](http://wdr.github.io/WDR/). 
+For more documentation and examples check [WDR home page](https://wdr.github.io/WDR/). 
 

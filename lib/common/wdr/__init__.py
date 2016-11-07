@@ -40,7 +40,7 @@ class WsadminObjects:
 
 def versionInfo():
     logger.info(
-        'using WDR (http://wdr.github.io/WDR/) version %d.%d.%d',
+        'using WDR (https://wdr.github.io/WDR/) version %d.%d.%d',
         MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION
     )
     if AdminControl and AdminControl.adminClient:
