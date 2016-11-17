@@ -65,7 +65,7 @@ def server_index():
             keys=['serverName', 'serverType'],
             items=[
                 d(attribute='recoveryLog'),
-                d(ref='specialEndpoints'),
+                d(attribute='specialEndpoints'),
             ],
         ),
         RecoveryLog=d(
