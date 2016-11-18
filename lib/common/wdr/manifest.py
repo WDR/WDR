@@ -1641,7 +1641,8 @@ def _locateManifestFile(filename, manifestPath):
     raise Exception('Manifest file %s not found' % filename)
 
 
-def loadConfigurationManifest(filename, variables, manifestPath):
+def loadConfigurationManifest(filename, variables={}, manifestPath=None):
+    manifestPath = manifestPath or _defaultManifestPath()
     filename = os.path.normpath(os.path.abspath(filename))
     logger.debug('loading file %s with variables %s', filename, variables)
     fi = open(filename, 'r')
