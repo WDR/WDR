@@ -6,7 +6,7 @@ __all__ = ['config', 'control', 'task', 'manifest', 'util']
 logger = logging.getLogger('wdr')
 
 MAJOR_VERSION = 0
-MINOR_VERSION = 7
+MINOR_VERSION = 8
 PATCH_VERSION = 0
 
 
