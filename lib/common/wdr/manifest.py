@@ -795,7 +795,7 @@ class _ObjectConsumer(_ConfigEventConsumer):
         if 'include' == name:
             try:
                 self.parentList.extend(
-                    _loadConfigurationManifest(
+                    loadConfigurationManifest(
                         _locateManifestFile(
                             values[0],
                             [os.path.dirname(filename)]
@@ -814,7 +814,7 @@ class _ObjectConsumer(_ConfigEventConsumer):
         elif 'import' == name:
             try:
                 self.parentList.extend(
-                    _loadConfigurationManifest(
+                    loadConfigurationManifest(
                         _locateManifestFile(values[0], manifestPath),
                         variables,
                         manifestPath
@@ -910,7 +910,7 @@ class _ObjectDataConsumer(_ConfigEventConsumer):
         name = mat.group('name')
         values = mat.group('values').split()
         if 'include' == name:
-            for child in _loadConfigurationManifest(
+            for child in loadConfigurationManifest(
                 _locateManifestFile(
                     values[0],
                     [os.path.dirname(filename)]
@@ -926,7 +926,7 @@ class _ObjectDataConsumer(_ConfigEventConsumer):
                 )
             return [self]
         elif 'import' == name:
-            for child in _loadConfigurationManifest(
+            for child in loadConfigurationManifest(
                 _locateManifestFile(values[0], manifestPath),
                 variables,
                 manifestPath
@@ -1641,7 +1641,7 @@ def _locateManifestFile(filename, manifestPath):
     raise Exception('Manifest file %s not found' % filename)
 
 
-def _loadConfigurationManifest(filename, variables, manifestPath):
+def loadConfigurationManifest(filename, variables, manifestPath):
     filename = os.path.normpath(os.path.abspath(filename))
     logger.debug('loading file %s with variables %s', filename, variables)
     fi = open(filename, 'r')
@@ -1694,7 +1694,7 @@ def importConfigurationManifest(filename, variables={}, manifestPath=None):
     manifestPath = manifestPath or _defaultManifestPath()
     anchors = {}
     attributeCache = wdr.config.AttributeValueCache()
-    for mo in _loadConfigurationManifest(
+    for mo in loadConfigurationManifest(
         _locateManifestFile(filename, manifestPath),
         variables,
         manifestPath
