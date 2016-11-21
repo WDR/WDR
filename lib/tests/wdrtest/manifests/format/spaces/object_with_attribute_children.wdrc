@@ -1,0 +1,13 @@
+Root
+ *name root
+ -a1 v1
+ -a2 v2
+ -a3
+  Child
+   *name child1
+   -a1 V11
+   -a2 V12
+  Child
+   *name child2
+   -a1 V21
+   -a2 V22
