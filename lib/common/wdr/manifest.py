@@ -15,17 +15,17 @@ import wdr.task
 
 logger = logging.getLogger('wdr.manifest')
 
-_genericPattern = re.compile(r'^(?P<tabs>\t*).*$')
+_genericPattern = re.compile(r'^(?P<tabs>(?:\ |\t)*).*$')
 _commentPattern = re.compile(r'^(?:\s*#\.*)|(?:\s*)$')
 _directivePattern = re.compile(
-    r'^(?P<tabs>\t*)'
+    r'^(?P<tabs>(?:\ |\t)*)'
     r'@'
     r'\s*'
     r'(?P<name>[A-Za-z][a-zA-Z0-9_]*)'
     r'(?P<values>(?:\s*(?P<value>.+?))*)?'
     r'\s*$')
 _typePattern = re.compile(
-    r'^(?P<tabs>\t*)'
+    r'^(?P<tabs>(?:\ |\t)*)'
     r'(?:(?P<operation>[!?+])\s*)?'
     r'\s*'
     r'(?P<type>[A-Za-z][a-zA-Z0-9_]*)'
@@ -39,14 +39,14 @@ _typePattern = re.compile(
     r')?'
     r'\s*$')
 _keyPattern = re.compile(
-    r'^(?P<tabs>\t*)'
+    r'^(?P<tabs>(?:\ |\t)*)'
     r'\*'
     r'(?P<name>[A-Za-z][a-zA-Z0-9_]*)'
     r'\s*'
     r'(?P<value>.+?)?'
     r'\s*$')
 _attPattern = re.compile(
-    r'^(?P<tabs>\t*)'
+    r'^(?P<tabs>(?:\ |\t)*)'
     r'-'
     r'(?P<name>[A-Za-z][a-zA-Z0-9_]*)'
     r'\s*'
@@ -70,12 +70,12 @@ _appNamePattern = re.compile(
     r'(?:\s+(?:(?:"(?P<qpath>[^"]+)")|(?P<path>.+?)))?'
     r'\s*$')
 _appOptionPattern = re.compile(
-    r'^(?P<tabs>\t)'
+    r'^(?P<tabs>(?:\ |\t))'
     r'(?P<name>\*?[a-zA-Z0-9_\.]+)'
     r'\s*'
     r'(?P<value>.+?)?'
     r'\s*$')
-_appOptionValuePattern = re.compile(r'^(?P<tabs>\t\t)(?P<value>.+?)\s*$')
+_appOptionValuePattern = re.compile(r'^(?P<tabs>(?:\t\t)|(?:\ \ ))(?P<value>.+?)\s*$')
 WDR_CHECKSUM_DESCRIPTION = (
     'Checksum of deployed EAR file and application manifest'
 )
