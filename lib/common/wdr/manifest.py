@@ -1659,7 +1659,8 @@ def loadConfigurationManifest(filename, variables={}, manifestPath=None):
                 raise LoadError('Wrong indentation', filename, line, lineno)
             indent = len(imat.group('tabs'))
             if len(stack) < indent + 1:
-                return manifestObjects
+                logger.error('[%s(%d)] wrong indentation', filename, lineno)
+                raise LoadError('Wrong indentation', filename, line, lineno)
             if _typePattern.match(line):
                 stack = stack[0:indent] + stack[indent].consumeObject(
                     filename, line, lineno, manifestPath
