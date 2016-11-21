@@ -1443,8 +1443,14 @@ def processExtraAppOption(mo, name, value):
         )
 
 
-def loadApplicationManifest(filename, variables={}):
-    fi = open(filename, 'r')
+def loadApplicationManifest(filename, variables={}, manifestPath=None):
+    manifestPath = manifestPath or _defaultManifestPath()
+    filename = os.path.normpath(
+        os.path.abspath(
+            _locateManifestFile(filename, manifestPath)
+        )
+    )
+    fi = open(_locateManifestFile(filename, manifestPath), 'r')
     try:
         manifestObjects = []
         lines = fi.readlines()
@@ -1602,9 +1608,7 @@ def importApplicationManifest(
     listener = listener or ApplicationDeploymentListener()
     manifestPath = manifestPath or _defaultManifestPath()
     affectedApplications = []
-    for mo in loadApplicationManifest(
-        _locateManifestFile(filename, manifestPath), variables
-    ):
+    for mo in loadApplicationManifest(filename, variables):
         if _isApplicationInstalled(mo.name):
             if _updateApplication(mo, listener):
                 affectedApplications.append(mo.name)
@@ -1638,12 +1642,16 @@ def _locateManifestFile(filename, manifestPath):
         candidate = os.path.normpath(os.path.join(dirname, filename))
         if os.path.isfile(candidate):
             return candidate
-    raise Exception('Manifest file %s not found' % filename)
+    raise Exception('Manifest file %s not found in %s' % (filename, manifestPath))
 
 
 def loadConfigurationManifest(filename, variables={}, manifestPath=None):
     manifestPath = manifestPath or _defaultManifestPath()
-    filename = os.path.normpath(os.path.abspath(filename))
+    filename = os.path.normpath(
+        os.path.abspath(
+            _locateManifestFile(filename, manifestPath)
+        )
+    )
     logger.debug('loading file %s with variables %s', filename, variables)
     fi = open(filename, 'r')
     logger.debug('file %s successfully opened', filename)
@@ -1696,9 +1704,5 @@ def importConfigurationManifest(filename, variables={}, manifestPath=None):
     manifestPath = manifestPath or _defaultManifestPath()
     anchors = {}
     attributeCache = wdr.config.AttributeValueCache()
-    for mo in loadConfigurationManifest(
-        _locateManifestFile(filename, manifestPath),
-        variables,
-        manifestPath
-    ):
+    for mo in loadConfigurationManifest(filename, variables, manifestPath):
         mo.apply(anchors, None, None, attributeCache)
