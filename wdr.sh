@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 WDR_HOME=`dirname $0`
 WAS_DEBUG=""
@@ -12,9 +12,6 @@ shift
 
 . $WDR_HOME/setenv.sh
 
-WAS_JAVA_HOME="${WAS_HOME}/java"
-
-JAVA_HOME="${WAS_JAVA_HOME}"
 WAS_LOGGING_PROPERTIES="-Djava.util.logging.manager=com.ibm.ws.bootstrap.WsLogManager -Djava.util.logging.configureByServer=true"
 THIN_CLIENT_PROPERTY="-Dcom.ibm.websphere.thinclient=true"
 CONSOLE_ENCODING_PROPERTY="-Dws.output.encoding=console"
