@@ -35,6 +35,8 @@ try:
     suite.addTest(
         unittest.defaultTestLoader.loadTestsFromModule(wdrtest.manifest_format)
     )
-    unittest.TextTestRunner().run(suite)
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
+    runner.stream.flush()
 finally:
     reset()
