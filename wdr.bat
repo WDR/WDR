@@ -1,125 +1,263 @@
 @echo off
 
-setlocal
+call :main %* & exit /b
 
-set WDR_HOME=%~dp0
-set WAS_DEBUG=
-
-set WAS_RUNTIME=%1
-shift
-set TARGET_ENV=%1
-shift
-set WDR_SCRIPT=%1
-shift
-
-call %WDR_HOME%\setenv.bat %WAS_RUNTIME% %WDR_HOME%
-
-set WAS_JAVA_HOME=%WAS_HOME%\java
-
-set JAVA_HOME=%WAS_JAVA_HOME%
-set WAS_LOGGING_PROPERTIES=-Djava.util.logging.manager=com.ibm.ws.bootstrap.WsLogManager -Djava.util.logging.configureByServer=true
-set THIN_CLIENT_PROPERTY=-Dcom.ibm.websphere.thinclient=true
-set CONSOLE_ENCODING_PROPERTY=-Dws.output.encoding=console
-set APP_TIMEOUT_PROPERTY=-Dcom.ibm.ws.scripting.apptimeout=1800
-set SHELL=com.ibm.ws.scripting.WasxShell
-set PERFJAVAOPTIONS=-Xms128m -Xmx512m -Xj9 -Xquickstart
-
-set JYTHON_CACHEDIR=-Dpython.cachedir=%USERPROFILE%\.wdr\cache\%RUNTIME_NAME%
-set TMPDIR_PROPERTY=-Djava.io.tmpdir=%USERPROFILE%\.wdr\tmp\%TARGET_ENV%
-set WORKSPACE_PROPERTY=-Dwebsphere.workspace.root=%USERPROFILE%\.wdr\wstemp\%TARGET_ENV%
-
-set USER_ROOT=%USERPROFILE%\.wdr\environments\%TARGET_ENV%
-set WSADMIN_PROPERTIES=%USER_ROOT%\wsadmin.properties
-set SOAP_PROPERTIES=%USER_ROOT%\soap.properties
-set SSL_CLIENT_PROPS=%USER_ROOT%\ssl.client.props
-
-set RC=0
-if not exist %USER_ROOT% (
-echo "Environment %TARGET_ENV% does not exist"
-set RC=1
-goto end
-)
-
-:user_root_exists
-
-if not exist %WSADMIN_PROPERTIES% (
-echo "Environment %TARGET_ENV% is not complete"
-echo "%WSADMIN_PROPERTIES% not found"
-set RC=1
-)
-
-
-if not exist %SOAP_PROPERTIES% (
-echo "Environment %TARGET_ENV% is not complete"
-echo "%SOAP_PROPERTIES% not found"
-set RC=1
-)
-
-:soap_properties_exists
-
-if not exist %SSL_CLIENT_PROPS% (
-echo "Environment %TARGET_ENV% is not complete"
-echo "%SSL_CLIENT_PROPS% not found"
-set RC=1
-)
-
-:ssl_client_props_exists
-
-if %RC% neq 0 goto end
-
-set USER_ROOT_PROPERTY=-Duser.root=%USER_ROOT:\=/%
-set WSADMIN_PROPERTIES_PROPERTY=-Dcom.ibm.ws.scripting.wsadminprops=%WSADMIN_PROPERTIES%
-set SOAP_PROPERTIES_PROPERTY=-Dcom.ibm.SOAP.ConfigURL=file:///%SOAP_PROPERTIES:\=/%
-set SSL_CLIENT_PROPS_PROPERTY=-Dcom.ibm.SSL.ConfigURL=file:///%SSL_CLIENT_PROPS:\=/%
-if "%CUSTOM_PROFILE%" == "" (
-set WDR_PROFILE_PROPERTY=-Dcom.ibm.ws.scripting.profiles=%WDR_HOME%profile.py
-) else (
-set WDR_PROFILE_PROPERTY=-Dcom.ibm.ws.scripting.profiles=%WDR_HOME%profile.py:%CUSTOM_PROFILE%
-)
-
-:: required to activate fix PM80400
-:: see: http://www-01.ibm.com/support/docview.wss?uid=swg1PM80400
-set WSADMIN_EXCEPTION_PROPAGATION=-Dcom.ibm.ws.scripting.exceptionPropagation=thrown
-
-set WSADMIN_TRACE_STRING="-Dcom.ibm.ws.scripting.traceString=com.ibm.*=all=disabled"
-
-set PYTHON_PATH=-Dpython.path=%WAS_HOME%\optionalLibraries\jython\Lib;%WDR_HOME%\lib\common
-
-if "%JYTHON_VERSION%" == "2.1" (
-set PYTHON_PATH=%PYTHON_PATH%;%WDR_HOME%\lib\legacy
-)
-
-if exist %USERPROFILE%\.wdr\lib (
-for /d %%L in (%USERPROFILE%\.wdr\lib\*) do set PYTHON_PATH=%PYTHON_PATH%;%%L
-)
-
-if not "%EXTRA_PYTHON_PATH%" == "" (
-set PYTHON_PATH=%PYTHON_PATH%;%EXTRA_PYTHON_PATH%
-)
-
-if "%TARGET_ENV%" == "" goto usage
-if "%WDR_SCRIPT%" == "" goto interactive
-goto script
+:err
+    setlocal
+    echo %* 1>&2
+    exit /b
 
 :usage
-echo Usage:
-echo wdr.bat environment [script]
-set RC=1
-goto end
+    setlocal
+    call :err Usage:
+    call :err wdr environment [script] [script-args]
+    exit /b
 
-:interactive
-%JAVA_HOME%\bin\java %WSADMIN_TRACE_STRING% %USER_ROOT_PROPERTY% %PYTHON_PATH% %JYTHON_CACHEDIR% %TMPDIR_PROPERTY% %WORKSPACE_PROPERTY% %WDR_PROFILE_PROPERTY% %SOAP_PROPERTIES_PROPERTY% %SSL_CLIENT_PROPS_PROPERTY% %WAS_DEBUG% %CONSOLE_ENCODING_PROPERTY% %APP_TIMEOUT_PROPERTY% %WAS_LOGGING_PROPERTIES% %THIN_CLIENT_PROPERTY% %PERFJAVAOPTIONS% %WSADMIN_PROPERTIES_PROPERTY% -Duser.install.root=%WAS_HOME:\=/% -Dwas.install.root=%WAS_HOME:\=/% %WSADMIN_EXCEPTION_PROPAGATION% -cp %WSADMIN_CLASS_PATH% %SHELL% %1 %2 %3 %4 %5 %6 %7
-set RC=%ERRORLEVEL%
-goto end
+:file_runtimes
+    call :err  ######################################################################
+    call :err  ##       Runtime setup using runtimes.bat is deprecated             ##
+    call :err  ##           and will be removed in the next version                ##
+    call :err  ######################################################################
 
-:script
-%JAVA_HOME%\bin\java %WSADMIN_TRACE_STRING% %USER_ROOT_PROPERTY% %PYTHON_PATH% %JYTHON_CACHEDIR% %TMPDIR_PROPERTY% %WORKSPACE_PROPERTY% %WDR_PROFILE_PROPERTY% %SOAP_PROPERTIES_PROPERTY% %SSL_CLIENT_PROPS_PROPERTY% %WAS_DEBUG% %CONSOLE_ENCODING_PROPERTY% %APP_TIMEOUT_PROPERTY% %WAS_LOGGING_PROPERTIES% %THIN_CLIENT_PROPERTY% %PERFJAVAOPTIONS% %WSADMIN_PROPERTIES_PROPERTY% -Duser.install.root=%WAS_HOME:\=/% -Dwas.install.root=%WAS_HOME:\=/% %WSADMIN_EXCEPTION_PROPAGATION% -cp %WSADMIN_CLASS_PATH% %SHELL% -f %WDR_SCRIPT% %1 %2 %3 %4 %5 %6 %7 %8 %9
-set RC=%ERRORLEVEL%
-goto end
+    call %WDR_HOME%\runtimes.default.bat
+    call %WDR_HOME%\runtimes.bat
 
-:end
+    if [%WAS_RUNTIME%] == [was61] set RUNTIME_NAME=was61
+    if [%WAS_RUNTIME%] == [was61_client] set RUNTIME_NAME=was61
 
-endlocal
+    if [%WAS_RUNTIME%] == [was7] set RUNTIME_NAME=was70
+    if [%WAS_RUNTIME%] == [was7_client] set RUNTIME_NAME=was70
+    if [%WAS_RUNTIME%] == [was70] set RUNTIME_NAME=was70
+    if [%WAS_RUNTIME%] == [was70_client] set RUNTIME_NAME=was70
 
-exit /b %RC%
+    if [%WAS_RUNTIME%] == [was8] set RUNTIME_NAME=was80
+    if [%WAS_RUNTIME%] == [was8_client] set RUNTIME_NAME=was80
+    if [%WAS_RUNTIME%] == [was80] set RUNTIME_NAME=was80
+    if [%WAS_RUNTIME%] == [was80_client] set RUNTIME_NAME=was80
+
+    if [%WAS_RUNTIME%] == [was85] set RUNTIME_NAME=was85
+    if [%WAS_RUNTIME%] == [was85_client] set RUNTIME_NAME=was85
+
+    if [%WAS_RUNTIME%] == [was855] set RUNTIME_NAME=was855
+    if [%WAS_RUNTIME%] == [was855_client] set RUNTIME_NAME=was855
+
+    if [%WAS_RUNTIME%] == [was90] set RUNTIME_NAME=was90
+    if [%WAS_RUNTIME%] == [was90_client] set RUNTIME_NAME=was90
+
+    if [%RUNTIME_NAME%] == [was61] (
+        set WAS_HOME=%WAS61_RUNTIME_HOME%
+        set WAS_JAVA_HOME=%WAS61_JAVA_HOME%
+        set WSADMIN_CLASS_PATH=%WAS61_RUNTIME_HOME%\runtimes\com.ibm.ws.admin.client_6.1.0.jar;%WAS61_RUNTIME_HOME%\plugins\com.ibm.ws.security.crypto_6.1.0.jar
+        set JYTHON_VERSION=%WAS61_JYTHON_VERSION%
+    ) else if [%RUNTIME_NAME%] == [was70] (
+        set WAS_HOME=%WAS70_RUNTIME_HOME%
+        set WAS_JAVA_HOME=%WAS70_JAVA_HOME%
+        set WSADMIN_CLASS_PATH=%WAS70_JAVA_HOME%\runtimes\com.ibm.ws.admin.client_7.0.0.jar;%WAS70_JAVA_HOME%\plugins\com.ibm.ws.security.crypto.jar
+        set JYTHON_VERSION=%WAS70_JYTHON_VERSION%
+    ) else if [%RUNTIME_NAME%] == [was80] (
+        set WAS_HOME=%WAS80_RUNTIME_HOME%
+        set WAS_JAVA_HOME=%WAS80_JAVA_HOME%
+        set WSADMIN_CLASS_PATH=%WAS80_JAVA_HOME%\runtimes\com.ibm.ws.admin.client_8.0.0.jar;%WAS80_JAVA_HOME%\plugins\com.ibm.ws.security.crypto.jar
+        set JYTHON_VERSION=%WAS80_JYTHON_VERSION%
+    ) else if [%RUNTIME_NAME%] == [was85] (
+        set WAS_HOME=%WAS85_RUNTIME_HOME%
+        set WAS_JAVA_HOME=%WAS85_JAVA_HOME%
+        set WSADMIN_CLASS_PATH=%WAS85_RUNTIME_HOME%\runtimes\com.ibm.ws.admin.client_8.5.0.jar;%WAS85_RUNTIME_HOME%\plugins\com.ibm.ws.security.crypto.jar
+        set JYTHON_VERSION=%WAS85_JYTHON_VERSION%
+    ) else if [%RUNTIME_NAME%] == [was855] (
+        set WAS_HOME=%WAS855_RUNTIME_HOME%
+        set WAS_JAVA_HOME=%WAS855_JAVA_HOME%
+        set WSADMIN_CLASS_PATH=%WAS855_RUNTIME_HOME%\runtimes\com.ibm.ws.admin.client_8.5.0.jar;%WAS855_RUNTIME_HOME%\plugins\com.ibm.ws.security.crypto.jar
+        set JYTHON_VERSION=%WAS855_JYTHON_VERSION%
+    ) else if [%RUNTIME_NAME%] == [was90] (
+        set WAS_HOME=%WAS90_RUNTIME_HOME%
+        set WAS_JAVA_HOME=%WAS90_JAVA_HOME%
+        set WSADMIN_CLASS_PATH=%WAS90_RUNTIME_HOME%\runtimes\com.ibm.ws.admin.client_9.0.jar;%WAS90_RUNTIME_HOME%\plugins\com.ibm.ws.security.crypto.jar
+        set JYTHON_VERSION=%WAS90_JYTHON_VERSION%
+    ) else (
+        call :err  Unknown runtime %WAS_RUNTIME%
+        exit /b 1
+    )
+    exit /b 0
+
+
+:dir_runtimes
+    if exist %USERPROFILE%\.wdr\runtimes\%WAS_RUNTIME%.bat (
+        call %USERPROFILE%\.wdr\runtimes\%WAS_RUNTIME%.bat
+    ) else if exist %WDR_HOME%\runtimes\%WAS_RUNTIME%.bat (
+        call %WDR_HOME%\runtimes\%WAS_RUNTIME%.bat
+    ) else if exist %WDR_HOME%\runtimes.default\%WAS_RUNTIME%.bat (
+        call %WDR_HOME%\runtimes.default\%WAS_RUNTIME%.bat
+    ) else (
+        call :err  Unknown runtime %WAS_RUNTIME%
+        exit /b 1
+    )
+    exit /b 0
+
+
+:runtimes
+    if exist "%WDR_HOME%\runtimes.bat" (
+        call :file_runtimes || exit /b
+    ) else (
+        call :dir_runtimes || exit /b
+    )
+    if [%WAS_JAVA_HOME%] == [] (
+        set WAS_JAVA_HOME=%WAS_HOME%\java
+    )
+    exit /b
+
+
+:setup
+    call :runtimes || exit /b 1
+    set JAVA_HOME=%WAS_JAVA_HOME%
+    set WSADMIN_CLASS_PATH=%WSADMIN_CLASS_PATH%
+    set JYTHON_VERSION=%JYTHON_VERSION%
+
+    if [%PERFJAVAOPTIONS%] == [] (
+        set PERFJAVAOPTIONS=-Xms128m -Xmx512m -Xj9 -Xquickstart
+    )
+
+    set JYTHON_CACHEDIR=%USERPROFILE%\.wdr\cache\%RUNTIME_NAME%
+    set TMPDIR=%USERPROFILE%\.wdr\tmp\%TARGET_ENV%
+    set WORKSPACE=%USERPROFILE%\.wdr\wstemp\%TARGET_ENV%
+
+    set USER_ROOT=%USERPROFILE%\.wdr\environments\%TARGET_ENV%
+    set WSADMIN_PROPERTIES=%USER_ROOT%\wsadmin.properties
+    set SOAP_PROPERTIES=%USER_ROOT%\soap.properties
+    set SSL_CLIENT_PROPS=%USER_ROOT%\ssl.client.props
+
+    if not exist %USER_ROOT% (
+        call :err Environment %TARGET_ENV% does not exist
+        exit /b 1
+    ) else (
+        if not exist %WSADMIN_PROPERTIES% (
+            call :err Environment %TARGET_ENV% is incomplete
+            call :err %WSADMIN_PROPERTIES% not found
+            exit /b 1
+        )
+        if not exist %SOAP_PROPERTIES% (
+            call :err Environment %TARGET_ENV% is incomplete
+            call :err %SOAP_PROPERTIES% not found
+            exit /b 1
+        )
+        if not exist %SSL_CLIENT_PROPS% (
+            call :err Environment %TARGET_ENV% is incomplete
+            call :err %SSL_CLIENT_PROPS% not found
+            exit /b 1
+        )
+    )
+
+    if [%CUSTOM_PROFILE%] == [] (
+        set WDR_PROFILE=%WDR_HOME%\profile.py
+    ) else (
+        set WDR_PROFILE=%WDR_HOME%\profile.py;%CUSTOM_PROFILE%
+    )
+
+    set PYTHON_PATH=%WDR_HOME%\lib\common
+    if [%JYTHON_VERSION%] == [2.1] (
+        set USE_JYTHON_21=true
+        set PYTHON_PATH=%PYTHON_PATH%;%WDR_HOME%\lib\legacy
+    ) else (
+        set USE_JYTHON_21=false
+    )
+
+    if exist %USERPROFILE%\.wdr\lib (
+        for /d %%L in (%USERPROFILE%\.wdr\lib\*) do set PYTHON_PATH=%PYTHON_PATH%;%%L
+    )
+
+    if [%EXTRA_PYTHON_PATH%] == [] (
+        set PYTHON_PATH=%PYTHON_PATH%;%EXTRA_PYTHON_PATH%
+    )
+    exit /b &(
+        set JAVA_HOME=%JAVA_HOME%
+    )
+
+
+:run_interactive
+    "%JAVA_HOME%\jre\bin\java" ^
+        -Dcom.ibm.ws.scripting.defaultLang=jython ^
+        -Dcom.ibm.ws.scripting.usejython21=%USE_JYTHON_21% ^
+        -Dcom.ibm.ws.scripting.traceString=com.ibm.*=all=disabled ^
+        -Duser.root=%USER_ROOT:\=/% ^
+        -Dpython.path=%PYTHON_PATH% ^
+        -Dpython.cachedir=%JYTHON_CACHEDIR% ^
+        -Djava.io.tmpdir=%TMPDIR% ^
+        -Dwebsphere.workspace.root=%WORKSPACE% ^
+        -Dcom.ibm.ws.scripting.profiles=%WDR_PROFILE% ^
+        -Dcom.ibm.SOAP.ConfigURL=file:///%SOAP_PROPERTIES:\=/% ^
+        -Dcom.ibm.SSL.ConfigURL=file:///%SSL_CLIENT_PROPS:\=/% ^
+        %WAS_DEBUG% ^
+        -Dws.output.encoding=console ^
+        -Dcom.ibm.ws.scripting.apptimeout=1800 ^
+        -Djava.util.logging.manager=com.ibm.ws.bootstrap.WsLogManager ^
+        -Djava.util.logging.configureByServer=true ^
+        -Dcom.ibm.websphere.thinclient=true ^
+        %PERFJAVAOPTIONS% ^
+        -Dcom.ibm.ws.scripting.wsadminprops=%WSADMIN_PROPERTIES% ^
+        -Duser.install.root=%WAS_HOME:\=/% ^
+        -Dwas.install.root=%WAS_HOME:\=/% ^
+        -Dcom.ibm.ws.scripting.exceptionPropagation=thrown ^
+        -cp %WSADMIN_CLASS_PATH% ^
+        com.ibm.ws.scripting.WasxShell 
+    exit /b
+
+
+:run_script
+    "%JAVA_HOME%\jre\bin\java" ^
+        -Dcom.ibm.ws.scripting.defaultLang=jython ^
+        -Dcom.ibm.ws.scripting.usejython21=%USE_JYTHON_21% ^
+        -Dcom.ibm.ws.scripting.traceString=com.ibm.*=all=disabled ^
+        -Duser.root=%USER_ROOT:\=/% ^
+        -Dpython.path=%PYTHON_PATH% ^
+        -Dpython.cachedir=%JYTHON_CACHEDIR% ^
+        -Djava.io.tmpdir=%TMPDIR% ^
+        -Dwebsphere.workspace.root=%WORKSPACE% ^
+        %WDR_PROFILE_PROPERTY% ^
+        -Dcom.ibm.SOAP.ConfigURL=file:///%SOAP_PROPERTIES:\=/% ^
+        -Dcom.ibm.SSL.ConfigURL=file:///%SSL_CLIENT_PROPS:\=/% ^
+        %WAS_DEBUG% ^
+        -Dws.output.encoding=console ^
+        -Dcom.ibm.ws.scripting.apptimeout=1800 ^
+        -Djava.util.logging.manager=com.ibm.ws.bootstrap.WsLogManager ^
+        -Djava.util.logging.configureByServer=true ^
+        -Dcom.ibm.websphere.thinclient=true ^
+        %PERFJAVAOPTIONS% ^
+        -Dcom.ibm.ws.scripting.wsadminprops=%WSADMIN_PROPERTIES% ^
+        -Duser.install.root=%WAS_HOME:\=/% ^
+        -Dwas.install.root=%WAS_HOME:\=/% ^
+        -Dcom.ibm.ws.scripting.exceptionPropagation=thrown ^
+        -cp %WSADMIN_CLASS_PATH% ^
+        com.ibm.ws.scripting.WasxShell ^
+        -f %WDR_SCRIPT% ^
+        %1 %2 %3 %4 %5 %6 %7 %8 %9
+    exit /b
+
+:run
+    if [%WDR_SCRIPT%] == [] (
+        call :run_interactive
+    ) else (
+        call :run_script
+    )
+    exit /b
+
+
+
+:main
+    setlocal
+        set WDR_HOME=%~dp0
+        set WAS_DEBUG=
+
+        set WAS_RUNTIME=%1
+        shift
+        set TARGET_ENV=%1
+        shift
+        set WDR_SCRIPT=%1
+        shift
+        if [%TARGET_ENV%] == [] (
+            call :usage
+            exit /b 1
+        )
+        call :setup || exit /b
+        call :run
+    exit /b
 
