@@ -16,6 +16,7 @@ import wdrtest.config
 import wdrtest.control
 import wdrtest.manifest
 import wdrtest.task
+import wdrtest.manifest_format
 
 try:
     suite = unittest.TestSuite()
