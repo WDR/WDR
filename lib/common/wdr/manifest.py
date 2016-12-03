@@ -252,7 +252,7 @@ class Operations:
         '?': 'customize',
         '!': 'remove',
     }
-    assure, customize, remove = names.keys()
+    assure, customize, remove = ('+', '?', '!',)
 
 
 class ManifestConfigObject:
