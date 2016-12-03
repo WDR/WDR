@@ -785,7 +785,7 @@ class CustomizeTest(AbstractConfigTest):
         dataSource = getid1(
             '/Cell:%(cellName)s/Node:%(nodeName)s/Server:%(serverName)s'
             '/JDBCProvider:Derby JDBC Provider'
-            '/DataSource:Default Datasource/'
+            '/DataSource:DefaultApp Datasource/'
             % topology
         )
         self.assertEquals(dataSource.jndiName, 'DefaultDatasource')
@@ -804,7 +804,7 @@ class CustomizeTest(AbstractConfigTest):
         dataSource = getid1(
             '/Cell:%(cellName)s/Node:%(nodeName)s/Server:%(serverName)s'
             '/JDBCProvider:Derby JDBC Provider'
-            '/DataSource:Default Datasource/'
+            '/DataSource:DefaultApp Datasource/'
             % topology
         )
         self.assertEquals(dataSource.jndiName, 'DefaultDatasource')
@@ -818,7 +818,7 @@ class CustomizeTest(AbstractConfigTest):
         dataSources = getid(
             '/Cell:%(cellName)s/Node:%(nodeName)s/Server:%(serverName)s'
             '/JDBCProvider:Derby JDBC Provider'
-            '/DataSource:Default Datasource/'
+            '/DataSource:DefaultApp Datasource/'
             % topology
         )
         self.assertEquals(len(dataSources), 1)
@@ -837,7 +837,7 @@ class CustomizeTest(AbstractConfigTest):
         dataSource = getid1(
             '/Cell:%(cellName)s/Node:%(nodeName)s/Server:%(serverName)s'
             '/JDBCProvider:Derby JDBC Provider'
-            '/DataSource:Default Datasource/'
+            '/DataSource:DefaultApp Datasource/'
             % topology
         )
         self.assertEquals(dataSource.jndiName, 'DefaultDatasource')
@@ -854,7 +854,7 @@ class CustomizeTest(AbstractConfigTest):
         dataSources = getid(
             '/Cell:%(cellName)s/Node:%(nodeName)s/Server:%(serverName)s'
             '/JDBCProvider:Derby JDBC Provider'
-            '/DataSource:Default Datasource/'
+            '/DataSource:DefaultApp Datasource/'
             % topology
         )
         self.assertEquals(dataSources, [])
