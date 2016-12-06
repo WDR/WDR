@@ -47,36 +47,39 @@ file_runtimes() {
     if [ "$WAS_RUNTIME" == "was61" ] ; then
         WAS_HOME=$WAS61_RUNTIME_HOME
         WAS_JAVA_HOME=$WAS61_JAVA_HOME
-        WSADMIN_CLASS_PATH=${WAS61_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_6.1.0.jar:${WAS61_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto_6.1.0.jar
+        WSADMIN_CLASS_PATH=${WAS61_RUNTIME_HOME}/optionalLibraries/jython/jython.jar:${WAS61_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_6.1.0.jar:${WAS61_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto_6.1.0.jar
         JYTHON_VERSION=$WAS61_JYTHON_VERSION
     elif [ "$WAS_RUNTIME" == "was70" ] ; then
         WAS_HOME=$WAS70_RUNTIME_HOME
         WAS_JAVA_HOME=$WAS70_JAVA_HOME
-        WSADMIN_CLASS_PATH=${WAS70_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_7.0.0.jar:${WAS70_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto.jar
+        WSADMIN_CLASS_PATH=${WAS61_RUNTIME_HOME}/optionalLibraries/jython/jython.jar:${WAS70_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_7.0.0.jar:${WAS70_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto.jar
         JYTHON_VERSION=$WAS70_JYTHON_VERSION
     elif [ "$WAS_RUNTIME" == "was80" ] ; then
         WAS_HOME=$WAS80_RUNTIME_HOME
         WAS_JAVA_HOME=$WAS80_JAVA_HOME
-        WSADMIN_CLASS_PATH=${WAS80_JAVA_HOME}/runtimes/com.ibm.ws.admin.client_8.0.0.jar:${WAS80_JAVA_HOME}/plugins/com.ibm.ws.security.crypto.jar
+        WSADMIN_CLASS_PATH=${WAS61_RUNTIME_HOME}/optionalLibraries/jython/jython.jar:${WAS80_JAVA_HOME}/runtimes/com.ibm.ws.admin.client_8.0.0.jar:${WAS80_JAVA_HOME}/plugins/com.ibm.ws.security.crypto.jar
         JYTHON_VERSION=$WAS80_JYTHON_VERSION
     elif [ "$WAS_RUNTIME" == "was85" ] ; then
         WAS_HOME=$WAS85_RUNTIME_HOME
         WAS_JAVA_HOME=$WAS85_JAVA_HOME
-        WSADMIN_CLASS_PATH=${WAS85_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_8.5.0.jar:${WAS85_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto.jar
+        WSADMIN_CLASS_PATH=${WAS61_RUNTIME_HOME}/optionalLibraries/jython/jython.jar:${WAS85_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_8.5.0.jar:${WAS85_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto.jar
         JYTHON_VERSION=$WAS85_JYTHON_VERSION
     elif [ "$WAS_RUNTIME" == "was855" ] ; then
         WAS_HOME=$WAS855_RUNTIME_HOME
         WAS_JAVA_HOME=$WAS855_JAVA_HOME
-        WSADMIN_CLASS_PATH=${WAS855_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_8.5.0.jar:${WAS855_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto.jar
+        WSADMIN_CLASS_PATH=${WAS61_RUNTIME_HOME}/optionalLibraries/jython/jython.jar:${WAS855_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_8.5.0.jar:${WAS855_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto.jar
         JYTHON_VERSION=$WAS85_JYTHON_VERSION
     elif [ "$WAS_RUNTIME" == "was90" ] ; then
         WAS_HOME=$WAS90_RUNTIME_HOME
         WAS_JAVA_HOME=$WAS90_JAVA_HOME
-        WSADMIN_CLASS_PATH=${WAS90_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_9.0.jar:${WAS90_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto.jar
+        WSADMIN_CLASS_PATH=${WAS61_RUNTIME_HOME}/optionalLibraries/jython/jython.jar:${WAS90_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_9.0.jar:${WAS90_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto.jar
         JYTHON_VERSION=$WAS90_JYTHON_VERSION
     else
         err Unknown runtime $WAS_RUNTIME
         return 1
+    fi
+    if [ "$JYTHON_PATH" == "" ] ; then
+        JYTHON_PATH=${WAS_HOME}/optionalLibraries/jython/Lib
     fi
     return 0
 }
@@ -92,6 +95,7 @@ dir_runtimes() {
         err Unknown WAS runtime: ${WAS_RUNTIME}
         return 1
     fi
+    RUNTIME_NAME=${WAS_RUNTIME}
     return 0
 }
 
@@ -153,20 +157,20 @@ setup() {
         WDR_PROFILE=${WDR_HOME}/profile.py:${CUSTOM_PROFILE}
     fi
 
-    PYTHON_PATH=${WDR_HOME}/lib/common
+    JYTHON_PATH=${WDR_HOME}/lib/common
     if [ "${JYTHON_VERSION}" == "2.1" ]; then
         USE_JYTHON_21=true
-        PYTHON_PATH="${PYTHON_PATH}:${WDR_HOME}/lib/legacy"
+        JYTHON_PATH="${JYTHON_PATH}:/opt/IBM/WebSphere90/AppClient/optionalLibraries/jython21/Lib/:${WDR_HOME}/lib/legacy:."
     else
         USE_JYTHON_21=false
     fi
 
     if [[ -d ${HOME}/.wdr/lib ]] ; then
-        for lib in ${HOME}/.wdr/lib/* ; do PYTHON_PATH=${PYTHON_PATH}:${lib} ; done
+        for lib in ${HOME}/.wdr/lib/* ; do JYTHON_PATH=${JYTHON_PATH}:${lib} ; done
     fi
 
     if [ "${EXTRA_PYTHON_PATH}" != "" ] ; then
-        PYTHON_PATH="${PYTHON_PATH}:${EXTRA_PYTHON_PATH}"
+        JYTHON_PATH="${JYTHON_PATH}:${EXTRA_PYTHON_PATH}"
     fi
 
     rlwrap=`which rlwrap 2>/dev/null`
@@ -179,7 +183,7 @@ run_interactive() {
         "-Dcom.ibm.ws.scripting.usejython21=${USE_JYTHON_21}" \
         "-Dcom.ibm.ws.scripting.traceString=com.ibm.*=all=disabled" \
         "-Duser.root=${USER_ROOT}" \
-        "-Dpython.path=${PYTHON_PATH}" \
+        "-Dpython.path=${JYTHON_PATH}" \
         "-Dpython.cachedir=${JYTHON_CACHEDIR}" \
         "-Djava.io.tmpdir=${TMPDIR}" \
         "-Dwebsphere.workspace.root=${WORKSPACE}" \
@@ -208,7 +212,7 @@ run_script() {
         "-Dcom.ibm.ws.scripting.usejython21=${USE_JYTHON_21}" \
         "-Dcom.ibm.ws.scripting.traceString=com.ibm.*=all=disabled" \
         "-Duser.root=${USER_ROOT}" \
-        "-Dpython.path=${PYTHON_PATH}" \
+        "-Dpython.path=${JYTHON_PATH}" \
         "-Dpython.cachedir=${JYTHON_CACHEDIR}" \
         "-Djava.io.tmpdir=${TMPDIR}" \
         "-Dwebsphere.workspace.root=${WORKSPACE}" \

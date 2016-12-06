@@ -78,6 +78,9 @@ call :main %* & exit /b
         call :err  Unknown runtime %WAS_RUNTIME%
         exit /b 1
     )
+    if [%JYTHON_PATH%] == [] (
+        set JYTHON_PATH=%WAS_HOME%\optionalLibraries\jython\Lib
+    )
     exit /b 0
 
 
@@ -92,6 +95,7 @@ call :main %* & exit /b
         call :err  Unknown runtime %WAS_RUNTIME%
         exit /b 1
     )
+    set RUNTIME_NAME=%WAS_RUNTIME%
     exit /b 0
 
 
@@ -153,20 +157,20 @@ call :main %* & exit /b
         set WDR_PROFILE=%WDR_HOME%\profile.py;%CUSTOM_PROFILE%
     )
 
-    set PYTHON_PATH=%WDR_HOME%\lib\common
+    set JYTHON_PATH=%WDR_HOME%\lib\common
     if [%JYTHON_VERSION%] == [2.1] (
         set USE_JYTHON_21=true
-        set PYTHON_PATH=%PYTHON_PATH%;%WDR_HOME%\lib\legacy
+        set JYTHON_PATH=%JYTHON_PATH%;%WDR_HOME%\lib\legacy
     ) else (
         set USE_JYTHON_21=false
     )
 
     if exist %USERPROFILE%\.wdr\lib (
-        for /d %%L in (%USERPROFILE%\.wdr\lib\*) do set PYTHON_PATH=%PYTHON_PATH%;%%L
+        for /d %%L in (%USERPROFILE%\.wdr\lib\*) do set JYTHON_PATH=%JYTHON_PATH%;%%L
     )
 
     if [%EXTRA_PYTHON_PATH%] == [] (
-        set PYTHON_PATH=%PYTHON_PATH%;%EXTRA_PYTHON_PATH%
+        set JYTHON_PATH=%JYTHON_PATH%;%EXTRA_PYTHON_PATH%
     )
     exit /b &(
         set JAVA_HOME=%JAVA_HOME%
@@ -179,7 +183,7 @@ call :main %* & exit /b
         -Dcom.ibm.ws.scripting.usejython21=%USE_JYTHON_21% ^
         -Dcom.ibm.ws.scripting.traceString=com.ibm.*=all=disabled ^
         -Duser.root=%USER_ROOT:\=/% ^
-        -Dpython.path=%PYTHON_PATH% ^
+        -Dpython.path=%JYTHON_PATH% ^
         -Dpython.cachedir=%JYTHON_CACHEDIR% ^
         -Djava.io.tmpdir=%TMPDIR% ^
         -Dwebsphere.workspace.root=%WORKSPACE% ^
@@ -208,7 +212,7 @@ call :main %* & exit /b
         -Dcom.ibm.ws.scripting.usejython21=%USE_JYTHON_21% ^
         -Dcom.ibm.ws.scripting.traceString=com.ibm.*=all=disabled ^
         -Duser.root=%USER_ROOT:\=/% ^
-        -Dpython.path=%PYTHON_PATH% ^
+        -Dpython.path=%JYTHON_PATH% ^
         -Dpython.cachedir=%JYTHON_CACHEDIR% ^
         -Djava.io.tmpdir=%TMPDIR% ^
         -Dwebsphere.workspace.root=%WORKSPACE% ^
