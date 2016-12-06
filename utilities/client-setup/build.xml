@@ -21,98 +21,61 @@ c
 	</target>
 
 	<target name='config'>
-		<property file='${user.home}/wdr.jython.urls.properties' />
+		<property file='${user.home}/.wdr/wdr.jython.urls.properties' />
 		<property file='${basedir}/wdr.jython.urls.properties' />
+		<property environment="env" />
 	</target>
 
 	<target name='jython_pre9' description='Downloads and installs Jython 2.1 in a WAS pre-9 way' depends='check,config'>
 		<delete dir='${was.install.root}/optionalLibraries/jython' />
-		<mkdir dir='${was.install.root}/optionalLibraries/jython/Lib' />
-		<mkdir dir='${was.install.root}/optionalLibraries/jython/tmp' />
+		<mkdir dir='${was.install.root}/optionalLibraries/jython' />
 		<get
-			src='${wdr.jython21.bin}'
-			dest='${was.install.root}/optionalLibraries/jython/jython.jar' />
-		<get
-			src='${wdr.jython21.src}'
-			dest='${was.install.root}/optionalLibraries/jython/jython_src.zip' />
+			src='${wdr.jython21.installer}'
+			dest='${was.install.root}/optionalLibraries/jython21.class' />
 		<unzip
-			src='${was.install.root}/optionalLibraries/jython/jython_src.zip'
-			dest='${was.install.root}/optionalLibraries/jython/tmp'>
+			src='${was.install.root}/optionalLibraries/jython21.class'
+			dest='${was.install.root}/optionalLibraries/jython'>
 			<patternset>
-				<include name='jython-*/Lib/**' />
+				<include name='jython.jar' />
+				<include name='Lib/**' />
 			</patternset>
 		</unzip>
-		<copy
-			todir='${was.install.root}/optionalLibraries/jython/Lib'>
-			<fileset dir='${was.install.root}/optionalLibraries/jython/tmp'>
-				<include name='jython-*/Lib/**' />
-			</fileset>
-			<regexpmapper from='^jython-(.*)/Lib/(.*)$$' to='\2' />
-		</copy>
-		<delete dir='${was.install.root}/optionalLibraries/jython/tmp' />
+		<delete file='${was.install.root}/optionalLibraries/jython21.class' />
 	</target>
 
 	<target name='jython_9' description='Downloads and installs Jython 2.1 and 2.7 in a WAS 9 way' depends='check,config'>
 		<!-- Jython 2.7 -->
 		<delete dir='${was.install.root}/optionalLibraries/jython' />
-		<mkdir dir='${was.install.root}/optionalLibraries/jython/Lib' />
-		<mkdir dir='${was.install.root}/optionalLibraries/jython/tmp' />
+		<mkdir dir='${was.install.root}/optionalLibraries/jython' />
 		<get
-			src='${wdr.jython27.bin}'
-			dest='${was.install.root}/optionalLibraries/jython/jython.jar' />
-		<get
-			src='${wdr.jython27.src}'
-			dest='${was.install.root}/optionalLibraries/jython/jython_src.zip' />
-		<unzip
-			src='${was.install.root}/optionalLibraries/jython/jython_src.zip'
-			dest='${was.install.root}/optionalLibraries/jython/tmp'>
-			<patternset>
-				<include name='jython-*/Lib/**' />
-				<include name='jython-*/lib-python/**' />
-			</patternset>
-		</unzip>
-		<copy
-			todir='${was.install.root}/optionalLibraries/jython/Lib'>
-			<fileset dir='${was.install.root}/optionalLibraries/jython/tmp'>
-				<include name='jython-*/Lib/**' />
-			</fileset>
-			<regexpmapper from='^jython-(.*)/Lib/(.*)$$' to='\2' />
-		</copy>
-		<copy
-			todir='${was.install.root}/optionalLibraries/jython/Lib'>
-			<fileset dir='${was.install.root}/optionalLibraries/jython/tmp'>
-				<include name='jython-*/lib-python/*/**' />
-			</fileset>
-			<regexpmapper from='^jython-(.*)/lib-python/(.+?)/(.*)$$' to='\3' />
-		</copy>
-		<delete dir='${was.install.root}/optionalLibraries/jython/tmp' />
-		<delete file='${was.install.root}/optionalLibraries/jython/jython_src.zip' />
+			src='${wdr.jython27.installer}'
+			dest='${was.install.root}/optionalLibraries/jython_installer.jar' />
+		<java
+			jar='${was.install.root}/optionalLibraries/jython_installer.jar'
+			fork='true'>
+			<arg value='-s' />
+			<arg value='-d' />
+			<arg file='${was.install.root}/optionalLibraries/jython' />
+			<arg value='-t' />
+			<arg value='standard' />
+			<env key='PATH' path='${env.JAVA_HOME}/bin:${env.PATH}' />
+		</java>
+		<delete file='${was.install.root}/optionalLibraries/jython_installer.jar' />
 		<!-- Jython 2.1 -->
 		<delete dir='${was.install.root}/optionalLibraries/jython21' />
-		<mkdir dir='${was.install.root}/optionalLibraries/jython21/Lib' />
-		<mkdir dir='${was.install.root}/optionalLibraries/jython21/tmp' />
+		<mkdir dir='${was.install.root}/optionalLibraries/jython21' />
 		<get
-			src='${wdr.jython21.bin}'
-			dest='${was.install.root}/optionalLibraries/jython21/jython.jar' />
-		<get
-			src='${wdr.jython21.src}'
-			dest='${was.install.root}/optionalLibraries/jython21/jython_src.zip' />
+			src='${wdr.jython21.installer}'
+			dest='${was.install.root}/optionalLibraries/jython21.class' />
 		<unzip
-			src='${was.install.root}/optionalLibraries/jython21/jython_src.zip'
-			dest='${was.install.root}/optionalLibraries/jython21/tmp'>
+			src='${was.install.root}/optionalLibraries/jython21.class'
+			dest='${was.install.root}/optionalLibraries/jython21'>
 			<patternset>
-				<include name='jython-*/Lib/**' />
+				<include name='jython.jar' />
+				<include name='Lib/**' />
 			</patternset>
 		</unzip>
-		<copy
-			todir='${was.install.root}/optionalLibraries/jython21/Lib'>
-			<fileset dir='${was.install.root}/optionalLibraries/jython21/tmp'>
-				<include name='jython-*/Lib/**' />
-			</fileset>
-			<regexpmapper from='^jython-(.*)/Lib/(.*)$$' to='\2' />
-		</copy>
-		<delete dir='${was.install.root}/optionalLibraries/jython21/tmp' />
-		<delete file='${was.install.root}/optionalLibraries/jython21/jython_src.zip' />
+		<delete file='${was.install.root}/optionalLibraries/jython21.class' />
 	</target>
 
 </project>
