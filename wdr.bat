@@ -78,9 +78,6 @@ call :main %* & exit /b
         call :err  Unknown runtime %WAS_RUNTIME%
         exit /b 1
     )
-    if [%JYTHON_PATH%] == [] (
-        set JYTHON_PATH=%WAS_HOME%\optionalLibraries\jython\Lib
-    )
     exit /b 0
 
 
@@ -107,6 +104,9 @@ call :main %* & exit /b
     )
     if [%WAS_JAVA_HOME%] == [] (
         set WAS_JAVA_HOME=%WAS_HOME%\java
+    )
+    if [%JYTHON_PATH%] == [] (
+        set JYTHON_PATH=%WAS_HOME%\optionalLibraries\jython\Lib
     )
     exit /b
 
@@ -157,7 +157,7 @@ call :main %* & exit /b
         set WDR_PROFILE=%WDR_HOME%\profile.py;%CUSTOM_PROFILE%
     )
 
-    set JYTHON_PATH=%WDR_HOME%\lib\common
+    set JYTHON_PATH=%JYTHON_PATH%;%WDR_HOME%\lib\common
     if [%JYTHON_VERSION%] == [2.1] (
         set USE_JYTHON_21=true
         set JYTHON_PATH=%JYTHON_PATH%;%WDR_HOME%\lib\legacy
@@ -172,6 +172,7 @@ call :main %* & exit /b
     if [%EXTRA_PYTHON_PATH%] == [] (
         set JYTHON_PATH=%JYTHON_PATH%;%EXTRA_PYTHON_PATH%
     )
+    set JYTHON_PATH=%JYTHON_PATH%;.
     exit /b &(
         set JAVA_HOME=%JAVA_HOME%
     )

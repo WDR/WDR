@@ -78,9 +78,6 @@ file_runtimes() {
         err Unknown runtime $WAS_RUNTIME
         return 1
     fi
-    if [ "$JYTHON_PATH" == "" ] ; then
-        JYTHON_PATH=${WAS_HOME}/optionalLibraries/jython/Lib
-    fi
     return 0
 }
 
@@ -107,6 +104,9 @@ runtimes() {
     fi
     if [ "${WAS_JAVA_HOME}" == "" ] ; then
         WAS_JAVA_HOME=${WAS_HOME}/java
+    fi
+    if [ "$JYTHON_PATH" == "" ] ; then
+        JYTHON_PATH=${WAS_HOME}/optionalLibraries/jython/Lib
     fi
     return 0
 }
@@ -157,10 +157,10 @@ setup() {
         WDR_PROFILE=${WDR_HOME}/profile.py:${CUSTOM_PROFILE}
     fi
 
-    JYTHON_PATH=${WDR_HOME}/lib/common
+    JYTHON_PATH=${JYTHON_PATH}:${WDR_HOME}/lib/common
     if [ "${JYTHON_VERSION}" == "2.1" ]; then
         USE_JYTHON_21=true
-        JYTHON_PATH="${JYTHON_PATH}:/opt/IBM/WebSphere90/AppClient/optionalLibraries/jython21/Lib/:${WDR_HOME}/lib/legacy:."
+        JYTHON_PATH="${JYTHON_PATH}:${WDR_HOME}/lib/legacy"
     else
         USE_JYTHON_21=false
     fi
@@ -172,6 +172,7 @@ setup() {
     if [ "${EXTRA_PYTHON_PATH}" != "" ] ; then
         JYTHON_PATH="${JYTHON_PATH}:${EXTRA_PYTHON_PATH}"
     fi
+    JYTHON_PATH="${JYTHON_PATH}:."
 
     rlwrap=`which rlwrap 2>/dev/null`
     return 0
