@@ -342,7 +342,7 @@ def j2c():
                 d(attribute='authDataAlias'),
                 d(attribute='authMechanismPreference'),
                 d(attribute='category'),
-                d(ref='connectionDefinition'),
+                d(attribute='connectionDefinition'),
                 d(attribute='connectionPool'),
                 d(attribute='customProperties'),
                 d(attribute='description'),
