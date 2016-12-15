@@ -52,27 +52,27 @@ file_runtimes() {
     elif [ "$WAS_RUNTIME" == "was70" ] ; then
         WAS_HOME=$WAS70_RUNTIME_HOME
         WAS_JAVA_HOME=$WAS70_JAVA_HOME
-        WSADMIN_CLASS_PATH=${WAS61_RUNTIME_HOME}/optionalLibraries/jython/jython.jar:${WAS70_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_7.0.0.jar:${WAS70_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto.jar
+        WSADMIN_CLASS_PATH=${WAS70_RUNTIME_HOME}/optionalLibraries/jython/jython.jar:${WAS70_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_7.0.0.jar:${WAS70_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto.jar
         JYTHON_VERSION=$WAS70_JYTHON_VERSION
     elif [ "$WAS_RUNTIME" == "was80" ] ; then
         WAS_HOME=$WAS80_RUNTIME_HOME
         WAS_JAVA_HOME=$WAS80_JAVA_HOME
-        WSADMIN_CLASS_PATH=${WAS61_RUNTIME_HOME}/optionalLibraries/jython/jython.jar:${WAS80_JAVA_HOME}/runtimes/com.ibm.ws.admin.client_8.0.0.jar:${WAS80_JAVA_HOME}/plugins/com.ibm.ws.security.crypto.jar
+        WSADMIN_CLASS_PATH=${WAS80_RUNTIME_HOME}/optionalLibraries/jython/jython.jar:${WAS80_JAVA_HOME}/runtimes/com.ibm.ws.admin.client_8.0.0.jar:${WAS80_JAVA_HOME}/plugins/com.ibm.ws.security.crypto.jar
         JYTHON_VERSION=$WAS80_JYTHON_VERSION
     elif [ "$WAS_RUNTIME" == "was85" ] ; then
         WAS_HOME=$WAS85_RUNTIME_HOME
         WAS_JAVA_HOME=$WAS85_JAVA_HOME
-        WSADMIN_CLASS_PATH=${WAS61_RUNTIME_HOME}/optionalLibraries/jython/jython.jar:${WAS85_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_8.5.0.jar:${WAS85_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto.jar
+        WSADMIN_CLASS_PATH=${WAS85_RUNTIME_HOME}/optionalLibraries/jython/jython.jar:${WAS85_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_8.5.0.jar:${WAS85_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto.jar
         JYTHON_VERSION=$WAS85_JYTHON_VERSION
     elif [ "$WAS_RUNTIME" == "was855" ] ; then
         WAS_HOME=$WAS855_RUNTIME_HOME
         WAS_JAVA_HOME=$WAS855_JAVA_HOME
-        WSADMIN_CLASS_PATH=${WAS61_RUNTIME_HOME}/optionalLibraries/jython/jython.jar:${WAS855_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_8.5.0.jar:${WAS855_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto.jar
+        WSADMIN_CLASS_PATH=${WAS855_RUNTIME_HOME}/optionalLibraries/jython/jython.jar:${WAS855_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_8.5.0.jar:${WAS855_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto.jar
         JYTHON_VERSION=$WAS85_JYTHON_VERSION
     elif [ "$WAS_RUNTIME" == "was90" ] ; then
         WAS_HOME=$WAS90_RUNTIME_HOME
         WAS_JAVA_HOME=$WAS90_JAVA_HOME
-        WSADMIN_CLASS_PATH=${WAS61_RUNTIME_HOME}/optionalLibraries/jython/jython.jar:${WAS90_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_9.0.jar:${WAS90_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto.jar
+        WSADMIN_CLASS_PATH=${WAS90_RUNTIME_HOME}/optionalLibraries/jython/jython.jar:${WAS90_RUNTIME_HOME}/runtimes/com.ibm.ws.admin.client_9.0.jar:${WAS90_RUNTIME_HOME}/plugins/com.ibm.ws.security.crypto.jar
         JYTHON_VERSION=$WAS90_JYTHON_VERSION
     else
         err Unknown runtime $WAS_RUNTIME
@@ -105,8 +105,12 @@ runtimes() {
     if [ "${WAS_JAVA_HOME}" == "" ] ; then
         WAS_JAVA_HOME=${WAS_HOME}/java
     fi
+    if [ "$JYTHON_HOME" == "" ] ; then
+        JYTHON_HOME=${WAS_HOME}/optionalLibraries/jython
+    fi
     if [ "$JYTHON_PATH" == "" ] ; then
-        JYTHON_PATH=${WAS_HOME}/optionalLibraries/jython/Lib
+        JYTHON_PATH=${JYTHON_HOME}/Lib
+        JYTHON_PATH=${JYTHON_PATH}:${JYTHON_HOME}/Lib/site-packages
     fi
     return 0
 }
@@ -185,6 +189,7 @@ run_interactive() {
         "-Dcom.ibm.ws.scripting.traceString=com.ibm.*=all=disabled" \
         "-Duser.root=${USER_ROOT}" \
         "-Dpython.path=${JYTHON_PATH}" \
+        "-Dpython.home=${JYTHON_HOME}" \
         "-Dpython.cachedir=${JYTHON_CACHEDIR}" \
         "-Djava.io.tmpdir=${TMPDIR}" \
         "-Dwebsphere.workspace.root=${WORKSPACE}" \
@@ -214,6 +219,7 @@ run_script() {
         "-Dcom.ibm.ws.scripting.traceString=com.ibm.*=all=disabled" \
         "-Duser.root=${USER_ROOT}" \
         "-Dpython.path=${JYTHON_PATH}" \
+        "-Dpython.home=${JYTHON_HOME}" \
         "-Dpython.cachedir=${JYTHON_CACHEDIR}" \
         "-Djava.io.tmpdir=${TMPDIR}" \
         "-Dwebsphere.workspace.root=${WORKSPACE}" \

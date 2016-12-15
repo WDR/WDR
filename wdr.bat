@@ -105,8 +105,12 @@ call :main %* & exit /b
     if [%WAS_JAVA_HOME%] == [] (
         set WAS_JAVA_HOME=%WAS_HOME%\java
     )
+    if [%JYTHON_HOME%] == [] ; then
+        set JYTHON_HOME=%WAS_HOME%/optionalLibraries/jython
+    fi
     if [%JYTHON_PATH%] == [] (
-        set JYTHON_PATH=%WAS_HOME%\optionalLibraries\jython\Lib
+        set JYTHON_PATH=%JYTHON_HOME%\Lib
+        set JYTHON_PATH=%JYTHON_PATH%;%JYTHON_HOME%\Lib\site-packages
     )
     exit /b
 
@@ -185,6 +189,7 @@ call :main %* & exit /b
         -Dcom.ibm.ws.scripting.traceString=com.ibm.*=all=disabled ^
         -Duser.root=%USER_ROOT:\=/% ^
         -Dpython.path=%JYTHON_PATH% ^
+        -Dpython.home=%JYTHON_HOME% \
         -Dpython.cachedir=%JYTHON_CACHEDIR% ^
         -Djava.io.tmpdir=%TMPDIR% ^
         -Dwebsphere.workspace.root=%WORKSPACE% ^
@@ -214,6 +219,7 @@ call :main %* & exit /b
         -Dcom.ibm.ws.scripting.traceString=com.ibm.*=all=disabled ^
         -Duser.root=%USER_ROOT:\=/% ^
         -Dpython.path=%JYTHON_PATH% ^
+        -Dpython.home=%JYTHON_HOME% \
         -Dpython.cachedir=%JYTHON_CACHEDIR% ^
         -Djava.io.tmpdir=%TMPDIR% ^
         -Dwebsphere.workspace.root=%WORKSPACE% ^
