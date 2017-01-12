@@ -168,6 +168,19 @@ class VariableSubstitutionWithFilteringTest(unittest.TestCase):
             )
         )
 
+    def testFilterChaining(self):
+        self.assertEquals(
+            'Hello JOHN SMITH!',
+            substituteVariables(
+                'Hello $[name|join|upper]!',
+                {
+                    'name': ['John', 'Smith'],
+                    'join': string.join,
+                    'upper': string.upper,
+                }
+            )
+        )
+
     def testListWithLambdaOnList(self):
         self.assertEquals(
             'deploymentTargets are '

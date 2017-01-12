@@ -56,14 +56,12 @@ _variablePattern = re.compile(
     r'\$\['
     r'\s*'
     r'(?P<var>[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)'
+    r'(?P<filter>'
     r'(?:'
-    + (
-        r'\s*'
-        r'\|'
-        r'\s*'
-        r'(?P<filter>[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)'
-    ) +
-    r')?'
+        r'\s*\|\s*'
+        r'(?:[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)'
+    r')*'
+    r')'
     r'\s*'
     r'\]')
 _appNamePattern = re.compile(
@@ -90,6 +88,27 @@ def _defaultFilter(value):
         return str(value)
 
 
+def _processFilter(value, filterExpression, variables):
+    filter = _defaultFilter
+    context = variables
+    try:
+        for seg in filterExpression.split('.'):
+            filter = context[seg]
+            if isinstance(filter, DictType):
+                context = filter
+    except KeyError:
+        raise KeyError(filterExpression)
+    return filter(value)
+
+
+def _processFilters(value, filterExpression, variables):
+    if filterExpression is not None:
+        for f in [s.strip() for s in filterExpression.split('|')]:
+            if f:
+                value = _processFilter(value, f, variables)
+    return value
+
+
 def _lookupVariable(expression, filterExpression, variables):
     value = None
     context = variables
@@ -102,17 +121,7 @@ def _lookupVariable(expression, filterExpression, variables):
         raise KeyError(expression)
     if callable(value):
         value = value(expression, variables)
-    filter = _defaultFilter
-    if filterExpression is not None:
-        context = variables
-        try:
-            for seg in filterExpression.split('.'):
-                filter = context[seg]
-                if isinstance(filter, DictType):
-                    context = filter
-        except KeyError:
-            raise KeyError(filterExpression)
-    return filter(value)
+    return _defaultFilter(_processFilters(value, filterExpression, variables))
 
 
 def substituteVariables(value, variables):
