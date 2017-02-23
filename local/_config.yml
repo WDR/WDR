@@ -1,4 +1,4 @@
-highlighter: pygments
+highlighter: rouge
 markdown: kramdown
 
 title : WDR
@@ -7,6 +7,7 @@ keywords: WebSphere,wsadmin,Jython,automation,DevOps
 
 disclaimer: All trademarks belong to their respective owners
 
+source: '..'
 baseurl: ''
 url: http://localhost:4000
 

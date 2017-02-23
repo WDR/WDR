@@ -54,8 +54,7 @@ In multiple areas, the manifests address the complexity and change-management is
 
 Application & configuration manifests are tab-indented text files. They can be imported into WAS environment using [importApplicationManifest](reference/wdr.manifest.importApplicationManifest.html) or [importConfigurationManifest](reference/wdr.manifest.importConfigurationManifest.html) functions. Manifests may contain variable references, the actual values of these variables are being expanded during the import process.
 
-> WDR manifests MUST be tab-indented.
-> The design decision to not use YAML, JSON or other standard format was dictated by [Jython 2.1](jython21.html) being the only version installed and supported WAS by default.
+> WDR manifests MUST be tab-indented. Check [Jython 2.1](jython21.html) page to understand why.
 
 # Application manifests
 

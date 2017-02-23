@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Jython 2.1 and wsadmin
+title: Jython 2.1, wsadmin and WDR
 ---
 
 # Jython 2.1 is obsolete, yet supported
