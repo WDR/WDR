@@ -55,9 +55,7 @@ In multiple areas, the manifests address the complexity and change-management is
 Application & configuration manifests are tab-indented text files. They can be imported into WAS environment using [importApplicationManifest](reference/wdr.manifest.importApplicationManifest.html) or [importConfigurationManifest](reference/wdr.manifest.importConfigurationManifest.html) functions. Manifests may contain variable references, the actual values of these variables are being expanded during the import process.
 
 > WDR manifests MUST be tab-indented.
-> The design decision to not use YAML, JSON or other standard format was dictated by [Jython 2.1](jython21.html) being installed with WAS by default.
-> The choice of supported text-processing libraries is very limited in that version of Jython.
-> > Actually, there is no choice. One must develop a parser from scratch in Jython 2.1. Nobody supports Python 2.1 & Jython 2.1 anymore.
+> The design decision to not use YAML, JSON or other standard format was dictated by [Jython 2.1](jython21.html) being the only version installed and supported WAS by default.
 
 # Application manifests
 
@@ -108,25 +106,25 @@ An example application manifest may look as follows
     	MapModulesToServers
     		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;$[deploymentTargets]
     		Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[deploymentTargets]+$[webServers]
-    	noprocessEmbeddedConfig 
+    	noprocessEmbeddedConfig
     	DataSourceFor20EJBModules
     		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;jdbc/DefaultEJBTimerDataSource;cmpBinding.perConnectionFactory;;;
-    	nouseAutoLink 
-    	distributeApp 
-    	noreloadEnabled 
+    	nouseAutoLink
+    	distributeApp
+    	noreloadEnabled
     	asyncRequestDispatchType DISABLED
     	validateinstall warn
-    	noallowDispatchRemoteInclude 
-    	noallowServiceRemoteInclude 
+    	noallowDispatchRemoteInclude
+    	noallowServiceRemoteInclude
     	MapRolesToUsers
     		All Role;AppDeploymentOption.No;AppDeploymentOption.No;;;AppDeploymentOption.Yes;;
-    	nodeployws 
-    	nouseMetaDataFromBinary 
-    	nodeployejb 
-    	createMBeansForResources 
+    	nodeployws
+    	nouseMetaDataFromBinary
+    	nodeployejb
+    	createMBeansForResources
     	MapWebModToVH
     		Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[virtualHost]
-    	nopreCompileJSPs 
+    	nopreCompileJSPs
 
 ### Application name and path to application archive
 
@@ -207,7 +205,7 @@ Subsequent lines contain standard installation/update options. All the values su
 
 The simplest category of option is a no-value flag:
 
-    	nodeployejb 
+    	nodeployejb
 
 Some option may have single values:
 
@@ -243,32 +241,32 @@ The complete example with options, special options, variables and comments may l
     	# list values are separated with semicolons, empty values must be provided
     	DataSourceFor20CMPBeans
     		Increment EJB module;Increment;Increment.jar,META-INF/ejb-jar.xml;jdbc/DefaultEJBTimerDataSource;cmpBinding.perConnectionFactory;;
-    	# atomic (non-list) values are specified after the 
+    	# atomic (non-list) values are specified after the
     	filepermission .*\.dll=755#.*\.so=755#.*\.a=755#.*\.sl=755
     	# some options accept list of lists, please note variable references
     	MapModulesToServers
     		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;$[deploymentTargets]
     		Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[deploymentTargets]+$[webServers]
     	# an option without a value:
-    	noprocessEmbeddedConfig 
+    	noprocessEmbeddedConfig
     	DataSourceFor20EJBModules
     		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;jdbc/DefaultEJBTimerDataSource;cmpBinding.perConnectionFactory;;;
-    	nouseAutoLink 
-    	distributeApp 
-    	noreloadEnabled 
+    	nouseAutoLink
+    	distributeApp
+    	noreloadEnabled
     	asyncRequestDispatchType DISABLED
     	validateinstall warn
-    	noallowDispatchRemoteInclude 
-    	noallowServiceRemoteInclude 
+    	noallowDispatchRemoteInclude
+    	noallowServiceRemoteInclude
     	MapRolesToUsers
     		All Role;AppDeploymentOption.No;AppDeploymentOption.No;;;AppDeploymentOption.Yes;;
-    	nodeployws 
-    	nouseMetaDataFromBinary 
-    	nodeployejb 
-    	createMBeansForResources 
+    	nodeployws
+    	nouseMetaDataFromBinary
+    	nodeployejb
+    	createMBeansForResources
     	MapWebModToVH
     		Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[virtualHost]
-    	nopreCompileJSPs 
+    	nopreCompileJSPs
 
 # Configuration manifests
 
@@ -294,7 +292,7 @@ When authoring configuration manifests, you will find `WebSphere Application And
 
 ## Configuration manifest syntax
 
-The configuration objects 
+The configuration objects
 
     RootObjectType1
     	*keyAttr1 key1
