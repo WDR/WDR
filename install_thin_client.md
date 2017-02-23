@@ -3,121 +3,350 @@ layout: page
 title: WDR installation with WebSphere Thin Client
 ---
 
-Thin-client-based installation, although it is more complicated than the [server-side one](install_server.html), it has several strong advantages and is generally preferred for more complex environments, especially when you need to manage multiple WAS instances from one location:
+Thin-client-based installation, although more complicated than the
+[server-side one](install_server.html), can be a better choice in certain cases,
+especially when multiple WAS cells need to be managed from one location, like a
+Continuous Integration / Continuous Delivery server. The advantages of
+client-side installation are:
 
-* The installation package is being managed independently from your server software. You should be able to install the latest WAS FixPack on top of your WebSphere Application Client even if some of your servers are still some FixPack levels behind for some reason.
+* No need to pay licence fees for management node
 
-* Most probably you do not have to pay for WebSphere licence as long as you use WebSphere client for managing your licensed WAS installations.
+* Client binaries are being managed independently from server software.
+  WebSphere Client can be updated to a latest fixpacks, even if some servers
+  have to remain a one or two FixPack levels behind
 
-  * You must check this with a lawyer. Thin client requires 2 JAR files from WAS server installation which implement wsadmin functionality.
+* A possibility to choose Jython and Java version on the management node,
+  without impacting the runtime environment.
 
-* You can choose which version of Jython you want to use on your management node. Installing newer version of Jython simply cannot impact your server binaries. The benefits of using newer version of Jython should not be underestimated and have been described on [Jython 2.1 and wsadmin](jython21.html) page.
+# How clent-based setup works
 
-Most of `wsadmin` simple installations use `wsadmin.<bat|sh>` script provided by WebSphere Application Server (and derived products). Another way of setting up `wsadmin` was described by Peter Van Sickel in [Using the latest Jython with a WebSphere Application Server wsadmin thin client](http://www.ibm.com/developerworks/websphere/library/techarticles/1207_vansickel/1207_vansickel.html) in IBM developerWorks. WDR can be also used with such setup, it is actually the recommended way of installing WDR.
+The client-based setup uses `wdr.<sh|bat>` launcher script which essentialy
+replaces the `wsadmin.<sh|bat>` script known from server-side setup.
+
+The launcher script uses the following syntax on Linux/Unix systems:
+
+```sh
+${WDR_HOME}/wdr.sh <runtime> <environment> [jython_script] [script_arguments]
+```
+
+... and a similar one on Windows:
+
+```bat
+%WDR_HOME%\wdr.bat <runtime> <environment> [jython_script] [script_arguments]
+```
+
+The `<runtime>` is an alias that maps to a version of WAS client installed
+locally. The definition of that alias consists of installation path, Java SDK
+path, Jython version information and path to Jython implementation on disk.
+Usually it has values like "was85", "was90" or "was90_jython21".
+
+The `<environment>` is an easy to recall an meaningful name for WAS environment
+being managed by WDR. Under the covers, the "environments" is a directory
+containing a set of *.properties files, which point WDR to the managed server.
+
+Subequent paragraphs describe the steps necessary to install and configure WDR,
+runtimes and environments.
 
 # Installation steps
 
-The major installation steps include:
+In a nutshell:
 
-* Installing WebSphere Application client (together with FixPacks)
+* Installing WebSphere Application Client, together with FixPacks
 
-* Setting up Jython in Application Client by either of these two ways:
+* Installing WDR itself
 
-  * Copying Jython from WebSphere server binaries
+* Extending WAS client with Jython
 
-  * Installing latest Jython
+* Configuring aliases for installed WAS clients (aka. runtimes) in WDR
 
-* Configuring installed WAS runtimes in WDR
-
-* Configuring access to your WAS environments
+* Configuring access to WAS servers (aka. environments)
 
 ## Installing WebSphere Application Client
 
-You must download the "GA" release of Application Client installation package from IBM Passport Advantage. It is recommended to install the latest FixPack on top of Application Client, even if your servers are not at the same FixPack level.
+The installation will require:
 
-If your environment consists of multiple releases of WebSphere Application Server, you will need to install corresponding Application Client releases on your management node.
+* Installation images for "GA" version - available from Passport Advantage
 
-See official IBM documentation for detailed installation instructions.
+* FixPack - available from IBM Support Portal
 
-## Getting the required files
+Please use official IBM documentation for detailed installation instructions and
+troubleshootning.
 
-WebSphere Application Client installation can be extended with extra JAR files at install time with Installation Manager by selecting "Stand alone thin clients, resources adapters and embeddable containers" or after the installation by choosing to modify the product in Installation Manager and ensure that "Stand alone thin clients, resources adapters and embeddable containers" checkbox is checked and the changes are applied. This will leave you with all but a missing copy of Jython. You may copy it either from an existing Application Server or install a later version of Jython to the ``<APPCLIENT_HOME>/optionalLibraies`` folder.
+### Obtaining installation images
 
-If you do not wish to install the Application Client and would like to build your own thin client, detailed instruction on currently supported releases of Administration Thin Client are available at folowing links:
+Follow release-specific instruction to download installation images (the package
+you need is usually called "WAS Supplements") for versions
+[6.1](http://www-01.ibm.com/support/docview.wss?uid=swg27007645),
+[7.0](http://www-01.ibm.com/support/docview.wss?uid=swg27012960),
+[8.0](http://www-01.ibm.com/support/docview.wss?uid=swg27021166),
+[8.5](http://www-01.ibm.com/support/docview.wss?uid=swg27024154),
+[8.5.5](http://www-01.ibm.com/support/docview.wss?uid=swg27038624),
+[9.0](http://www-01.ibm.com/support/docview.wss?uid=swg27048323).
 
-* [WAS v8.5 - Using the Administration Thin Client](http://pic.dhe.ibm.com/infocenter/wasinfo/v8r5/topic/com.ibm.websphere.nd.doc/ae/txml_adminclient.html)
+### Admin Client installation
 
-* [WAS v8.0 - Using the Administration Thin Client](http://pic.dhe.ibm.com/infocenter/wasinfo/v8r0/topic/com.ibm.websphere.nd.doc/info/ae/ae/txml_adminclient.html)
+Thin Client installation comes with GUI, console and silent installers. This
+installation instruction focuses on silent install.
 
-* [WAS v7.0 - Using the Administration Thin Client](http://pic.dhe.ibm.com/infocenter/wasinfo/v7r0/topic/com.ibm.websphere.nd.doc/info/ae/ae/txml_adminclient.html)
+#### WAS 6.1 client
 
-* [WAS v6.1 - Using the Administration Thin Client](http://pic.dhe.ibm.com/infocenter/wasinfo/v6r1/topic/com.ibm.websphere.nd.doc/info/ae/ae/txml_adminclient.html)
+In the first step, create a response file and save it to
+`/root/was61client.rsp`. Feel free to customize installation settings:
 
-WDR requires "Administration Thin Client" setup. It also provides you with a convenient Apache Ant script for packing and unpacking of all necessary dependencies. The script is located in ``<WDR_HOME>/utilities/client-setup/build.xml``.
+```
+-OPT silentInstallLicenseAcceptance="true"
+-OPT allowNonRootSilentInstall="false"
+-OPT disableOSPrereqChecking="true"
+-OPT disableNonBlockingPrereqChecking="true"
+-OPT setupTypeUnix="custom"
+-OPT installLocation="/opt/IBM/WebSphere/AppClient61"
+-OPT selectJ2eeClient="true"
+-OPT selectJ2eeSamples="false"
+-OPT selectIBMSdk="true"
+-OPT selectWsThinClient="true"
+-OPT selectAdminThinClient="true"
+-OPT serverHostname="localhost"
+-OPT serverPort="2809"
+```
 
-The script needs to be executed on the server side once (you need to cd to the directory containing ``build.xml`` file mentioned above):
+Having the response file, run the following command in the directory where
+you extracted the installation image:
 
-    <WAS_HOME>/bin/ws_ant.<bat|sh> pack
+```
+./install -options "/root/was61client.rsp" -silent
+```
 
-All required artifacts will be compressed into ``was_admin_jars.zip`` and ``was_jython.zip``. You will need to transfer these zip files to your client machine and run the scirpt again. The zip files from server machine need to reside in the same directory as ``build.xml`` file, you also need to cd to that directory:
+#### WAS 7.0 client
 
-    <WAS_CLIENT_HOME>/bin/ws_ant.<bat|sh> unpack
+Similarly to WAS 6.1 client, create a response file and save it in
+`/root/was70client.rsp`:
 
-_Licensing implications of using Administration Thin Client are unknown. If you are aware of any documents regarding that, please open an issue in GitHub against WDR documentation._
+```
+-OPT silentInstallLicenseAcceptance="true"
+-OPT allowNonRootSilentInstall="false"
+-OPT disableOSPrereqChecking="true"
+-OPT disableNonBlockingPrereqChecking="true"
+-OPT setupTypeUnix="custom"
+-OPT installLocation="{{ was70client.root }}"
+-OPT selectJ2eeClient="true"
+-OPT selectJ2eeSamples="false"
+-OPT selectIBMSdk="true"
+-OPT selectThinClients="true"
+-OPT selectThinClientsSamples="false"
+-OPT selectAdminThinClient="true"
+-OPT serverHostname="localhost"
+-OPT serverPort="2809"
+```
+
+Then run the following command from the directory where installation image was
+extracted:
+
+```
+./install -options "/root/was70client.rsp" -silent
+```
+
+#### WAS 8.0 client
+
+From WAS 8.0 onwards, the installation is being done using IBM Installation
+Manager. Use the following command to install WAS 8.0 client. Replace
+`<WAS_8_0_CLIENT_URL>` with the URL or path to a directory where the
+installation image was extracted.
+
+```
+/opt/IBM/InstallationManager/eclipse/tools/imcl install \
+        com.ibm.websphere.APPCLIENT.v80,javaee.thinclient.core.feature,javaruntime,developerkit,standalonethinclient.resourceadapter.runtime,embeddablecontainer \
+        -repositories <WAS_8_0_CLIENT_URL> \
+        -installationDirectory /opt/IBM/WebSphere/AppClient80 \
+        -acceptLicense \
+        -properties user.appclient.serverHostname=localhost,user.appclient.serverPort=2809 \
+        -preferences com.ibm.cic.common.core.preferences.preserveDownloadedArtifacts=false
+```
+
+#### WAS 8.5 or 8.5.5 client
+
+Similarly to WAS 8.0 client, use this command to install 8.5/8.5.5 client,
+replacing `<WAS_8_0_CLIENT_URL>` with the URL or directory where installation
+image was extracted.
+
+```
+/opt/IBM/InstallationManager/eclipse/tools/imcl install \
+    com.ibm.websphere.APPCLIENT.v85,javaee.thinclient.core.feature,javaruntime,developerkit,standalonethinclient.resourceadapter.runtime,embeddablecontainer \
+    -repositories <WAS_8_0_CLIENT_URL> \
+    -installationDirectory /opt/IBM/WebSphere/AppClient85 \
+    -acceptLicense \
+    -properties user.appclient.serverHostname=localhost,user.appclient.serverPort=2809 \
+    -preferences com.ibm.cic.common.core.preferences.preserveDownloadedArtifacts=false
+```
+
+#### WAS 9.0 client
+
+Just like in cae of WAS 8.0 client above, run this command to install WAS 9.0
+client, replacing `<WAS_9_0_CLIENT_URL>` `<SDK_8_0_URL>` with the URLs or
+directories where installation images for WAS Client and SDK were extracted.
+
+```
+/opt/IBM/InstallationManager/eclipse/tools/imcl install \
+    com.ibm.websphere.APPCLIENT.v90,javaee.thinclient.core.feature,standalonethinclient.resourceadapter.runtime,embeddablecontainer \
+    com.ibm.java.jdk.v8,com.ibm.sdk.8 \
+    -repositories <WAS_9_0_CLIENT_URL>,<SDK_8_0_URL> \
+    -installationDirectory /opt/IBM/WebSphere/AppClient90 \
+    -acceptLicense \
+    -properties user.appclient.serverHostname=localhost,user.appclient.serverPort=2809 \
+    -preferences com.ibm.cic.common.core.preferences.preserveDownloadedArtifacts=false
+```
+
+#### Linux-specific pre-requisites
+
+Linux distrubution, including the most popular ones, may not install some
+prerequisites by default. WebSphere installers tend to fail in such situation in
+a cryptic way. Therefore it might be a good idea to install those prerequisites
+upfront.
+
+For RedHat-based systems (RHEL, CentOS, Fedora) `compat-libstdc++-33` library
+is required.
+
+The dependency can be added to 64-bit OS using this command:
+
+```sh
+sudo yum install compat-libstdc++-33.x86_64
+```
+
+On a 32-bit system or when installing 32-bit flavour of the client on a 64-bit
+OS, the command looks as follows:
+
+```sh
+sudo yum install name=compat-libstdc++-33.i686
+```
+
+Debian-based systems (including Ubuntu and other relatives) will require
+`gcc-multilib` library:
+
+```sh
+sudo apt-get install gcc-multilib
+```
+
+Ubuntu uses `dash` as the default shell, but WebSphere scripts are not
+compatible with this shell and fail in a cryptic way. The default shell can be
+changed to `bash` using this command:
+
+```sh
+sudo update-alternatives --install /bin/sh sh /bin/bash 100
+```
+
+## Installing WDR
+
+Installing WDR means essentially getting the source code from git repository on
+GitHub. There are two ways to achieve that:
+
+* cloning the repository
+
+```sh
+git clone https://github.com/WDR/WDR.git
+```
+
+* downloading the [snaphot](https://github.com/WDR/WDR/archive/master.zip) and
+  extracting it
+
+From now on, the directory where WDR repo was cloned or the archive extracted to
+will be referred to as *WDR_HOME*.
+
+## Installing Jython
+
+WebSphere client does not set up Jython, so the installation needs to be done
+explicitly. The easiest way to install Jython is to use WDR-provided script,
+which works identically between hardware/OS platforms.
+
+The recipe differs slightly between WAS clients version 9.0+ and previous
+versions, due to the fact that prior to WAS 9 only Jython 2.1 was supported.
+
+So, for WAS 6.1, 7.0, 8.0, 8.5 and 8.5.5 the installation is done using this way:
+
+```sh
+${WAS_CLIENT_HOME}/bin/ws_ant.sh -f ${WDR_HOME}/utilities/client-setup/build.xml jython
+```
+
+For WAS 9.0 and newer, Jython is installed like this:
+
+```sh
+${WAS_CLIENT_HOME}/bin/ws_ant.sh -f ${WDR_HOME}/utilities/client-setup/build.xml jython_9
+```
+
+The installation may take a little while depending on internet connection speed.
+
+### Troubleshootning and sppeding up Jython installation
+
+The installer downloads Jython distributions from public Maven repository. In
+case of any issues with this download (no Internet access, slow link, firewall,
+etc.), the installer can make use custom URLs for downloads. The URLs can be
+configured in `~/.wdr/wdr.jython.urls.properties` file. The template can be
+copied from `${WDR_HOME}/utilities/client-setup/wdr.jython.urls.properties`. The
+installer may also use proxy, which can be configured via *ANT_OPTS* variable.
+
+On Linux/Unix:
+
+```sh
+export ANT_OPTS="-Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080"
+```
+
+On Windows:
+
+```bat
+set ANT_OPTS="-Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080"
+```
 
 ## Configuring installed WAS runtimes in WDR
 
-WDR can work with multiple runtimes coexisting on the same machine. The only thing you need to configure in your WDR installation is to copy ``<WDR_HOME>/runtimes.default.<bat|sh>`` into ``<WDR_HOME>/runtimes.<bat|sh>`` and modify paths accordingly.
+WDR can utilize multiple WAS client installations coexisting on the same machine
+in order to connect to different versions of WAS. WAS clients are called
+*runtimes* in WDR terminology. WDR needs to know where WAS clients were
+installed in order to make use of them.
 
-Should you decide to use newer version of Jython, do not forget to update Jython-version-related variables.
+> In previous versions of WDR, the runtimes used to be configured in
+``<WDR_HOME>/runtimes.<bat|sh>`` files. This configuration has been deprecated
+since version 0.8. If the `runtimes.<bat|sh>` file exists, it is still being
+used, however a deprecation warning is being logged. The old way of configuring
+runtimes will be removed in future releases of WDR, therefore it is recommended
+to switch to new method of configuring environments by removing the
+`runtime.<sh|bat>` file and following instructions below.
 
-``<WDR_HOME>/runtimes.<bat|sh>`` files look as below.
+A *runtime* is an alias for locally installed WAS client, its Java SDK and
+Jython. The name of the alias maps to a script that defines certain variables.
+The launcher script for WDR (the `wdr.<sh|bat>` mentioned before) looks up
+runtime scripts in certain well-known directories in specific order. The
+ordering of those lookups is strictly determined, allowing for overriding of
+defaults that come with WDR, without a need to modify any files and without
+risking any conflicts during WDR updates.
 
-``runtimes.bat``:
+On Unix/Linux, a `<runtime>.sh` file is being looked up in the following
+*runtimes* directories:
 
-{% highlight bat %}
-set WAS61_RUNTIME_HOME=C:\IBM\WebSphere61\AppClient
-set WAS61_JYTHON_VERSION=2.1
-set WAS70_RUNTIME_HOME=C:\IBM\WebSphere7\AppClient
-set WAS70_JYTHON_VERSION=2.1
-set WAS80_RUNTIME_HOME=C:\IBM\WebSphere80\AppClient
-set WAS80_JYTHON_VERSION=2.1
-set WAS85_RUNTIME_HOME=C:\IBM\WebSphere85\AppClient
-set WAS85_JYTHON_VERSION=2.1
-{% endhighlight %}
+* `${HOME}/.wdr/runtimes`
+* `${WDR_HOME}/runtimes`
+* `${WDR_HOME}/runtimes.default`
 
-``runtimes.sh``:
+On Windows, the runtime is defined in `<runtime>.bat` and is being looked up in:
 
-{% highlight bat %}
-#!/bin/bash
+* `%USERPROFILE%\.wdr\runtimes`
+* `%WDR_HOME%\runtimes`
+* `%WDR_HOME%\runtimes.default`
 
-WAS61_RUNTIME_HOME="/opt/IBM/WebSphere61/AppClient"
-WAS61_JYTHON_VERSION="2.1"
-WAS70_RUNTIME_HOME="/opt/IBM/WebSphere7/AppClient"
-WAS70_JYTHON_VERSION="2.1"
-WAS80_RUNTIME_HOME="/opt/IBM/WebSphere80/AppClient"
-WAS80_JYTHON_VERSION="2.1"
-WAS85_RUNTIME_HOME="/opt/IBM/WebSphere85/AppClient"
-WAS85_JYTHON_VERSION="2.1"
-{% endhighlight %}
+The `<WDR_HOME>/runtimes.default` contains WDR-predefined runtimes. Those are
+not meant to be modified by the user. Should any customization to those files be
+necessary, it is recommended to copy relevant files to either
+`<WDR_HOME>/runtimes` (possibly creating the directory first) or
+`<HOME>/.wdr/runtimes` and then editing the copy. This way of defining
+environments allows users to override WDR definitions without a risk of running
+into conflicts with WDR updates in the future.
 
-## Configuring access to your WAS environments
+## Configuring access to WAS environments
 
-Your WDR installation is capable of managing multiple WAS environments using different WAS runtimes.
+In WDR terminology, the *environment* is an alias (easy to recall and type) to
+a WAS cell. The alias maps to a name of directory containing a set of files that
+tell WAS client where to connect to, what credentials to use, what SSL certs to
+trust, etc. The environments are completely isolated from each other.
 
-When connecting to your WAS environments, you invoke WDR in the following way:
-
-    <WDR_HOME>/wdr.<bat|sh> <RUNTIME_NAME> <ENVIRONMENT_NAME>
-    
-This example allows you to connect to your PROD WAS8 environment on Windows:
-
-    C:\WDR\wdr.bat was8 prod_was8
-
-On Linux/UNIX systems it would look as follows:
-
-    /opt/WDR/wdr.sh was8 prod_was8
-
-Each "environment" is configured in ``<HOME>/.wdr/environments/<ENVIRONMENT_NAME>`` directory using 3 property files:
+The directory representing the environment resides in
+`<HOME>/.wdr/environments/<environent>` directory and contains:
 
 * soap.properties
 
@@ -125,153 +354,139 @@ Each "environment" is configured in ``<HOME>/.wdr/environments/<ENVIRONMENT_NAME
 
 * ssl.client.props
 
-Example files can be find below, you will need to replace following placeholders with their actual values:
+* key.p12 and trust.p12
 
-* ``<SERVER_HOST_NAME>`` - hostname of your Deployment Manager (or standalone server)
+An environment can be defined by creating an environment's directory and
+populating necessary .properties files based on templates below. The *key.p12*
+and *trust.p12* files (which represent the key store and the trust store) can be
+created automatically during the first connection attempt or managed using
+`ikeyman` or `keytool`.
 
-* ``<SOAP_CONNECTOR_PORT>>`` - SOAP connector address of your Deployment Manager (or standalone server)
-
-* ``<WAS_ADMIN_USERID>`` and ``<WAS_ADMIN_PASSWORD>`` - userid and password of the administrative user. If your environment is not secured, you can comment out these lines.
+Sections below provide templates for .properties files required.
 
 ### soap.properties
 
-    com.ibm.SOAP.securityEnabled=true
+```properties
+com.ibm.SOAP.securityEnabled=true
 
-    com.ibm.SOAP.authenticationTarget=BasicAuth
-    com.ibm.SOAP.loginUserid=<WAS_ADMIN_USERID>
-    com.ibm.SOAP.loginPassword=<WAS_ADMIN_PASSWORD>
+com.ibm.SOAP.authenticationTarget=BasicAuth
+com.ibm.SOAP.loginUserid=<WAS_ADMIN_USERID>
+com.ibm.SOAP.loginPassword=<WAS_ADMIN_PASSWORD>
 
-    com.ibm.SOAP.loginSource=none
-    com.ibm.SOAP.requestTimeout=180
-    com.ibm.ssl.alias=DefaultSSLSettings
+com.ibm.SOAP.loginSource=none
+com.ibm.SOAP.requestTimeout=180
+com.ibm.ssl.alias=DefaultSSLSettings
+
+com.ibm.ws.management.connector.soap.keepAlive=true
+```
 
 ### wsadmin.properties
 
-    com.ibm.ws.scripting.connectionType=SOAP
-    java.net.preferIPv4Stack=true
-    com.ibm.ws.scripting.defaultLang=jython
-    com.ibm.ws.scripting.echoparams=false
-    com.ibm.ws.scripting.traceFile=tmp/wsadmin.traceout 
-    com.ibm.ws.scripting.validationOutput=tmp/wsadmin.valout
-    com.ibm.ws.scripting.tempdir=tmp/
-    python.os=posix
-    com.ibm.ws.scripting.connectionType=SOAP
-    com.ibm.ws.scripting.host=<SERVER_HOST_NAME>
-    com.ibm.ws.scripting.port=<SOAP_CONNECTOR_PORT>
+```properties
+com.ibm.ws.scripting.connectionType=SOAP
+java.net.preferIPv4Stack=true
+com.ibm.ws.scripting.defaultLang=jython
+com.ibm.ws.scripting.echoparams=false
+com.ibm.ws.scripting.traceFile=tmp/wsadmin.traceout
+com.ibm.ws.scripting.validationOutput=tmp/wsadmin.valout
+com.ibm.ws.scripting.tempdir=tmp/
+com.ibm.ws.scripting.connectionType=SOAP
+com.ibm.ws.scripting.host=<SERVER_HOST_NAME>
+com.ibm.ws.scripting.port=<SOAP_CONNECTOR_PORT>
+```
 
 ### ssl.client.props
 
-    #-------------------------------------------------------------------------
-    # Global SSL Properties (applies to entire process)
-    #-------------------------------------------------------------------------
-    com.ibm.ssl.defaultAlias=DefaultSSLSettings
-    com.ibm.ssl.performURLHostNameVerification=true
-    com.ibm.ssl.validationEnabled=true
-    com.ibm.security.useFIPS=false
-    user.root=props
+```properties
+#-------------------------------------------------------------------------
+# Global SSL Properties (applies to entire process)
+#-------------------------------------------------------------------------
+com.ibm.ssl.defaultAlias=DefaultSSLSettings
+com.ibm.ssl.performURLHostNameVerification=true
+com.ibm.ssl.validationEnabled=true
+com.ibm.security.useFIPS=false
+user.root=props
 
-    #-------------------------------------------------------------------------
-    # This SSL configuration is used for all client SSL connections, by default
-    #-------------------------------------------------------------------------
-    com.ibm.ssl.alias=DefaultSSLSettings
-    com.ibm.ssl.protocol=SSL_TLS
-    com.ibm.ssl.securityLevel=HIGH
-    # IbmX509 trust manager has some issues with self-signed certificates
-    # Ff you do not use self-signed ones, you should probably switch to IbmX509
-    #com.ibm.ssl.trustManager=IbmX509
-    com.ibm.ssl.trustManager=IbmPKIX
-    com.ibm.ssl.keyManager=IbmX509
-    com.ibm.ssl.contextProvider=IBMJSSE2
-    #com.ibm.ssl.enableSignerExchangePrompt=gui
-    com.ibm.ssl.enableSignerExchangePrompt=true
+#-------------------------------------------------------------------------
+# This SSL configuration is used for all client SSL connections, by default
+#-------------------------------------------------------------------------
+com.ibm.ssl.alias=DefaultSSLSettings
+com.ibm.ssl.protocol=SSL_TLSv2
+com.ibm.ssl.securityLevel=HIGH
+com.ibm.ssl.trustManager=IbmPKIX
+com.ibm.ssl.keyManager=IbmX509
+com.ibm.ssl.contextProvider=IBMJSSE2
+com.ibm.ssl.enableSignerExchangePrompt=gui
 
-    # KeyStore information
-    com.ibm.ssl.keyStoreName=ClientDefaultKeyStore
-    com.ibm.ssl.keyStore=${user.root}/key.p12
-    # feel free to change this password:
-    com.ibm.ssl.keyStorePassword=WebAS
-    com.ibm.ssl.keyStoreType=PKCS12
-    com.ibm.ssl.keyStoreProvider=IBMJCE
-    com.ibm.ssl.keyStoreFileBased=true
+# KeyStore information
+com.ibm.ssl.keyStoreName=ClientDefaultKeyStore
+com.ibm.ssl.keyStore=${user.root}/key.p12
+# feel free to change this password:
+com.ibm.ssl.keyStorePassword=WebAS
+com.ibm.ssl.keyStoreType=PKCS12
+com.ibm.ssl.keyStoreProvider=IBMJCE
+com.ibm.ssl.keyStoreFileBased=true
 
-    # TrustStore information
-    com.ibm.ssl.trustStoreName=ClientDefaultTrustStore
-    com.ibm.ssl.trustStore=${user.root}/trust.p12
-    # feel free to change this password:
-    com.ibm.ssl.trustStorePassword=WebAS
-    com.ibm.ssl.trustStoreType=PKCS12
-    com.ibm.ssl.trustStoreProvider=IBMJCE
-    com.ibm.ssl.trustStoreFileBased=true
-    com.ibm.ssl.trustStoreReadOnly=false
+# TrustStore information
+com.ibm.ssl.trustStoreName=ClientDefaultTrustStore
+com.ibm.ssl.trustStore=${user.root}/trust.p12
+# feel free to change this password:
+com.ibm.ssl.trustStorePassword=WebAS
+com.ibm.ssl.trustStoreType=PKCS12
+com.ibm.ssl.trustStoreProvider=IBMJCE
+com.ibm.ssl.trustStoreFileBased=true
+com.ibm.ssl.trustStoreReadOnly=false
+```
 
 # Verifying your installation and configuration
 
-Launch your WDR client with the following command:
+Once WDR, WAS client, Jython, runtimes and environents are set up, everything
+can be tested by simply launching WDR.
 
-    <WDR_HOME>/wdr.<bat|sh> <RUNTIME_NAME> <ENVIRONMENT_NAME>
+On Linux/Unix:
 
-Specifically, if you want to connect to ``prod_was8`` environment using ``was8`` runtime, and you have installed WDR in ``C:\WDR``, issue this command on Windows:
+```sh
+<WDR_HOME>/wdr.sh <runtime> <environent>
+```
 
-    C:\WDR\wdr.bat was8 prod_was8
+On Windows:
 
-On Linux/UNIX systems, if you have installed WDR in ``/opt/WDR``, issue this command:
+```bat
+<WDR_HOME>/wdr.bat <runtime> <environent>
+```
 
-    /opt/WDR/wdr.sh was8 prod_was8
+More specifically, the command to connect to *prod_hr* environment using
+*was90* runtime, if WDR is installed in `/opt/WDR`, would look like this on
+Linux/Unix:
 
-The initial connection will require you to confirm signer certificate. The certificate will be saved in ``<HOME>/.wdr/environments/<ENVIRONMENT_NAME>/trust.p12``.
+```sh
+/opt/WDR/wdr.sh was90 prod_hr
+```
 
-WDR interactive session should open allowing you to type WDR/wsadmin commands:
+The command on Windows, if WDR is installed in `C:\WDR`, would look as follows:
+
+```bat
+C:\WDR\wdr.bat was90 prod_hr
+```
+
+The initial connection may display a prompt to accept server's signer
+certificate.
+
+On successful connection, an interactive WDR session will open:
 
     WASX7209I: Connected to process "dmgr" on node wdrDMgrNode using SOAP connector;  The type of process is: DeploymentManager
-    2013-09-07 17:06:06,766 [INFO] using WDR version 0.3
-    2013-09-04 17:06:06,776 [INFO] the client is connected to host wdrdmgr:8879 using SOAP connector
-    2013-09-04 17:06:06,782 [INFO] the target process is wdrCell/wdrDMgrNode/dmgr
+    2017-03-06 12:06:06,766 [INFO] using WDR version 0.8
+    2017-03-06 12:06:06,776 [INFO] the client is connected to host wdrdmgr:8879 using SOAP connector
+    2017-03-06 12:06:06,782 [INFO] the target process is wdrCell/wdrDMgrNode/dmgr
     WASX7031I: For help, enter: "print Help.help()"
     wsadmin>print getJMXMBean1(type='Server',name='dmgr').state
     STARTED
     wsadmin>reset()
     wsadmin>exit
 
-# Part numbers of WebSphere Application Client for Linux x86 (32-bit)
+#### Optional, yet very convenient - `rlwrap`
 
-Linux x86 32-bit seems to be the most commonly used platform for running WDR + WebSphere Application Client.
-This section lists "part numbers" necessary to download from Passport Advantage for different releases of WebSphere Applicaiton Server.
-
-## Version 6.1
-
-[Download WebSphere Application Server Network Deployment Version 6.1 for the Linux operating system](http://www-01.ibm.com/support/docview.wss?uid=swg27007645)
-
-* C88T0ML - WebSphere Application Server Network Deployment V6.1 Supplements for Linux on x86
-
-## Version 7.0
-
-[Download WebSphere Application Server Version 7.0 for the Linux operating system](http://www-01.ibm.com/support/docview.wss?uid=swg27012960)
-
-* C1FZ7ML - WebSphere Application Server V7.0 Supplements for Linux on x86, 32-bit, Multilingual (1 of 2)
-* C1FZ8ML - WebSphere Application Server V7.0 Supplements for Linux on x86, 32-bit, Multilingual (2 of 2)
-
-## Version 8.0
-
-[How to download WebSphere Application Server Network Deployment V8.0 from Passport Advantage Online](http://www-01.ibm.com/support/docview.wss?uid=swg27021166#linux)
-
-* CZM91ML - IBM WebSphere Application Server V8.0 Supplements (1 of 4) for Multiplatform Multilingual
-* CZM94ML - IBM WebSphere Application Server V8.0 Supplements (2 of 4) for Multiplatform Multilingual
-* CZM95ML - IBM WebSphere Application Server V8.0 Supplements (3 of 4) for Multiplatform Multilingual
-* CZXR9ML - IBM WebSphere Application Server V8.0 Supplements (4 of 4) for Multiplatform Multilingual
-
-## Version 8.5
-
-[How to download WebSphere Application Server Network Deployment V8.5 from Passport Advantage Online](http://www-01.ibm.com/support/docview.wss?uid=swg27024154#linux)
-
-* CI6X0ML - IBM WebSphere Application Server V8.5 Supplements (1 of 3) for Multiplatform Multilingual
-* CI6X1ML - IBM WebSphere Application Server V8.5 Supplements (2 of 3) for Multiplatform Multilingual
-* CI6X2ML - IBM WebSphere Application Server V8.5 Supplements (3 of 3) for Multiplatform Multilingual
-
-## Version 8.5.5
-
-[How to download WebSphere Application Server Network Deployment V8.5.5 from Passport Advantage Online](http://www-01.ibm.com/support/docview.wss?uid=swg27038624#linux)
-
-* CIK1VML - IBM WebSphere Application Server V8.5.5 Supplements (1 of 3) for Multiplatform, Multilingual
-* CIK1WML - IBM WebSphere Application Server V8.5.5 Supplements (2 of 3) for Multiplatform, Multilingual
-* CIK1XML - IBM WebSphere Application Server V8.5.5 Supplements (3 of 3) for Multiplatform, Multilingual
-
+Built-in interactive shell for WDR/wsadmin/Jython can be extended to include
+command history and more convenient command-line-editing features on Linux/Unix
+by installing `rlwrap` tool. Please consult OS-specific instructions on how to
+install *rlwrap* package.

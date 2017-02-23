@@ -105,25 +105,25 @@ An example application manifest may look as follows
     	MapModulesToServers
     		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;$[deploymentTargets]
     		Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[deploymentTargets]+$[webServers]
-    	noprocessEmbeddedConfig 
+    	noprocessEmbeddedConfig
     	DataSourceFor20EJBModules
     		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;jdbc/DefaultEJBTimerDataSource;cmpBinding.perConnectionFactory;;;
-    	nouseAutoLink 
-    	distributeApp 
-    	noreloadEnabled 
+    	nouseAutoLink
+    	distributeApp
+    	noreloadEnabled
     	asyncRequestDispatchType DISABLED
     	validateinstall warn
-    	noallowDispatchRemoteInclude 
-    	noallowServiceRemoteInclude 
+    	noallowDispatchRemoteInclude
+    	noallowServiceRemoteInclude
     	MapRolesToUsers
     		All Role;AppDeploymentOption.No;AppDeploymentOption.No;;;AppDeploymentOption.Yes;;
-    	nodeployws 
-    	nouseMetaDataFromBinary 
-    	nodeployejb 
-    	createMBeansForResources 
+    	nodeployws
+    	nouseMetaDataFromBinary
+    	nodeployejb
+    	createMBeansForResources
     	MapWebModToVH
     		Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[virtualHost]
-    	nopreCompileJSPs 
+    	nopreCompileJSPs
 
 ### Application name and path to application archive
 
@@ -204,7 +204,7 @@ Subsequent lines contain standard installation/update options. All the values su
 
 The simplest category of option is a no-value flag:
 
-    	nodeployejb 
+    	nodeployejb
 
 Some option may have single values:
 
@@ -240,32 +240,32 @@ The complete example with options, special options, variables and comments may l
     	# list values are separated with semicolons, empty values must be provided
     	DataSourceFor20CMPBeans
     		Increment EJB module;Increment;Increment.jar,META-INF/ejb-jar.xml;jdbc/DefaultEJBTimerDataSource;cmpBinding.perConnectionFactory;;
-    	# atomic (non-list) values are specified after the 
+    	# atomic (non-list) values are specified after the
     	filepermission .*\.dll=755#.*\.so=755#.*\.a=755#.*\.sl=755
     	# some options accept list of lists, please note variable references
     	MapModulesToServers
     		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;$[deploymentTargets]
     		Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[deploymentTargets]+$[webServers]
     	# an option without a value:
-    	noprocessEmbeddedConfig 
+    	noprocessEmbeddedConfig
     	DataSourceFor20EJBModules
     		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;jdbc/DefaultEJBTimerDataSource;cmpBinding.perConnectionFactory;;;
-    	nouseAutoLink 
-    	distributeApp 
-    	noreloadEnabled 
+    	nouseAutoLink
+    	distributeApp
+    	noreloadEnabled
     	asyncRequestDispatchType DISABLED
     	validateinstall warn
-    	noallowDispatchRemoteInclude 
-    	noallowServiceRemoteInclude 
+    	noallowDispatchRemoteInclude
+    	noallowServiceRemoteInclude
     	MapRolesToUsers
     		All Role;AppDeploymentOption.No;AppDeploymentOption.No;;;AppDeploymentOption.Yes;;
-    	nodeployws 
-    	nouseMetaDataFromBinary 
-    	nodeployejb 
-    	createMBeansForResources 
+    	nodeployws
+    	nouseMetaDataFromBinary
+    	nodeployejb
+    	createMBeansForResources
     	MapWebModToVH
     		Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[virtualHost]
-    	nopreCompileJSPs 
+    	nopreCompileJSPs
 
 # Configuration manifests
 
@@ -291,7 +291,7 @@ When authoring configuration manifests, you will find `WebSphere Application And
 
 ## Configuration manifest syntax
 
-The configuration objects 
+The configuration objects
 
     RootObjectType1
     	*keyAttr1 key1
