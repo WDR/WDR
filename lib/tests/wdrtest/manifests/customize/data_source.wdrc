@@ -8,5 +8,5 @@ Cell
 				*name Derby JDBC Provider
 				-description customized
 				DataSource
-					*name Default Datasource
+					*name DefaultApp Datasource
 					-jndiName DefaultDatasource_WDR

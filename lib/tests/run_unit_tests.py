@@ -16,6 +16,7 @@ import wdrtest.config
 import wdrtest.control
 import wdrtest.manifest
 import wdrtest.task
+import wdrtest.manifest_format
 
 try:
     suite = unittest.TestSuite()
@@ -31,6 +32,11 @@ try:
     suite.addTest(
         unittest.defaultTestLoader.loadTestsFromModule(wdrtest.task)
     )
-    unittest.TextTestRunner().run(suite)
+    suite.addTest(
+        unittest.defaultTestLoader.loadTestsFromModule(wdrtest.manifest_format)
+    )
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
+    runner.stream.flush()
 finally:
     reset()

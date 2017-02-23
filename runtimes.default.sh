@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # runtimes.default.bat
 #

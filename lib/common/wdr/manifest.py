@@ -15,17 +15,17 @@ import wdr.task
 
 logger = logging.getLogger('wdr.manifest')
 
-_genericPattern = re.compile(r'^(?P<tabs>\t*).*$')
+_genericPattern = re.compile(r'^(?P<tabs>(?:\ |\t)*).*$')
 _commentPattern = re.compile(r'^(?:\s*#\.*)|(?:\s*)$')
 _directivePattern = re.compile(
-    r'^(?P<tabs>\t*)'
+    r'^(?P<tabs>(?:\ |\t)*)'
     r'@'
     r'\s*'
     r'(?P<name>[A-Za-z][a-zA-Z0-9_]*)'
     r'(?P<values>(?:\s*(?P<value>.+?))*)?'
     r'\s*$')
 _typePattern = re.compile(
-    r'^(?P<tabs>\t*)'
+    r'^(?P<tabs>(?:\ |\t)*)'
     r'(?:(?P<operation>[!?+])\s*)?'
     r'\s*'
     r'(?P<type>[A-Za-z][a-zA-Z0-9_]*)'
@@ -39,14 +39,14 @@ _typePattern = re.compile(
     r')?'
     r'\s*$')
 _keyPattern = re.compile(
-    r'^(?P<tabs>\t*)'
+    r'^(?P<tabs>(?:\ |\t)*)'
     r'\*'
     r'(?P<name>[A-Za-z][a-zA-Z0-9_]*)'
     r'\s*'
     r'(?P<value>.+?)?'
     r'\s*$')
 _attPattern = re.compile(
-    r'^(?P<tabs>\t*)'
+    r'^(?P<tabs>(?:\ |\t)*)'
     r'-'
     r'(?P<name>[A-Za-z][a-zA-Z0-9_]*)'
     r'\s*'
@@ -70,12 +70,12 @@ _appNamePattern = re.compile(
     r'(?:\s+(?:(?:"(?P<qpath>[^"]+)")|(?P<path>.+?)))?'
     r'\s*$')
 _appOptionPattern = re.compile(
-    r'^(?P<tabs>\t)'
+    r'^(?P<tabs>(?:\ |\t))'
     r'(?P<name>\*?[a-zA-Z0-9_\.]+)'
     r'\s*'
     r'(?P<value>.+?)?'
     r'\s*$')
-_appOptionValuePattern = re.compile(r'^(?P<tabs>\t\t)(?P<value>.+?)\s*$')
+_appOptionValuePattern = re.compile(r'^(?P<tabs>(?:\t\t)|(?:\ \ ))(?P<value>.+?)\s*$')
 WDR_CHECKSUM_DESCRIPTION = (
     'Checksum of deployed EAR file and application manifest'
 )
@@ -795,7 +795,7 @@ class _ObjectConsumer(_ConfigEventConsumer):
         if 'include' == name:
             try:
                 self.parentList.extend(
-                    _loadConfigurationManifest(
+                    loadConfigurationManifest(
                         _locateManifestFile(
                             values[0],
                             [os.path.dirname(filename)]
@@ -814,7 +814,7 @@ class _ObjectConsumer(_ConfigEventConsumer):
         elif 'import' == name:
             try:
                 self.parentList.extend(
-                    _loadConfigurationManifest(
+                    loadConfigurationManifest(
                         _locateManifestFile(values[0], manifestPath),
                         variables,
                         manifestPath
@@ -910,7 +910,7 @@ class _ObjectDataConsumer(_ConfigEventConsumer):
         name = mat.group('name')
         values = mat.group('values').split()
         if 'include' == name:
-            for child in _loadConfigurationManifest(
+            for child in loadConfigurationManifest(
                 _locateManifestFile(
                     values[0],
                     [os.path.dirname(filename)]
@@ -926,7 +926,7 @@ class _ObjectDataConsumer(_ConfigEventConsumer):
                 )
             return [self]
         elif 'import' == name:
-            for child in _loadConfigurationManifest(
+            for child in loadConfigurationManifest(
                 _locateManifestFile(values[0], manifestPath),
                 variables,
                 manifestPath
@@ -1443,8 +1443,14 @@ def processExtraAppOption(mo, name, value):
         )
 
 
-def _importApplicationManifest(filename, variables):
-    fi = open(filename, 'r')
+def loadApplicationManifest(filename, variables={}, manifestPath=None):
+    manifestPath = manifestPath or _defaultManifestPath()
+    filename = os.path.normpath(
+        os.path.abspath(
+            _locateManifestFile(filename, manifestPath)
+        )
+    )
+    fi = open(_locateManifestFile(filename, manifestPath), 'r')
     try:
         manifestObjects = []
         lines = fi.readlines()
@@ -1602,9 +1608,7 @@ def importApplicationManifest(
     listener = listener or ApplicationDeploymentListener()
     manifestPath = manifestPath or _defaultManifestPath()
     affectedApplications = []
-    for mo in _importApplicationManifest(
-        _locateManifestFile(filename, manifestPath), variables
-    ):
+    for mo in loadApplicationManifest(filename, variables):
         if _isApplicationInstalled(mo.name):
             if _updateApplication(mo, listener):
                 affectedApplications.append(mo.name)
@@ -1638,11 +1642,16 @@ def _locateManifestFile(filename, manifestPath):
         candidate = os.path.normpath(os.path.join(dirname, filename))
         if os.path.isfile(candidate):
             return candidate
-    raise Exception('Manifest file %s not found' % filename)
+    raise Exception('Manifest file %s not found in %s' % (filename, manifestPath))
 
 
-def _loadConfigurationManifest(filename, variables, manifestPath):
-    filename = os.path.normpath(os.path.abspath(filename))
+def loadConfigurationManifest(filename, variables={}, manifestPath=None):
+    manifestPath = manifestPath or _defaultManifestPath()
+    filename = os.path.normpath(
+        os.path.abspath(
+            _locateManifestFile(filename, manifestPath)
+        )
+    )
     logger.debug('loading file %s with variables %s', filename, variables)
     fi = open(filename, 'r')
     logger.debug('file %s successfully opened', filename)
@@ -1658,7 +1667,8 @@ def _loadConfigurationManifest(filename, variables, manifestPath):
                 raise LoadError('Wrong indentation', filename, line, lineno)
             indent = len(imat.group('tabs'))
             if len(stack) < indent + 1:
-                return manifestObjects
+                logger.error('[%s(%d)] wrong indentation', filename, lineno)
+                raise LoadError('Wrong indentation', filename, line, lineno)
             if _typePattern.match(line):
                 stack = stack[0:indent] + stack[indent].consumeObject(
                     filename, line, lineno, manifestPath
@@ -1694,9 +1704,5 @@ def importConfigurationManifest(filename, variables={}, manifestPath=None):
     manifestPath = manifestPath or _defaultManifestPath()
     anchors = {}
     attributeCache = wdr.config.AttributeValueCache()
-    for mo in _loadConfigurationManifest(
-        _locateManifestFile(filename, manifestPath),
-        variables,
-        manifestPath
-    ):
+    for mo in loadConfigurationManifest(filename, variables, manifestPath):
         mo.apply(anchors, None, None, attributeCache)
