@@ -2,11 +2,8 @@
 <project name='WDR Jython Download Tool' default='usage'>
 
 	<target name='usage' description='Prints tool usage info'>
-		<echo>
-a
-b
-c
-		</echo>
+		<echo>Installation script for WAS Clients</echo>
+		<echo>run with -projecthelp for more details on usage</echo>
 	</target>
 
 	<target name='check' unless='force'>
