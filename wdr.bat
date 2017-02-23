@@ -110,7 +110,9 @@ call :main %* & exit /b
     fi
     if [%JYTHON_PATH%] == [] (
         set JYTHON_PATH=%JYTHON_HOME%\Lib
-        set JYTHON_PATH=%JYTHON_PATH%;%JYTHON_HOME%\Lib\site-packages
+        if exist %JYTHON_HOME%\Lib\site-packages (
+            set JYTHON_PATH=%JYTHON_PATH%;%JYTHON_HOME%\Lib\site-packages
+        )
     )
     exit /b
 
@@ -208,7 +210,7 @@ call :main %* & exit /b
         -Dwas.install.root=%WAS_HOME:\=/% ^
         -Dcom.ibm.ws.scripting.exceptionPropagation=thrown ^
         -cp %WSADMIN_CLASS_PATH% ^
-        com.ibm.ws.scripting.WasxShell 
+        com.ibm.ws.scripting.WasxShell
     exit /b
 
 

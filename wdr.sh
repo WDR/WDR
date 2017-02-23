@@ -110,7 +110,9 @@ runtimes() {
     fi
     if [ "$JYTHON_PATH" == "" ] ; then
         JYTHON_PATH=${JYTHON_HOME}/Lib
-        JYTHON_PATH=${JYTHON_PATH}:${JYTHON_HOME}/Lib/site-packages
+        if [[ -d ${JYTHON_HOME}/Lib/site-packages ]] ; then
+            JYTHON_PATH=${JYTHON_PATH}:${JYTHON_HOME}/Lib/site-packages
+        fi
     fi
     return 0
 }
