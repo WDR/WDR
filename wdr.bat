@@ -105,9 +105,9 @@ call :main %* & exit /b
     if [%WAS_JAVA_HOME%] == [] (
         set WAS_JAVA_HOME=%WAS_HOME%\java
     )
-    if [%JYTHON_HOME%] == [] ; then
+    if [%JYTHON_HOME%] == [] (
         set JYTHON_HOME=%WAS_HOME%/optionalLibraries/jython
-    fi
+    )
     if [%JYTHON_PATH%] == [] (
         set JYTHON_PATH=%JYTHON_HOME%\Lib
         if exist %JYTHON_HOME%\Lib\site-packages (
