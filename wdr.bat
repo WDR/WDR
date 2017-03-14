@@ -191,7 +191,7 @@ call :main %* & exit /b
         -Dcom.ibm.ws.scripting.traceString=com.ibm.*=all=disabled ^
         -Duser.root=%USER_ROOT:\=/% ^
         -Dpython.path=%JYTHON_PATH% ^
-        -Dpython.home=%JYTHON_HOME% \
+        -Dpython.home=%JYTHON_HOME% ^
         -Dpython.cachedir=%JYTHON_CACHEDIR% ^
         -Djava.io.tmpdir=%TMPDIR% ^
         -Dwebsphere.workspace.root=%WORKSPACE% ^
@@ -221,7 +221,7 @@ call :main %* & exit /b
         -Dcom.ibm.ws.scripting.traceString=com.ibm.*=all=disabled ^
         -Duser.root=%USER_ROOT:\=/% ^
         -Dpython.path=%JYTHON_PATH% ^
-        -Dpython.home=%JYTHON_HOME% \
+        -Dpython.home=%JYTHON_HOME% ^
         -Dpython.cachedir=%JYTHON_CACHEDIR% ^
         -Djava.io.tmpdir=%TMPDIR% ^
         -Dwebsphere.workspace.root=%WORKSPACE% ^
