@@ -18,7 +18,7 @@ client-side installation are:
 * A possibility to choose Jython and Java version on the management node,
   without impacting the runtime environment.
 
-# How clent-based setup works
+# How client-based setup works
 
 The client-based setup uses `wdr.<sh|bat>` launcher script which essentialy
 replaces the `wsadmin.<sh|bat>` script known from server-side setup.
@@ -40,7 +40,7 @@ locally. The definition of that alias consists of installation path, Java SDK
 path, Jython version information and path to Jython implementation on disk.
 Usually it has values like "was85", "was90" or "was90_jython21".
 
-The `<environment>` is an easy to recall an meaningful name for WAS environment
+The `<environment>` is an easy to recall and meaningful name for WAS environment
 being managed by WDR. Under the covers, the "environments" is a directory
 containing a set of *.properties files, which point WDR to the managed server.
 
@@ -112,7 +112,7 @@ In the first step, create a response file and save it to
 Having the response file, run the following command in the directory where
 you extracted the installation image:
 
-```
+```sh
 ./install -options "/root/was61client.rsp" -silent
 ```
 
@@ -141,7 +141,7 @@ Similarly to WAS 6.1 client, create a response file and save it in
 Then run the following command from the directory where installation image was
 extracted:
 
-```
+```sh
 ./install -options "/root/was70client.rsp" -silent
 ```
 
@@ -152,7 +152,7 @@ Manager. Use the following command to install WAS 8.0 client. Replace
 `<WAS_8_0_CLIENT_URL>` with the URL or path to a directory where the
 installation image was extracted.
 
-```
+```sh
 /opt/IBM/InstallationManager/eclipse/tools/imcl install \
         com.ibm.websphere.APPCLIENT.v80,javaee.thinclient.core.feature,javaruntime,developerkit,standalonethinclient.resourceadapter.runtime,embeddablecontainer \
         -repositories <WAS_8_0_CLIENT_URL> \
@@ -165,13 +165,13 @@ installation image was extracted.
 #### WAS 8.5 or 8.5.5 client
 
 Similarly to WAS 8.0 client, use this command to install 8.5/8.5.5 client,
-replacing `<WAS_8_0_CLIENT_URL>` with the URL or directory where installation
+replacing `<WAS_8_5_CLIENT_URL>` with the URL or directory where installation
 image was extracted.
 
-```
+```sh
 /opt/IBM/InstallationManager/eclipse/tools/imcl install \
     com.ibm.websphere.APPCLIENT.v85,javaee.thinclient.core.feature,javaruntime,developerkit,standalonethinclient.resourceadapter.runtime,embeddablecontainer \
-    -repositories <WAS_8_0_CLIENT_URL> \
+    -repositories <WAS_8_5_CLIENT_URL> \
     -installationDirectory /opt/IBM/WebSphere/AppClient85 \
     -acceptLicense \
     -properties user.appclient.serverHostname=localhost,user.appclient.serverPort=2809 \
@@ -184,7 +184,7 @@ Just like in cae of WAS 8.0 client above, run this command to install WAS 9.0
 client, replacing `<WAS_9_0_CLIENT_URL>` `<SDK_8_0_URL>` with the URLs or
 directories where installation images for WAS Client and SDK were extracted.
 
-```
+```sh
 /opt/IBM/InstallationManager/eclipse/tools/imcl install \
     com.ibm.websphere.APPCLIENT.v90,javaee.thinclient.core.feature,standalonethinclient.resourceadapter.runtime,embeddablecontainer \
     com.ibm.java.jdk.v8,com.ibm.sdk.8 \
@@ -215,7 +215,7 @@ On a 32-bit system or when installing 32-bit flavour of the client on a 64-bit
 OS, the command looks as follows:
 
 ```sh
-sudo yum install name=compat-libstdc++-33.i686
+sudo yum install compat-libstdc++-33.i686
 ```
 
 Debian-based systems (including Ubuntu and other relatives) will require
@@ -277,10 +277,13 @@ The installation may take a little while depending on internet connection speed.
 
 The installer downloads Jython distributions from public Maven repository. In
 case of any issues with this download (no Internet access, slow link, firewall,
-etc.), the installer can make use custom URLs for downloads. The URLs can be
-configured in `~/.wdr/wdr.jython.urls.properties` file. The template can be
-copied from `${WDR_HOME}/utilities/client-setup/wdr.jython.urls.properties`. The
-installer may also use proxy, which can be configured via *ANT_OPTS* variable.
+etc.), the installer can make use custom URLs for downloads.
+
+The URLs can be configured in `~/.wdr/wdr.jython.urls.properties` file. The
+template can be copied from `${WDR_HOME/utilities/client-setup/wdr.jython.urls.properties`.
+
+The installer may also use proxy, which can be configured via *ANT_OPTS*
+variable.
 
 On Linux/Unix:
 
@@ -484,7 +487,7 @@ On successful connection, an interactive WDR session will open:
     wsadmin>reset()
     wsadmin>exit
 
-#### Optional, yet very convenient - `rlwrap`
+# Optional, yet very convenient - `rlwrap`
 
 Built-in interactive shell for WDR/wsadmin/Jython can be extended to include
 command history and more convenient command-line-editing features on Linux/Unix
