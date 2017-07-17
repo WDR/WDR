@@ -20,35 +20,35 @@ The following examples implement similar scenarios with and without WDR.
 
 With WDR:
 
-{% highlight python %}
+```python
 for node in listConfigObjects('Node'):
     print node.name
     for server in node.listConfigObjects('Server'):
         print " " + server.name
-{% endhighlight %}
+```
 
 Without WDR:
 
-{% highlight python %}
+```python
 for node in AdminConfig.listConfigObjects('Node').splitlines():
     print AdminConfig.showAttribute(node, 'name')
     for server in AdminConfig.listConfigObjects('Server', node).splitlines():
         print ' ' + AdminConfig.showAttribute(server, 'name')
-{% endhighlight %}
+```
 
 ## Modifying configuration objects
 
 With WDR:
 
-{% highlight python %}
+```python
 jvm = getid1('/Server:dmgr/JavaProcessDef:/JavaVirtualMachine:/')
 jvm.initialHeapSize = 64
 jvm.maximumHeapSize = 512
-{% endhighlight %}
+```
 
 Without WDR:
 
-{% highlight python %}
+```python
 jvms = AdminConfig.getid('/Server:dmgr/JavaProcessDef:/JavaVirtualMachine:/').splitlines()
 if len(jvms) != 1:
     # need to handle special conditions
@@ -56,27 +56,27 @@ if len(jvms) != 1:
 jvm = jmvs[0]
 AdminConfig.modify(jvm, [ [ 'initialHeapSize', 64 ] ])
 AdminConfig.modify(jvm, [ [ 'maximumHeapSize', 512 ] ])
-{% endhighlight %}
+```
 
 ## Invoking MBean operations
 
 With WDR:
 
-{% highlight python %}
+```python
 dmgr = getMBean1(type='Server', process='dmgr')
 dmgr.restart()
-{% endhighlight %}
+```
 
 Without WDR:
 
-{% highlight python %}
+```python
 dmgrs = AdminControl.queryNames( 'WebSphere:*,type=Server,name=dmgr' ).splitlines()
 if len(dmgrs) != 1:
     # need to handle special conditions
     raise Exception("MBean not found or multiple MBeans found")
 dmgr = dmgrs[0]
 AdminControl.invoke(dmgr, 'restart')
-{% endhighlight %}
+```
 
 ## Configuring standard JVM attributes with a configuration manifest
 
@@ -84,13 +84,13 @@ You probably have some set of "standard" JVM settings that you always want to ap
 
 This script will do it for you:
 
-{% highlight python %}
+```python
 for node in listConfigObjects('Node'):
     for server in node.listConfigObjects('Server'):
         if server.serverType == 'APPLICATION_SERVER':
             manifestVariables = { 'nodeName': node.name, 'serverName': server.name }
             importConfigurationManifest( 'standardJVM.wdrc', manifestVariables )
-{% endhighlight %}
+```
 
 Using a nested loop, the script iterates all application servers and applies the following manifest to all of them. The manifest references `nodeName` and `serverName` variables which are being passed as `manifestVariables` dictionary to the `importConfigurationManifest` function.
 

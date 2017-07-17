@@ -22,10 +22,10 @@ list of [wdr.control.JMXMBean](wdr.control.JMXMBean.class.html) instances
 
 ## Examples
 
-{% highlight python %}
+```python
 # objectName variable will contain a multi-line string where each
 # line represents ObjectName of a Server
 objectNames = AdminControl.queryNames('WebSphere:*,type=Server')
 for srv in jmxmbeans(objectNames):
     print srv.name, ': ', srv.state
-{% endhighlight %}
+```

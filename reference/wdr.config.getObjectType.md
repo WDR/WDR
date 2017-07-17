@@ -16,9 +16,9 @@ configuration object
 
 ## Examples
 
-{% highlight python %}
+```python
 o = getid('/Cell:/')[0]
 print getObjectType(o)
-{% endhighlight %}
+```
 
     Cell

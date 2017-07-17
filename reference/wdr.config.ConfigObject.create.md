@@ -30,19 +30,19 @@ After successful execution, a reference to newly created [wdr.config.ConfigObjec
 
 * Creating `Server` object in the scope of a `Node` and modifying the newly created object
 
-{% highlight python %}
+```python
 node = getid1('/Node:wdrNode01/')
 server = node.create('Server', name = 'wdrServer02')
 server.processDefinitions[0].jvmEntries[0].maximumHeapSize = 1024
-{% endhighlight %}
+```
 
 * Creating a `Property` in scope of `JavaVirtualMachine` property `systemProperties`
 
-{% highlight python %}
+```python
 server = getid1('/Server:wdrServer/')
 property = server.processDefinitions[0].jvmEntries[0].create('Property', 'systemProperties', name='user.language', value='pl')
 property.description = 'This JVM is going to write logs in Polish language. Powodzenia :)'
-{% endhighlight %}
+```
 
 ## See also
 

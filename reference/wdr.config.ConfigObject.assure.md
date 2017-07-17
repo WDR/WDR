@@ -42,12 +42,12 @@ Exception will be raised if multiple objects matched specified criteria or if `C
 
 * The following script assures that a server named 'wdrServer02' exists in the scope of node 'wdrNode01' and also assures that a JVM property 'user.language' exists and it has value of 'pl'.
 
-{% highlight python %}
+```python
 node = getid1('/Node:wdrNode01/')
 server = node.assure('Server',{'name':'wdrServer02'})
 jvm = server.processDefinitions[0].jvmEntries[0]
 jvm.assure('Property', {'name':'user.language'}, 'systemProperties', value='pl', description='This JVM is going to write logs in Polish language. Powodzenia :)')
-{% endhighlight %}
+```
 
 ## See also
 

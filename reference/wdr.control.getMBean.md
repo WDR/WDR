@@ -25,10 +25,10 @@ Instance of [wdr.control.MBean](wdr.control.MBean.class) or value of `None`.
 
 ## Examples
 
-{% highlight python %}
+```python
 srv = getMBean(type='Server', name='dmgr')
 print srv.state
-{% endhighlight %}
+```
 
 ## See also
 

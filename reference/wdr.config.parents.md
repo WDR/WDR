@@ -22,9 +22,9 @@ List of type names which contain specified type.
 
 * Listing parents of `JDBCProvider` type
 
-{% highlight python %}
+```python
 print parents('JDBCProvider')
-{% endhighlight %}
+```
 
     ['Cell', 'Deployment', 'Node', 'Server', 'ServerCluster']
 

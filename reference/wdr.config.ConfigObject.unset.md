@@ -22,8 +22,8 @@ Reference to the object being modified
 
 * Unsetting `initialHeapSize` and `maximumHeapSize` for server's JVM
 
-{% highlight python %}
+```python
 server = getid1('/Node:wdrNode01/Server:wdrServer/')
 jvm = server.processDefinitions[0].jvmEntries[0]
 jvm.unset(['initialHeapSize','maximumHeapSize'])
-{% endhighlight %}
+```

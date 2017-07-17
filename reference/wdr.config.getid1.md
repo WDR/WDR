@@ -22,17 +22,17 @@ An instance of [wdr.config.ConfigObject](wdr.config.ConfigObject.class.html) obj
 
 * Retrieving `Cell` object
 
-{% highlight python %}
+```python
 print getid1('/Cell:/')
-{% endhighlight %}
+```
 
     wdrCell(cells/wdrCell|cell.xml#Cell_1)
 
 * Retrieving `JavaProcessDef` from a named server
 
-{% highlight python %}
+```python
 print getid1('/Server:wdrServer/JavaProcessDef:/')
-{% endhighlight %}
+```
 
     (cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#JavaProcessDef_1335359012301)
 

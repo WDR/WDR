@@ -30,27 +30,27 @@ List of [wdr.config.ConfigObject](wdr.config.ConfigObject.class.html) objects.
 
 * Listing all `Server` objects
 
-{% highlight python %}
+```python
 print listConfigObjects('Server')
-{% endhighlight %}
+```
 
     [dmgr(cells/wdrCell/nodes/wdrDMgrNode/servers/dmgr|server.xml#Server_1), nodeagent(cells/wdrCell/nodes/wdrNode01/servers/nodeagent|server.xml#Server_1340355137285), wdrServer(cells/wdrCell/nodes/wdrNode01/servers/wdrServer|server.xml#Server_1340355496917)]
 
 * Listing all `Server` objects in scope of node
 
-{% highlight python %}
+```python
 node = getid1('/Node:wdrNode01/')
 print listConfigObjects('Server', node)
-{% endhighlight %}
+```
 
     [nodeagent(cells/wdrCell/nodes/wdrNode01/servers/nodeagent|server.xml#Server_1340355137285), wdrServer(cells/wdrCell/nodes/wdrNode01/servers/wdrServer|server.xml#Server_1340355496917)]
 
 
 * Listing all `Server` objects matching specified wildcard
 
-{% highlight python %}
+```python
 print listConfigObjects('Server', 'nodeagent(*')
-{% endhighlight %}
+```
 
     [nodeagent(cells/wdrCell/nodes/wdrNode01/servers/nodeagent|server.xml#Server_1340355137285)]
 

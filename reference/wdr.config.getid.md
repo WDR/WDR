@@ -22,25 +22,25 @@ An array of [wdr.config.ConfigObject](wdr.config.ConfigObject.class.html) object
 
 * Retrieving `Cell` object
 
-{% highlight python %}
+```python
 print getid('/Cell:/')[0]
-{% endhighlight %}
+```
 
     wdrCell(cells/wdrCell|cell.xml#Cell_1)
 
 * Retrieving a named `DataSource`
 
-{% highlight python %}
+```python
 print getid('/DataSource:DefaultEJBTimerDataSource/')
-{% endhighlight %}
+```
 
     [DefaultEJBTimerDataSource(cells/wdrCell/nodes/wdrNode/servers/wdrServer|resources.xml#DataSource_1000001)]
 
 * Retrieving `JavaProcessDef` from a named server
 
-{% highlight python %}
+```python
 print getid('/Server:wdrServer/JavaProcessDef:/')
-{% endhighlight %}
+```
 
     [(cells/wdrCell/nodes/wdrNode/servers/wdrServer|server.xml#JavaProcessDef_1335359012301)]
 

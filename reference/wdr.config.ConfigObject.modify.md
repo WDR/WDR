@@ -22,6 +22,6 @@ Reference to the configuration object [wdr.config.ConfigObject](wdr.config.Confi
 
 * Changing two DataSource's ConnectionPool parameters in one call:
 
-{% highlight python %}
+```python
 getid1('/DataSource:Default Datasource/').connectionPool.modify(connectionTimeout=10, maxConnections=30)
-{% endhighlight %}
+```

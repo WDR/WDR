@@ -26,17 +26,17 @@ List of [wdr.control.MBean](wdr.control.MBean.class.html) instances.
 
 * Printing free and available memory for each JVM MBean found
 
-{% highlight python %}
+```python
 for jvm in queryMBeans(type='JVM'):
     print 'Free/max memory: %d/%d' % (jvm.freeMemory, jvm.maxMemory)
-{% endhighlight %}
+```
 
 * Printing attribute value of one of custom MBeans, registered in 'ACME' domain
 
-{% highlight python %}
+```python
 for tp in queryMBeans('ACME', type='com.acme.tasks.TaskProcessor', module='OrderProcessing'):
     print 'Failed/total number of orders: %d/%d' % (tp.failed, tp.total)
-{% endhighlight %}
+```
 
 ## See also
 

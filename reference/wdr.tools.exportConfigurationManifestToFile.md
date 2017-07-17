@@ -40,6 +40,6 @@ None
 
 * Export of all clusters, together with resources defined in that cluster:
 
-{% highlight python %}
+```python
 wdr.tools.exportConfigurationManifestToFile(getid('/ServerCluster:/'), 'clusters.wdrc', wdr.export_sets.all)
-{% endhighlight %}
+```

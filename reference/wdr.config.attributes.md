@@ -26,17 +26,17 @@ List of configuration attribute names of type/object as array of strings.
 
 * Retrieving attributes of a type
 
-{% highlight python %}
+```python
 print attributes('Cell')
-{% endhighlight %}
+```
 
     ['adminAgentRegistration', 'cellDiscoveryProtocol', 'cellRegistered', 'cellType', 'discoveryAddressEndpointName', 'foreignCells', 'multicastDiscoveryAddressEndpointName', 'name', 'properties', 'shortName']
 
 * Retrieving attributes of an object
 
-{% highlight python %}
+```python
 server = getid('/Server:/')[0]
 print attributes(server)
-{% endhighlight %}
+```
 
     ['adjustPort', 'changeGroupAfterStartup', 'changeUserAfterStartup', 'clusterName', 'components', 'customServices', 'developmentMode', 'errorStreamRedirect', 'modelId', 'name', 'outputStreamRedirect', 'parallelStartEnabled', 'processDefinition', 'processDefinitions', 'provisionComponents', 'serverInstance', 'serverType', 'services', 'shortName', 'stateManagement', 'statisticsProvider', 'uniqueId']

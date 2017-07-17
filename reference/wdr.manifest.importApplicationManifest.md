@@ -51,12 +51,12 @@ List of application names installed or updated during manifest processing.
 
 Idempotency of ``importApplicationManifest`` function relies on value of `wdr.checksum` custom property being added to `Deployment/ApplicationDeployment` object after successful install/update operation. The `wdr.checksum` property is visible in AdminConsole from version 8.0 of WebSphere Application Server. Regardless of product version, it is always possible to access it via scrtipt:
 
-{% highlight python %}
+```python
 appName = 'DefaultApplication'
 checksums = getid1('/Deployment:%s/ApplicationDeployment:/Property:wdr.checksum/' % appName).value
 
 print 'Checksum of %s is %s' % (appName, checksums)
-{% endhighlight %}
+```
 
 The value of `wdr.checksum` consists of checksum of application binary and checksum of manifest file, which means that after change of any of these 2 files and invoking `importApplicationManifest` again, the application will be updated.
 
@@ -118,7 +118,7 @@ Lastly, a `manifestPath` list is being passed to `importApplicationManifest` whi
     manifests/DefaultApplication.wdra
     applications/DefaultApplication.ear
 
-{% highlight python %}
+```python
 # importApplicationManifestExample.py
 
 class VerboseListener( ApplicationDeploymentListener ):
@@ -151,7 +151,7 @@ try:
     sync()
 finally:
     reset()
-{% endhighlight %}
+```
 
 ## See also
 

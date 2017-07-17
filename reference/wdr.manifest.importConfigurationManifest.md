@@ -4,7 +4,7 @@ tagline: WDR Reference
 title: importConfigurationManifest
 ---
 
-	importConfigurationManifest( <filename> [, <variables> [, <manifestPath> ] ] )
+    importConfigurationManifest( <filename> [, <variables> [, <manifestPath> ] ] )
 
 Imports configuration manifest into WAS configuration repository.
 

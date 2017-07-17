@@ -18,7 +18,7 @@ _Please note that this reference is no longer pointing to an existing object. It
 
 * Removig a DataSource object
 
-{% highlight python %}
+```python
 ds = getid1('/Node:wdrNode01/Server:wdrServer/JDBCProvider:Derby JDBC Provider/DataSource:Default Datasource/')
 ds.remove()
-{% endhighlight %}
+```

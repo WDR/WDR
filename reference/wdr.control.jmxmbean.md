@@ -22,9 +22,9 @@ string representation of ObjectName
 
 ## Examples
 
-{% highlight python %}
+```python
 # objectName variable will contain a single-line string representing ObjectName of dmgr Server
 objectName = AdminControl.queryNames('WebSphere:*,type=Server,name=dmgr')
 dmgr = jmxmbean(objectName)
 print dmgr.state
-{% endhighlight %}
+```

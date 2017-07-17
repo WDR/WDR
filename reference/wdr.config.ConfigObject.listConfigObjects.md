@@ -22,9 +22,9 @@ List of [wdr.config.ConfigObject](wdr.config.ConfigObject.class.html) instances.
 
 * Retrieving list of JDBCProvider's DataSources
 
-{% highlight python %}
+```python
 print provider.listConfigObjects('DataSource')
-{% endhighlight %}
+```
 
     [Default Datasource(cells/wdrCell/nodes/wdrNode01/servers/wdrServer|resources.xml#DataSource_1124467080076)]
 

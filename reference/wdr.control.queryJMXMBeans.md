@@ -27,10 +27,10 @@ List of [wdr.control.JMXMBean](wdr.control.JMXMBean.class.html) instances.
 
 * Printing free and available memory for each JVM MBean found
 
-{% highlight python %}
+```python
 for jvm in queryJMXMBeans(type='JVM'):
     print 'Free/max memory: %d/%d' % (jvm.freeMemory, jvm.maxMemory)
-{% endhighlight %}
+```
 
 ## See also
 

@@ -19,18 +19,18 @@ Products based on WebSphere Application Server (like IBM BPM) expose more MBeans
 
 `AntAgent` MBean executes Apache-Ant build scripts on the server. We'll need to prepare a simple script for the purpose of this example:
 
-{% highlight xml %}
+```xml
 <?xml version="1.0"?>
 <project name="WDR" default="hello">
     <target name="hello">
         <echo>Hello from WDR! Properties: p1=${p1}, p2=${p2}</echo>
     </target>
 </project>
-{% endhighlight %}
+```
 
 For simplicity, we're not going to save the above build script as local file. We'll rather store its content in a string variable named 'xml'.
 
-{% highlight python %}
+```python
 # string variable containing Ant script
 xml = '<?xml version="1.0"?> <project name="WDR" default="hello"> <target name="hello"> <echo>Hello from WDR! Properties: p1=${p1}, p2=${p2}</echo> </target> </project>'
 
@@ -56,7 +56,7 @@ antAgent.invokeAnt(props, String('hello.ant.xml'), String('hello'))
 
 # retrieving script results and printing them:
 print String(antAgent.getLastLog())
-{% endhighlight %}
+```
 
     Detected Java version: 1.5 in: C:\tools\was7\java\jre
     Detected OS: Windows 7

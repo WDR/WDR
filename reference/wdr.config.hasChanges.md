@@ -18,13 +18,13 @@ Script snippet cleaning up session state before exiting.
 
 _It's a good practice to always explicitly save or discard configuration session before exiting the script, even if no changes have been made. Configuration sessions abandoned witout reset/discard/save leave temporary files and directories on the server._
 
-{% highlight python %}
+```python
 if hasChanges():
     save()
 else:
     discard()
 exit
-{% endhighlight %}
+```
 
 ## See also
 

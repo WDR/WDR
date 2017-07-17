@@ -520,13 +520,13 @@ The most straightforward option is to declare all variables in a flat dictionary
 
 The code for importing the manifest above could look as follows:
 
-{% highlight python %}
+```python
 manifestVariables = {
     'databaseUser': 'db2admin',
     'databasePassword': 'db2admin'
     }
 importConfigurationManifest( 'solutionAbc/authenticationAliases.wdrc', manifestVariables )
-{% endhighlight %}
+```
 
 ### Nested dictionaries and dot-notation
 
@@ -541,7 +541,7 @@ As the number of variables increases, you may want to group them together in nes
 
 The script which imports such manifest needs to declare a nested dictionary like the one below:
 
-{% highlight python %}
+```python
 manifestVariables = {
     'database': {
         'user': 'db2admin',
@@ -553,7 +553,7 @@ manifestVariables = {
         }
     }
 importConfigurationManifest( 'solutionAbc/authenticationAliases.wdrc', manifestVariables )
-{% endhighlight %}
+```
 
 ### Filters
 
@@ -564,19 +564,19 @@ In more advanced cases it may be desirable to do some sort of processing of vari
     		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;$[deploymentTargets]
     		Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[deploymentTargets]+$[webServers]
 
-{% highlight python %}
+```python
 manifestVariables = {
     'deploymentTargets': 'WebSphere:cell=wdrCell,cluster=wdrCluster',
     'webServers': 'WebSphere:cell=wdrCell,node=httpNode01,server=wdrHttpServer01+WebSphere:cell=wdrCell,node=httpNode02,server=wdrHttpServer02'
     }
 importApplicationManifest( 'solutionAbc/defaultApplication.wdra', manifestVariables )
-{% endhighlight %}
+```
 
 The `webServers` variable is not easily readable and as the complexity of the environment (number of HTTP servers) increases, the script becomes more and more difficult to maintain.
 
 The definition of variables would be more readable if it could be specified as in the example below and then somehow converted into a string which wsadmin likes.
 
-{% highlight python %}
+```python
 manifestVariables = {
     'deploymentTargets': 'WebSphere:cell=wdrCell,cluster=wdrCluster',
     'webServers': [
@@ -591,7 +591,7 @@ manifestVariables = {
             }
         ]
     }
-{% endhighlight %}
+```
 
 Here's where filters become handy. Filter is a function which takes one argument of any type and returns a string. Filter function, once defined, must be added into variables dictionary. Then the filter can be easily referenced in a manifest, like in the example below:
 
@@ -602,7 +602,7 @@ Here's where filters become handy. Filter is a function which takes one argument
 
 The `makeWebServerString` is a key of filter function in variables.
 
-{% highlight python %}
+```python
 def makeWebServerStringFilter( webServerList ):
     formattedWebServerList = []
     for srv in webServerList:
@@ -625,11 +625,11 @@ manifestVariables = {
     'makeWebServerString': makeWebServerStringFilter
     }
 importApplicationManifest( 'solutionAbc/defaultApplication.wdra', manifestVariables )
-{% endhighlight %}
+```
 
 A more fluent Jythonist would probably shorten this function:
 
-{% highlight python %}
+```python
 def makeWebServerStringFilter( webServerList ):
     return '+'.join( [ 'WebSphere:cell=%(cells)s,node=%(node)s,server=%(server)s' % srv for srv in webServerList ] )
 
@@ -649,11 +649,11 @@ manifestVariables = {
     'makeWebServerString': makeWebServerStringFilter
     }
 importApplicationManifest( 'solutionAbc/defaultApplication.wdra', manifestVariables )
-{% endhighlight %}
+```
 
 .. or even use lambda form:
 
-{% highlight python %}
+```python
 manifestVariables = {
     'deploymentTargets': 'WebSphere:cell=wdrCell,cluster=wdrCluster',
     'webServers': [
@@ -670,7 +670,7 @@ manifestVariables = {
     'makeWebServerString': lambda ws : '+'.join( [ 'WebSphere:cell=%(cells)s,node=%(node)s,server=%(server)s' % s for s in ws ] )
     }
 importApplicationManifest( 'solutionAbc/defaultApplication.wdra', manifestVariables )
-{% endhighlight %}
+```
 
 ## Best practices
 

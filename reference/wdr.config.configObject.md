@@ -22,6 +22,6 @@ ConfigObject representing a configuration object
 
 ## Examples
 
-{% highlight python %}
+```python
 o = configObject('wdrCell(cells/wdrCell|cell.xml#Cell_1)')
-{% endhighlight %}
+```

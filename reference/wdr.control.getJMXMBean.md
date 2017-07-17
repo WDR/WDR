@@ -26,10 +26,10 @@ Instance of (wdr.control.JMXMBean.class.html) or value of `None`.
 
 ## Examples
 
-{% highlight python %}
+```python
 srv = getJMXMBean(type='Server', name='dmgr')
 print srv.state
-{% endhighlight %}
+```
 
     STARTED
 

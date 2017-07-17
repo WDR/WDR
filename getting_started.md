@@ -37,12 +37,12 @@ We are going to do some non-desctructive configuration operations first
 
 ### Finding objects and accessing their attributes
 
-{% highlight python %}
+```python
 firstProvider = listConfigObjects('JDBCProvider')[0]
 print 'name: ' + firstProvider.name
 print 'description: ' + firstProvider.description
 reset()
-{% endhighlight %}
+```
 
 The above script:
 
@@ -60,12 +60,12 @@ Our next script will modify that provider.
 
 #### Modifying configuration object's attribute
 
-{% highlight python %}
+```python
 firstProvider = listConfigObjects('JDBCProvider')[0]
 firstProvider.description = 'This description was modified with WDR script'
 save()
 sync()
-{% endhighlight %}
+```
 
 The example is self-explanatory. You can check with AdminConsole if the description has changed.
 
@@ -73,19 +73,19 @@ The example is self-explanatory. You can check with AdminConsole if the descript
 
 This tiny script creates a new DataSource and configures maximum size of its connection pool:
 
-{% highlight python %}
+```python
 firstProvider = listConfigObjects('JDBCProvider')[0]
 newds = firstProvider.create('DataSource', name='NewlyCreatedDataSource', jndiName='jdbc/NewDataSource', description='... a word of description ...')
 newds.connectionPool.maxConnections = 15
 save()
 sync()
-{% endhighlight %}
+```
 
 #### Deleting object from configuration repository
 
 Now we'll delete the dataSource we created previously. It also demonstrates some less-obvious behaviour of WDR/wsadmin
 
-{% highlight python %}
+```python
 ds = getid1('/DataSource:NewlyCreatedDataSource/').remove()
 # the 'remove' method returns a reference to removed object
 # if we discard changes, we can still work with that object
@@ -96,7 +96,7 @@ ds.description = ''
 ds.remove()
 save()
 sync()
-{% endhighlight %}
+```
 
 ### Working with WAS runtime
 
@@ -114,43 +114,43 @@ In this section we'll use `MBean` instances to access 'simple type' JMX attribut
 
 Not surprisingly, accessing JMX MBean attributes with WDR is achievable with familiar dot-notation.
 
-{% highlight python %}
+```python
 dmgr = getMBean1(type='Server', name='dmgr')
 print 'state:                 ' + dmgr.state
 print 'pid:                   ' + dmgr.pid
 print 'threadMonitorInterval: ' + dmgr.threadMonitorInterval
-{% endhighlight %}
+```
 
 Similarly, you can modify JXM MBean attributes using dot-notation and regular Python assignment.
 
-{% highlight python %}
+```python
 dmgr = getMBean1(type='Server', name='dmgr')
 dmgr.threadMonitorInterval = 60
 
 # JMX MBean attributes behave like normal Python object attributes:
 tp = getMBean1(type='ThreadPool', name='WebContainer', process='dmgr')
 tp.maximumSize += 10
-{% endhighlight %}
+```
 
 ##### Invoking MBean operations
 
 Invoking an MBean operation looks like regular method invocation on a Python object.
 
-{% highlight python %}
+```python
 dmgr = getMBean1(type='Server', name='dmgr')
 dmgr.restart()
 # the Deployment Manager is restarting, hold on before invoking next operations
-{% endhighlight %}
+```
 
 Operations accept and return regular Python types.
 
-{% highlight python %}
+```python
 appMgr = getMBean1(type='ApplicationManager', process='dmgr')
 appMgr.stopApplication('isclite')
 # AdminConsole is stopped now. Go and see!
 appMgr.startApplication('isclite')
 # AdminConsole is running again
-{% endhighlight %}
+```
 
 ##### Special note on overloaded operations
 
@@ -161,11 +161,11 @@ Some MBeans overload JMX operations, for example `NodeAgent` has two different v
 
 MBean class, based on provided argument list, tries to match your call to proper JMX operation. If the actual call and the operation signature have the same number of arguments, a match is successful. Should that mechanism be insufficient (when two or more operations accept the same number of arguments), you'll need to resolve that ambiguity by secifying operation's full signature.
 
-{% highlight python %}
+```python
 nodeAgent = getMBean1(type='NodeAgent', node='wdrNode01')
 nodeAgent.launchProcess[ ['java.lang.String', 'java.lang.Integer'] ] ( 'wdrClusterMem01', 180 )
 #                      ^ ^       ^                    ^          ^ ^
 #                              this is where the magic comes
-{% endhighlight %}
+```
 
 The above mechanism works for all operations, even those which are not overloaded. For readability of your scripts, you'll probably avoid it unless it's really necessary to disambiguate.

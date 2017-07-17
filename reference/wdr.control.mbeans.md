@@ -22,10 +22,10 @@ list of [wdr.control.MBean](wdr.control.MBean.class.html) instances
 
 ## Examples
 
-{% highlight python %}
+```python
 # objectName variable will contain a multi-line string where each
 # line represents ObjectName of a Server
 objectNames = AdminControl.queryNames('WebSphere:*,type=Server')
 for srv in mbeans(objectNames):
     print srv.name, ': ', srv.state
-{% endhighlight %}
+```
