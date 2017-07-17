@@ -262,7 +262,7 @@ versions, due to the fact that prior to WAS 9 only Jython 2.1 was supported.
 So, for WAS 6.1, 7.0, 8.0, 8.5 and 8.5.5 the installation is done using this way:
 
 ```sh
-${WAS_CLIENT_HOME}/bin/ws_ant.sh -f ${WDR_HOME}/utilities/client-setup/build.xml jython
+${WAS_CLIENT_HOME}/bin/ws_ant.sh -f ${WDR_HOME}/utilities/client-setup/build.xml jython_pre9
 ```
 
 For WAS 9.0 and newer, Jython is installed like this:
