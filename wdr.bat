@@ -225,7 +225,7 @@ call :main %* & exit /b
         -Dpython.cachedir=%JYTHON_CACHEDIR% ^
         -Djava.io.tmpdir=%TMPDIR% ^
         -Dwebsphere.workspace.root=%WORKSPACE% ^
-        %WDR_PROFILE_PROPERTY% ^
+        -Dcom.ibm.ws.scripting.profiles=%WDR_PROFILE% ^
         -Dcom.ibm.SOAP.ConfigURL=file:///%SOAP_PROPERTIES:\=/% ^
         -Dcom.ibm.SSL.ConfigURL=file:///%SSL_CLIENT_PROPS:\=/% ^
         %WAS_DEBUG% ^
