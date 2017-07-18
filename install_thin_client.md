@@ -273,6 +273,10 @@ ${WAS_CLIENT_HOME}/bin/ws_ant.sh -f ${WDR_HOME}/utilities/client-setup/build.xml
 
 The installation may take a little while depending on internet connection speed.
 
+Some URLs accessed during Jython installation may use strong ciphers, which in
+turn requires installing [unrestricted SDK JCE policy files](https://www-01.ibm.com/marketing/iwm/iwm/web/reg/pick.do?source=jcesdk)
+to WAS Client's Java SDK.
+
 ### Troubleshootning and sppeding up Jython installation
 
 The installer downloads Jython distributions from public Maven repository. In
