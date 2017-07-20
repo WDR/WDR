@@ -249,7 +249,7 @@ call :main %* & exit /b
     if [%WDR_SCRIPT%] == [] (
         call :run_interactive
     ) else (
-        call :run_script
+        call :run_script %1 %2 %3 %4 %5 %6 %7 %8 %9
     )
     exit /b
 
@@ -271,6 +271,6 @@ call :main %* & exit /b
             exit /b 1
         )
         call :setup || exit /b
-        call :run
+        call :run %1 %2 %3 %4 %5 %6 %7 %8 %9
     exit /b
 
