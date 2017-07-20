@@ -574,7 +574,7 @@ class ConfigObject:
         logger.debug('retrieving all attributes ConfigObject %s', self)
         showResult = AdminConfig.show(str(self))
         attributes = {}
-        for l in showResult.splitlines():
+        for l in re.compile(r'^(\[(?:.|\s)*?])\r?$', re.MULTILINE).findall(showResult):
             (name, value) = l[1:-1].split(' ', 1)
             logger.debug(
                 'about to process attribute %s with value "%s"', name, value
