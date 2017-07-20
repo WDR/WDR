@@ -25,10 +25,10 @@
 
 	<target name='jython_pre9' description='Downloads and installs Jython 2.1 in a WAS pre-9 way' depends='check,config'>
 		<delete dir='${was.install.root}/optionalLibraries/jython' />
-		<mkdir dir='${was.install.root}/optionalLibraries/jython' />
 		<get
 			src='${wdr.jython21.installer}'
 			dest='${was.install.root}/optionalLibraries/jython21.class' />
+		<mkdir dir='${was.install.root}/optionalLibraries/jython' />
 		<unzip
 			src='${was.install.root}/optionalLibraries/jython21.class'
 			dest='${was.install.root}/optionalLibraries/jython'>
@@ -43,10 +43,10 @@
 	<target name='jython_9' description='Downloads and installs Jython 2.1 and 2.7 in a WAS 9 way' depends='check,config'>
 		<!-- Jython 2.7 -->
 		<delete dir='${was.install.root}/optionalLibraries/jython' />
-		<mkdir dir='${was.install.root}/optionalLibraries/jython' />
 		<get
 			src='${wdr.jython27.installer}'
 			dest='${was.install.root}/optionalLibraries/jython_installer.jar' />
+		<mkdir dir='${was.install.root}/optionalLibraries/jython' />
 		<java
 			jar='${was.install.root}/optionalLibraries/jython_installer.jar'
 			fork='true'>
