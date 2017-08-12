@@ -55,7 +55,11 @@ _attPattern = re.compile(
 _variablePattern = re.compile(
     r'\$\['
     r'\s*'
-    r'(?P<var>[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)'
+    r'(?:'
+        r'(?P<val>(?:\'[^\']*\')|(?:\"[^\"]*\"))'
+        r'|'
+        r'(?P<var>[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)'
+    r')'
     r'(?P<filter>'
     r'(?:'
         r'\s*\|\s*'
@@ -109,18 +113,21 @@ def _processFilters(value, filterExpression, variables):
     return value
 
 
-def _lookupVariable(expression, filterExpression, variables):
+def _lookupVariable(literal, expression, filterExpression, variables):
     value = None
-    context = variables
-    try:
-        for seg in expression.split('.'):
-            value = context[seg]
-            if isinstance(value, DictType):
-                context = value
-    except KeyError:
-        raise KeyError(expression)
-    if callable(value):
-        value = value(expression, variables)
+    if literal:
+        value = literal[1:-1]
+    else:
+        context = variables
+        try:
+            for seg in expression.split('.'):
+                value = context[seg]
+                if isinstance(value, DictType):
+                    context = value
+        except KeyError:
+            raise KeyError(expression)
+        if callable(value):
+            value = value(expression, variables)
     return _defaultFilter(_processFilters(value, filterExpression, variables))
 
 
@@ -131,7 +138,7 @@ def substituteVariables(value, variables):
         _variablePattern,
         (
             lambda k, v=variables:
-            _lookupVariable(k.group('var'), k.group('filter'), v)
+            _lookupVariable(k.group('val'), k.group('var'), k.group('filter'), v)
         ),
         value
     )

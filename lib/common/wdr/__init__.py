@@ -7,7 +7,7 @@ logger = logging.getLogger('wdr')
 
 MAJOR_VERSION = 0
 MINOR_VERSION = 8
-PATCH_VERSION = 0
+PATCH_VERSION = 1
 
 
 class WsadminObjects:

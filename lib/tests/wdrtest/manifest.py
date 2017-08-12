@@ -148,6 +148,42 @@ class VariableSubstitutionTest(unittest.TestCase):
             )
         )
 
+    def testWithDoubleQuotedLiteral(self):
+        self.assertEquals(
+            'Hello world!',
+            substituteVariables(
+                'Hello $[ "world" ]!',
+                {}
+            )
+        )
+
+    def testWithDoubleQuotedLiteralAndFilter(self):
+        self.assertEquals(
+            'Hello WORLD!',
+            substituteVariables(
+                'Hello $[ "world" | upper ]!',
+                {'upper': string.upper}
+            )
+        )
+
+    def testWithSingleQuotedLiteral(self):
+        self.assertEquals(
+            'Hello world!',
+            substituteVariables(
+                "Hello $[ 'world' ]!",
+                {}
+            )
+        )
+
+    def testWithSingleQuotedLiteralAndFilter(self):
+        self.assertEquals(
+            'Hello WORLD!',
+            substituteVariables(
+                "Hello $[ 'world' | upper ]!",
+                {'upper': string.upper}
+            )
+        )
+
 
 class VariableSubstitutionWithFilteringTest(unittest.TestCase):
     def testUpper(self):
