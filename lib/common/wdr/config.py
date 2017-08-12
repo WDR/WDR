@@ -41,12 +41,12 @@ def _compileRegularExpressions():
         #
         r')'
     )
-    maskedAttributePattern = re.compile('\*+')
+    maskedAttributePattern = re.compile(r'\*+')
     # expression matching list of object ids
     # lists of config objects are being returned as whitespace-separated strings
     # surrounded by square brackets, for compatility with Jacl
     configNameListPattern = re.compile(r'^(?:"?\[.*\]"?)|(\*+)$')
-    attributeTypePattern = re.compile('[, \(\)]+')
+    attributeTypePattern = re.compile(r'[, \(\)]+')
     return (
         configNamePattern, configNameListPattern, attributeTypePattern,
         maskedAttributePattern
