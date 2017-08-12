@@ -4,11 +4,6 @@ title: Application and configuration manifests
 short_title: Manifests
 ---
 
-<!--
-The document contains snippets of WDR application and configuration manifests
-Make sure that you preserve original indentation in this document (both spaces AND tabs)
--->
-
 Managing deployments and configurations of a complex WAS cells can be challenging. Doing it with multiple (non-production, production, DR) environments without introducing inconsistencies raises the complexity exponentially with each new environment. Automated configuration becomes a must. While it is possible to script everything in wsadmin (with or without WDR), the complexity is being shifted from product configuration management to management of scripts and script libraries. Comparing two versions of a script and understanding what exact changes will be introduced after script execution is not that trivial either. Developing a fully idempotent script, which you can run end-to-end without risk of creating duplicates or missing some changes makes your scripts even more complex and difficult to maintain. The fact that your organisation uses ND and BASE cells introduces another dimension to the problem space. This is where manifests come to the rescue.
 
 One of the main motivations for automating management of WebSphere is to keep multiple environments in sync. This goal can be difficult to achieve using just scripts. As stated previously, the main challenges are:
@@ -98,32 +93,34 @@ Application manifests can be imported using
 
 An example application manifest may look as follows
 
-    DefaultApplication ../applications/DefaultApplication.ear
-    	DataSourceFor20CMPBeans
-    		Increment EJB module;Increment;Increment.jar,META-INF/ejb-jar.xml;jdbc/DefaultEJBTimerDataSource;cmpBinding.perConnectionFactory;;
-    	filepermission .*\.dll=755#.*\.so=755#.*\.a=755#.*\.sl=755
-    	MapModulesToServers
-    		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;$[deploymentTargets]
-    		Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[deploymentTargets]+$[webServers]
-    	noprocessEmbeddedConfig
-    	DataSourceFor20EJBModules
-    		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;jdbc/DefaultEJBTimerDataSource;cmpBinding.perConnectionFactory;;;
-    	nouseAutoLink
-    	distributeApp
-    	noreloadEnabled
-    	asyncRequestDispatchType DISABLED
-    	validateinstall warn
-    	noallowDispatchRemoteInclude
-    	noallowServiceRemoteInclude
-    	MapRolesToUsers
-    		All Role;AppDeploymentOption.No;AppDeploymentOption.No;;;AppDeploymentOption.Yes;;
-    	nodeployws
-    	nouseMetaDataFromBinary
-    	nodeployejb
-    	createMBeansForResources
-    	MapWebModToVH
-    		Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[virtualHost]
-    	nopreCompileJSPs
+```
+DefaultApplication ../applications/DefaultApplication.ear
+ DataSourceFor20CMPBeans
+  Increment EJB module;Increment;Increment.jar,META-INF/ejb-jar.xml;jdbc/DefaultEJBTimerDataSource;cmpBinding.perConnectionFactory;;
+ filepermission .*\.dll=755#.*\.so=755#.*\.a=755#.*\.sl=755
+ MapModulesToServers
+  Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;$[deploymentTargets]
+  Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[deploymentTargets]+$[webServers]
+ noprocessEmbeddedConfig
+ DataSourceFor20EJBModules
+  Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;jdbc/DefaultEJBTimerDataSource;cmpBinding.perConnectionFactory;;;
+ nouseAutoLink
+ distributeApp
+ noreloadEnabled
+ asyncRequestDispatchType DISABLED
+ validateinstall warn
+ noallowDispatchRemoteInclude
+ noallowServiceRemoteInclude
+ MapRolesToUsers
+  All Role;AppDeploymentOption.No;AppDeploymentOption.No;;;AppDeploymentOption.Yes;;
+ nodeployws
+ nouseMetaDataFromBinary
+ nodeployejb
+ createMBeansForResources
+ MapWebModToVH
+  Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[virtualHost]
+ nopreCompileJSPs
+```
 
 ### Application name and path to application archive
 
@@ -138,11 +135,15 @@ must not have archive path.
 
 The first line in standalone manifests will look as follows:
 
-    ApplicationName path/to/application.ear
+```
+ApplicationName path/to/application.ear
+```
 
 Embedded manifests will specify only the applicaiton name:
 
-    ApplicationName
+```
+ApplicationName
+```
 
 ### WDR-specific options
 
@@ -154,28 +155,36 @@ The following is a list of all extra options supported by current version of WDR
 
 Example:
 
-    	*startingWeight 1
+```
+ *startingWeight 1
+```
 
 * **classLoadingMode** specifies class loader mode for the application. Two possible values are `PARENT_FIRST` and `PARENT_LAST`. See WAS InfoCenter for more details on application class loading mode.
 
 Example:
 
-    	*classLoadingMode PARENT_FIRST
+```
+ *classLoadingMode PARENT_FIRST
+```
 
 * **webModuleClassLoadingMode** specifies class loader mode for individual web module in the application. This option accepts multiple values, one per web module. For more details on web module's class loading mode see WAS InfoCenter.
 
 Example:
 
-    	*webModuleClassLoadingMode
-    		firstWebModule.war;PARENT_FIRST
-    		secondWebModule.war;PARENT_FIRST
+```
+ *webModuleClassLoadingMode
+  firstWebModule.war;PARENT_FIRST
+  secondWebModule.war;PARENT_FIRST
+```
 
 * **applicationWSPolicySetAttachments** assures that application (provider) policy set attachment and binding exists for specified resource exists.
 
 The syntax of this option is:
 
-    	*applicationWSPolicySetAttachments
-    		policySet;resources;binding
+```
+ *applicationWSPolicySetAttachments
+  policySet;resources;binding
+```
 
 The policySet, resources, binding have the same meaning as in `AdminTask.createPolicySetAttachment` function.
 
@@ -183,8 +192,10 @@ The policySet, resources, binding have the same meaning as in `AdminTask.createP
 
 The syntax of this option is:
 
-    	*applicationWSPolicySetAttachments
-    		policySet;resources;binding
+```
+ *applicationWSPolicySetAttachments
+  policySet;resources;binding
+```
 
 The policySet, resources, binding have the same meaning as in `AdminTask.createPolicySetAttachment` function.
 
@@ -192,9 +203,11 @@ The policySet, resources, binding have the same meaning as in `AdminTask.createP
 
 The syntax of this option is:
 
-    	*applicationWSPolicySetAttachments
-    		resource;sharePolicyMethods[;wsMexPolicySetName;wsMexPolicySetBinding]
-    		secondWebModule.war;PARENT_FIRST
+```
+ *applicationWSPolicySetAttachments
+  resource;sharePolicyMethods[;wsMexPolicySetName;wsMexPolicySetBinding]
+  secondWebModule.war;PARENT_FIRST
+```
 
 The resource, sharePolicyMethods, wsMexPolicySetName and wsMexPolicySetBinding have the same meaning as in `AdminTask.getProviderPolicySharingInfo` function.
 
@@ -204,16 +217,22 @@ Subsequent lines contain standard installation/update options. All the values su
 
 The simplest category of option is a no-value flag:
 
-    	nodeployejb
+```
+ nodeployejb
+```
 
 Some option may have single values:
 
-    	asyncRequestDispatchType DISABLED
+```
+ asyncRequestDispatchType DISABLED
+```
 
 Other category of options is list of lists. Elements of the outer list are provided in separate lines, while sub-list elements are separated by semicolons. All elements, including empty ones, must be provided:
 
-    	DataSourceFor20EJBModules
-    		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;jdbc/DefaultEJBTimerDataSource;cmpBinding.perConnectionFactory;;;
+```
+ DataSourceFor20EJBModules
+  Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;jdbc/DefaultEJBTimerDataSource;cmpBinding.perConnectionFactory;;;
+```
 
 ### Comments
 
@@ -223,9 +242,11 @@ Lines which start from '#' are being treated as comments.
 
 Application manifest can reference variables which are being resolved during import time. Variable can be specified in option values. Here, the value ``virtualHost`` is being referenced:
 
-    	MapModulesToServers
-    		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;$[deploymentTargets]
-    		Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[deploymentTargets]+$[webServers]
+```
+ MapModulesToServers
+  Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;$[deploymentTargets]
+  Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[deploymentTargets]+$[webServers]
+```
 
 Please note that manifest variables have nothing in common with *WebSphere variables* nor *environment variables*.
 
@@ -233,39 +254,41 @@ Please note that manifest variables have nothing in common with *WebSphere varia
 
 The complete example with options, special options, variables and comments may look as follows:
 
-    ApplicationName path/to/application.ear
-    	# special installation options start with asterisk
-    	*startingWeight 100
-    	# the installation options follow, option names match those from AdminApp.install / AdminApp.update
-    	# list values are separated with semicolons, empty values must be provided
-    	DataSourceFor20CMPBeans
-    		Increment EJB module;Increment;Increment.jar,META-INF/ejb-jar.xml;jdbc/DefaultEJBTimerDataSource;cmpBinding.perConnectionFactory;;
-    	# atomic (non-list) values are specified after the
-    	filepermission .*\.dll=755#.*\.so=755#.*\.a=755#.*\.sl=755
-    	# some options accept list of lists, please note variable references
-    	MapModulesToServers
-    		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;$[deploymentTargets]
-    		Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[deploymentTargets]+$[webServers]
-    	# an option without a value:
-    	noprocessEmbeddedConfig
-    	DataSourceFor20EJBModules
-    		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;jdbc/DefaultEJBTimerDataSource;cmpBinding.perConnectionFactory;;;
-    	nouseAutoLink
-    	distributeApp
-    	noreloadEnabled
-    	asyncRequestDispatchType DISABLED
-    	validateinstall warn
-    	noallowDispatchRemoteInclude
-    	noallowServiceRemoteInclude
-    	MapRolesToUsers
-    		All Role;AppDeploymentOption.No;AppDeploymentOption.No;;;AppDeploymentOption.Yes;;
-    	nodeployws
-    	nouseMetaDataFromBinary
-    	nodeployejb
-    	createMBeansForResources
-    	MapWebModToVH
-    		Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[virtualHost]
-    	nopreCompileJSPs
+```
+ApplicationName path/to/application.ear
+ # special installation options start with asterisk
+ *startingWeight 100
+ # the installation options follow, option names match those from AdminApp.install / AdminApp.update
+ # list values are separated with semicolons, empty values must be provided
+ DataSourceFor20CMPBeans
+  Increment EJB module;Increment;Increment.jar,META-INF/ejb-jar.xml;jdbc/DefaultEJBTimerDataSource;cmpBinding.perConnectionFactory;;
+ # atomic (non-list) values are specified after the
+ filepermission .*\.dll=755#.*\.so=755#.*\.a=755#.*\.sl=755
+ # some options accept list of lists, please note variable references
+ MapModulesToServers
+  Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;$[deploymentTargets]
+  Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[deploymentTargets]+$[webServers]
+ # an option without a value:
+ noprocessEmbeddedConfig
+ DataSourceFor20EJBModules
+  Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;jdbc/DefaultEJBTimerDataSource;cmpBinding.perConnectionFactory;;;
+ nouseAutoLink
+ distributeApp
+ noreloadEnabled
+ asyncRequestDispatchType DISABLED
+ validateinstall warn
+ noallowDispatchRemoteInclude
+ noallowServiceRemoteInclude
+ MapRolesToUsers
+  All Role;AppDeploymentOption.No;AppDeploymentOption.No;;;AppDeploymentOption.Yes;;
+ nodeployws
+ nouseMetaDataFromBinary
+ nodeployejb
+ createMBeansForResources
+ MapWebModToVH
+  Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[virtualHost]
+ nopreCompileJSPs
+```
 
 # Configuration manifests
 
@@ -293,98 +316,103 @@ When authoring configuration manifests, you will find `WebSphere Application And
 
 The configuration objects
 
-    RootObjectType1
-    	*keyAttr1 key1
-    	*keyAttr2 key2
-    	-attr1 val1
-    	-attr2 val2
-    	ChildType1
-    		*childKey k
-    		-childAttr1 v1
-    		-childAttr2 v2
-    RootObjectType2
-    	*keyAttr1 key1
-    	*keyAttr2 key2
-    	-attr1 val1
-    	-attr2 val2
-    	ChildType1
-    		*childKey k
-    		-childAttr1 v1
-    		-childAttr2 v2
+```
+RootObjectType1
+ *keyAttr1 key1
+ *keyAttr2 key2
+ -attr1 val1
+ -attr2 val2
+ ChildType1
+  *childKey k
+  -childAttr1 v1
+  -childAttr2 v2
+RootObjectType2
+ *keyAttr1 key1
+ *keyAttr2 key2
+ -attr1 val1
+ -attr2 val2
+ ChildType1
+  *childKey k
+  -childAttr1 v1
+  -childAttr2 v2
+```
 
 Complete example of `DataSource` configuration:
 
-    Cell
-    	Security
-    		JAASAuthData
-    			*alias Db2AuthAlias
-    			-userId db2admin
-    			-password db2admin
-    ServerCluster
-    	*name wdrCluster
-    	VariableMap
-    		-entries
-    			VariableSubstitutionEntry
-    				*symbolicName DB2_JCC_DRIVER_PATH
-    				-value /opt/was/jars/db2jcc
-    	JDBCProvider
-    		*name TheDb2Provider
-    		-providerType DB2 Using IBM JCC Driver
-    		-implementationClassName com.ibm.db2.jcc.DB2XADataSource
-    		-classpath ${DB2_JCC_DRIVER_PATH}/db2jcc4.jar;${DB2_JCC_DRIVER_PATH}/db2jcc_license_cu.jar
-    		DataSource
-    			*name MyDataSource
-    			-jndiName jdbc/MyDS
-    			-authDataAlias Db2AuthAlias
-    			-mapping
-    				MappingModule
-    					-mappingConfigAlias DefaultPrincipalMapping
-    					-authDataAlias Db2AuthAlias
-    			-propertySet
-    				J2EEResourcePropertySet
-    					-resourceProperties
-    						J2EEResourceProperty
-    							*name databaseName
-    							-value SAMPLE
-    							-type java.lang.String
-    						J2EEResourceProperty
-    							*name serverName
-    							-value db2host.example.com
-    							-type java.lang.String
-    						J2EEResourceProperty
-    							*name portNumber
-    							-value 50000
-    							-type java.lang.Integer
-    						J2EEResourceProperty
-    							*name driverType
-    							-value 4
-    							-type java.lang.Integer
-
+```
+Cell
+ Security
+  JAASAuthData
+   *alias Db2AuthAlias
+   -userId db2admin
+   -password db2admin
+ServerCluster
+ *name wdrCluster
+ VariableMap
+  -entries
+   VariableSubstitutionEntry
+    *symbolicName DB2_JCC_DRIVER_PATH
+    -value /opt/was/jars/db2jcc
+ JDBCProvider
+  *name TheDb2Provider
+  -providerType DB2 Using IBM JCC Driver
+  -implementationClassName com.ibm.db2.jcc.DB2XADataSource
+  -classpath ${DB2_JCC_DRIVER_PATH}/db2jcc4.jar;${DB2_JCC_DRIVER_PATH}/db2jcc_license_cu.jar
+  DataSource
+   *name MyDataSource
+   -jndiName jdbc/MyDS
+   -authDataAlias Db2AuthAlias
+   -mapping
+    MappingModule
+     -mappingConfigAlias DefaultPrincipalMapping
+     -authDataAlias Db2AuthAlias
+   -propertySet
+    J2EEResourcePropertySet
+     -resourceProperties
+      J2EEResourceProperty
+       *name databaseName
+       -value SAMPLE
+       -type java.lang.String
+      J2EEResourceProperty
+       *name serverName
+       -value db2host.example.com
+       -type java.lang.String
+      J2EEResourceProperty
+       *name portNumber
+       -value 50000
+       -type java.lang.Integer
+      J2EEResourceProperty
+       *name driverType
+       -value 4
+       -type java.lang.Integer
+```
 
 JVM configuration example:
 
-    Cell
-    	*name wdrCell
-    	Node
-    		*name wdrDMgrNode
-    		Server
-    			*name dmgr
-    			-processDefinitions
-    				JavaProcessDef
-    					-jvmEntries
-    						JavaVirtualMachine
-    							-initialHeapSize 128
-    							-maximumHeapSize 512
-    	Node
-    		*name wdrNode01
-    		Server
-    			*name nodeagent
-    			-processDefinitions
-    				JavaProcessDef
-    					-jvmEntries
-    						JavaVirtualMachine
-    							-initialHeapSize 128
-    							-maximumHeapSize 256
+```
+Cell
+ *name wdrCell
+ Node
+  *name wdrDMgrNode
+  Server
+   *name dmgr
+   -processDefinitions
+    JavaProcessDef
+     -jvmEntries
+      JavaVirtualMachine
+       -initialHeapSize 128
+       -maximumHeapSize 512
+ Node
+  *name wdrNode01
+  Server
+   *name nodeagent
+   -processDefinitions
+    JavaProcessDef
+     -jvmEntries
+      JavaVirtualMachine
+       -initialHeapSize 128
+       -maximumHeapSize 256
+```
 
 ## Reuse of manifests and the manifestPath
 
@@ -403,105 +431,111 @@ A practical use case for importing manifests is applying JVM properties across a
 
 The main manifest:
 
-    Cell
-    	*name wdrCell
-    	Node
-    		*name wdrDMgrNode
-    		Server
-    			*name dmgr
-    			-processDefinitions
-    				JavaProcessDef
-    					-jvmEntries
-    						JavaVirtualMachine
-    							-initialHeapSize 128
-    							-maximumHeapSize 512
-    							-systemProperties
-    								@import template/standardJvmProperties.wdrc
-    	Node
-    		*name wdrNode01
-    		Server
-    			*name nodeagent
-    			-processDefinitions
-    				JavaProcessDef
-    					-jvmEntries
-    						JavaVirtualMachine
-    							-initialHeapSize 128
-    							-maximumHeapSize 256
-    							-systemProperties
-    								@import template/standardJvmProperties.wdrc
-    		Server
-    			*name wdrClusterMem01
-    			-processDefinitions
-    				JavaProcessDef
-    					-jvmEntries
-    						JavaVirtualMachine
-    							-initialHeapSize 128
-    							-maximumHeapSize 1024
-    							-systemProperties
-    								@import template/standardJvmProperties.wdrc
-    								@import solutionAbc/appServerJvmProperties.wdrc
-    	Node
-    		*name wdrNode02
-    		Server
-    			*name nodeagent
-    			-processDefinitions
-    				JavaProcessDef
-    					-jvmEntries
-    						JavaVirtualMachine
-    							-initialHeapSize 128
-    							-maximumHeapSize 256
-    							-systemProperties
-    								@import template/standardJvmProperties.wdrc
-    		Server
-    			*name wdrClusterMem02
-    			-processDefinitions
-    				JavaProcessDef
-    					-jvmEntries
-    						JavaVirtualMachine
-    							-initialHeapSize 128
-    							-maximumHeapSize 1024
-    							-systemProperties
-    								@import template/standardJvmProperties.wdrc
-    								@import solutionAbc/appServerJvmProperties.wdrc
+```
+Cell
+ *name wdrCell
+ Node
+  *name wdrDMgrNode
+  Server
+   *name dmgr
+   -processDefinitions
+    JavaProcessDef
+     -jvmEntries
+      JavaVirtualMachine
+       -initialHeapSize 128
+       -maximumHeapSize 512
+       -systemProperties
+        @import template/standardJvmProperties.wdrc
+ Node
+  *name wdrNode01
+  Server
+   *name nodeagent
+   -processDefinitions
+    JavaProcessDef
+     -jvmEntries
+      JavaVirtualMachine
+       -initialHeapSize 128
+       -maximumHeapSize 256
+       -systemProperties
+        @import template/standardJvmProperties.wdrc
+  Server
+   *name wdrClusterMem01
+   -processDefinitions
+    JavaProcessDef
+     -jvmEntries
+      JavaVirtualMachine
+       -initialHeapSize 128
+       -maximumHeapSize 1024
+       -systemProperties
+        @import template/standardJvmProperties.wdrc
+        @import solutionAbc/appServerJvmProperties.wdrc
+ Node
+  *name wdrNode02
+  Server
+   *name nodeagent
+   -processDefinitions
+    JavaProcessDef
+     -jvmEntries
+      JavaVirtualMachine
+       -initialHeapSize 128
+       -maximumHeapSize 256
+       -systemProperties
+        @import template/standardJvmProperties.wdrc
+  Server
+   *name wdrClusterMem02
+   -processDefinitions
+    JavaProcessDef
+     -jvmEntries
+      JavaVirtualMachine
+       -initialHeapSize 128
+       -maximumHeapSize 1024
+       -systemProperties
+        @import template/standardJvmProperties.wdrc
+        @import solutionAbc/appServerJvmProperties.wdrc
+```
 
 Now let's take a look at imported manifests. The `template/standardJvmProperties.wdrc` defines properties that you set everywhere. The `template` directory is in your `manifestPath` and contains manifests that you reuse across different cells, kind of company standard.
 
-    Property
-    	*name com.ibm.cacheLocalHost
-    	-value true
-    Property
-    	*name java.net.preferIPv4Stack
-    	-value true
-    Property
-    	*name java.awt.headless
-    	-value true
+```
+Property
+ *name com.ibm.cacheLocalHost
+ -value true
+Property
+ *name java.net.preferIPv4Stack
+ -value true
+Property
+ *name java.awt.headless
+ -value true
+```
 
 The other manifest being imported in the scope of application servers' JVMs is specific to your solution. Again, the `solutionAbc/appServerJvmProperties.wdrc` is resolvable in `manifestPath`. This manifest is solution-specific, you apply it only to certain configurations.
 
-    Property
-    	*name com.abc.app.specific.property
-    	-value 1
-    Property
-    	*name sun.net.inetaddr.ttl
-    	-value 3600
-    Property
-    	*name sun.net.inetaddr.negative.ttl
-    	-value 3600
-    Property
-    	*name sun.net.client.defaultConnectTimeout
-    	-value 1000
-    Property
-    	*name sun.net.client.defaultReadTimeout
-    	-value 60000
-    Property
-    	*name sun.net.http.retryPost
-    	-value false
-    Property
-    	*name http.keepAlive
-    	-value true
-    Property
-    	*name http.maxConnections
-    	-value 25
+```
+Property
+ *name com.abc.app.specific.property
+ -value 1
+Property
+ *name sun.net.inetaddr.ttl
+ -value 3600
+Property
+ *name sun.net.inetaddr.negative.ttl
+ -value 3600
+Property
+ *name sun.net.client.defaultConnectTimeout
+ -value 1000
+Property
+ *name sun.net.client.defaultReadTimeout
+ -value 60000
+Property
+ *name sun.net.http.retryPost
+ -value false
+Property
+ *name http.keepAlive
+ -value true
+Property
+ *name http.maxConnections
+ -value 25
+```
 
 ## Variable expansion
 
@@ -511,12 +545,14 @@ Configuration and application manifests perform variable substitution during imp
 
 The most straightforward option is to declare all variables in a flat dictionary and reference them in the manifest:
 
-    Cell
-    	Security
-    		JAASAuthData
-    			*alias Db2AuthAlias
-    			-userId $[databaseUser]
-    			-password $[databasePassword]
+```
+Cell
+ Security
+  JAASAuthData
+   *alias Db2AuthAlias
+   -userId $[databaseUser]
+   -password $[databasePassword]
+```
 
 The code for importing the manifest above could look as follows:
 
@@ -532,12 +568,14 @@ importConfigurationManifest( 'solutionAbc/authenticationAliases.wdrc', manifestV
 
 As the number of variables increases, you may want to group them together in nested dictionaries. Then the manifest references them using dot-notation, where dot-separated segments are keys to dictionary entries in each level.
 
-    Cell
-    	Security
-    		JAASAuthData
-    			*alias Db2AuthAlias
-    			-userId $[database.user]
-    			-password $[database.password]
+```
+Cell
+ Security
+  JAASAuthData
+   *alias Db2AuthAlias
+   -userId $[database.user]
+   -password $[database.password]
+```
 
 The script which imports such manifest needs to declare a nested dictionary like the one below:
 
@@ -559,10 +597,12 @@ importConfigurationManifest( 'solutionAbc/authenticationAliases.wdrc', manifestV
 
 In more advanced cases it may be desirable to do some sort of processing of variables. Let's take as an example a list of deployment targets in application manifest. The following manifest references `deploymentTargets` and `webServers` variables:
 
-    DefaultApplication ../applications/DefaultApplication.ear
-    	MapModulesToServers
-    		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;$[deploymentTargets]
-    		Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[deploymentTargets]+$[webServers]
+```
+DefaultApplication ../applications/DefaultApplication.ear
+ MapModulesToServers
+  Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;$[deploymentTargets]
+  Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[deploymentTargets]+$[webServers]
+```
 
 ```python
 manifestVariables = {
@@ -595,10 +635,12 @@ manifestVariables = {
 
 Here's where filters become handy. Filter is a function which takes one argument of any type and returns a string. Filter function, once defined, must be added into variables dictionary. Then the filter can be easily referenced in a manifest, like in the example below:
 
-    DefaultApplication ../applications/DefaultApplication.ear
-    	MapModulesToServers
-    		Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;$[deploymentTargets]
-    		Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[deploymentTargets]+$[webServers|makeWebServerString]
+```
+DefaultApplication ../applications/DefaultApplication.ear
+ MapModulesToServers
+  Increment EJB module;Increment.jar,META-INF/ejb-jar.xml;$[deploymentTargets]
+  Default Web Application;DefaultWebApplication.war,WEB-INF/web.xml;$[deploymentTargets]+$[webServers|makeWebServerString]
+```
 
 The `makeWebServerString` is a key of filter function in variables.
 

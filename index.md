@@ -96,56 +96,58 @@ Using a nested loop, the script iterates all application servers and applies the
 
 The content of the manifest file ('standardJVM.wdr') referenced by the above script:
 
-    Node
-    	*name $[nodeName]
-    	Server
-    		*name $[serverName]
-    		-processDefinitions
-    			JavaProcessDef
-    				-environment
-    					Property
-    						*name JAVA_DUMP_OPTS
-    						-value ONOUTOFMEMORY(JAVADUMP,SYSDUMP[1]),ONANYSIGNAL(JAVADUMP)
-    					Property
-    						*name IBM_JAVACOREDIR
-    						-value /shared/dumps/$[nodeName]/$[serverName]
-    					Property
-    						*name IBM_COREDIR
-    						-value /shared/dumps/$[nodeName]/$[serverName]
-    				-jvmEntries
-    					JavaVirtualMachine
-    						-genericJvmArguments -Xverbosegclog:${SERVER_LOG_ROOT}/gc.log,9,1000
-    						-systemProperties
-    							Property
-    								*name com.ibm.cacheLocalHost
-    								-value true
-    							Property
-    								*name java.net.preferIPv4Stack
-    								-value true
-    							Property
-    								*name java.awt.headless
-    								-value true
-    							Property
-    								*name sun.net.inetaddr.ttl
-    								-value 3600
-    							Property
-    								*name sun.net.inetaddr.negative.ttl
-    								-value 3600
-    							Property
-    								*name sun.net.client.defaultConnectTimeout
-    								-value 60000
-    							Property
-    								*name sun.net.client.defaultReadTimeout
-    								-value 600000
-    							Property
-    								*name sun.net.http.retryPost
-    								-value false
-    							Property
-    								*name http.keepAlive
-    								-value true
-    							Property
-    								*name http.maxConnections
-    								-value 15
+```
+Node
+ *name $[nodeName]
+ Server
+  *name $[serverName]
+  -processDefinitions
+   JavaProcessDef
+    -environment
+     Property
+      *name JAVA_DUMP_OPTS
+      -value ONOUTOFMEMORY(JAVADUMP,SYSDUMP[1]),ONANYSIGNAL(JAVADUMP)
+     Property
+      *name IBM_JAVACOREDIR
+      -value /shared/dumps/$[nodeName]/$[serverName]
+     Property
+      *name IBM_COREDIR
+      -value /shared/dumps/$[nodeName]/$[serverName]
+    -jvmEntries
+     JavaVirtualMachine
+      -genericJvmArguments -Xverbosegclog:${SERVER_LOG_ROOT}/gc.log,9,1000
+      -systemProperties
+       Property
+        *name com.ibm.cacheLocalHost
+        -value true
+       Property
+        *name java.net.preferIPv4Stack
+        -value true
+       Property
+        *name java.awt.headless
+        -value true
+       Property
+        *name sun.net.inetaddr.ttl
+        -value 3600
+       Property
+        *name sun.net.inetaddr.negative.ttl
+        -value 3600
+       Property
+        *name sun.net.client.defaultConnectTimeout
+        -value 60000
+       Property
+        *name sun.net.client.defaultReadTimeout
+        -value 600000
+       Property
+        *name sun.net.http.retryPost
+        -value false
+       Property
+        *name http.keepAlive
+        -value true
+       Property
+        *name http.maxConnections
+        -value 15
+```
 
 Without WDR:
 
