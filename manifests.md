@@ -714,6 +714,19 @@ manifestVariables = {
 importApplicationManifest( 'solutionAbc/defaultApplication.wdra', manifestVariables )
 ```
 
+### String literals
+
+Expressions in manifests can also make use of string literals. String literals can be use on their own, which probably doesn't make too much sense, but they can also be passed to filters, like in this example:
+
+```
+Cell
+ Security
+  JAASAuthData
+   *alias DatabaseAuthAlias
+   -userId $[ 'db.crm.userid' | lookupSecretData ]
+   -password $[ 'db.crm.password' | lookupSecretData ]
+```
+
 ## Best practices
 
 ### Use variables
