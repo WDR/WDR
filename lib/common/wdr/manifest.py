@@ -339,6 +339,8 @@ class ManifestConfigObject:
                     result += "%s-%s\n" % ("\t" * (indent + 1), name)
                     result += value._toString(indent + 2)
                 else:
+                    value = value.replace('\r\n', '$[ __wdr__.nl ]')
+                    value = value.replace('\n', '$[ __wdr__.nl ]')
                     result += "%s-%s %s\n" % ("\t" * (indent + 1), name, value)
             elif item.get('child'):
                 result += item['value']._toString(indent + 1)
@@ -1609,13 +1611,27 @@ def _installApplication(mo, listener):
             )
 
 
+def _add_internal_variables(variables):
+    vars = {}
+    vars.update(variables)
+    vars.update(
+        {
+            '__wdr__': {
+                'nl': '\n',
+            },
+        }
+    )
+    return vars
+
+
 def importApplicationManifest(
     filename, variables={}, listener=None, manifestPath=None
 ):
+    vars = _add_internal_variables(variables)
     listener = listener or ApplicationDeploymentListener()
     manifestPath = manifestPath or _defaultManifestPath()
     affectedApplications = []
-    for mo in loadApplicationManifest(filename, variables):
+    for mo in loadApplicationManifest(filename, vars):
         if _isApplicationInstalled(mo.name):
             if _updateApplication(mo, listener):
                 affectedApplications.append(mo.name)
@@ -1628,12 +1644,11 @@ def importApplicationManifest(
 def importApplicationEmbeddedManifest(
     filename, variables={}, listener=None, manifestPath=None
 ):
+    vars = _add_internal_variables(variables)
     listener = listener or ApplicationDeploymentListener()
     manifestPath = manifestPath or _defaultManifestPath()
     affectedApplications = []
-    for mo in _importEmbeddedApplicationManifest(
-        filename, variables
-    ):
+    for mo in _importEmbeddedApplicationManifest(filename, vars):
         if _isApplicationInstalled(mo.name):
             if _updateApplication(mo, listener):
                 affectedApplications.append(mo.name)
@@ -1708,8 +1723,9 @@ def loadConfigurationManifest(filename, variables={}, manifestPath=None):
 
 
 def importConfigurationManifest(filename, variables={}, manifestPath=None):
+    vars = _add_internal_variables(variables)
     manifestPath = manifestPath or _defaultManifestPath()
     anchors = {}
     attributeCache = wdr.config.AttributeValueCache()
-    for mo in loadConfigurationManifest(filename, variables, manifestPath):
+    for mo in loadConfigurationManifest(filename, vars, manifestPath):
         mo.apply(anchors, None, None, attributeCache)
