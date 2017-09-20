@@ -71,10 +71,10 @@ class JMXMBean:
         self._attributes = {}
         self._operations = {}
         self._objectName = AdminControl.makeObjectName(_id)
-        mbeanInfo = AdminControl.getMBeanInfo_jmx(self._objectName)
-        for attr in mbeanInfo.attributes:
+        self._info = AdminControl.getMBeanInfo_jmx(self._objectName)
+        for attr in self._info.attributes:
             self._attributes[attr.name] = JMXMBeanAttribute(self, attr)
-        for opr in mbeanInfo.operations:
+        for opr in self._info.operations:
             if not self._operations.has_key(opr.name):
                 self._operations[opr.name] = OperationGroup(self, opr.name)
             group = self._operations[opr.name]
@@ -92,7 +92,7 @@ class JMXMBean:
             raise AttributeError(name)
 
     def __setattr__(self, name, value):
-        if name in ['_id', '_attributes', '_operations', '_objectName']:
+        if name in ['_id', '_attributes', '_operations', '_objectName', '_info']:
             self.__dict__[name] = value
         elif self._attributes.has_key(name):
             logger.debug(
@@ -229,12 +229,12 @@ class MBean:
         self._id = _id
         self._attributes = {}
         self._operations = {}
-        mbeanInfo = AdminControl.getMBeanInfo_jmx(
+        self._info = AdminControl.getMBeanInfo_jmx(
             AdminControl.makeObjectName(_id)
         )
-        for attr in mbeanInfo.attributes:
+        for attr in self._info.attributes:
             self._attributes[attr.name] = MBeanAttribute(self, attr)
-        for opr in mbeanInfo.operations:
+        for opr in self._info.operations:
             if not self._operations.has_key(opr.name):
                 self._operations[opr.name] = OperationGroup(self, opr.name)
             group = self._operations[opr.name]
@@ -252,7 +252,7 @@ class MBean:
             raise AttributeError(name)
 
     def __setattr__(self, name, value):
-        if name in ['_id', '_attributes', '_operations']:
+        if name in ['_id', '_attributes', '_operations', '_info']:
             self.__dict__[name] = value
         elif self._attributes.has_key(name):
             logger.debug(
