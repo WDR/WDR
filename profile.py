@@ -22,6 +22,7 @@ from wdr.app import * # noqa
 from wdr.config import * # noqa
 from wdr.control import * # noqa
 from wdr.task import * # noqa
+from wdr.tools import *  # noqa
 from wdr.manifest import * # noqa
 from wdr.util import * # noqa
 
