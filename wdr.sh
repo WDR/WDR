@@ -3,7 +3,7 @@
 
 
 err() {
-    echo $* 1>&2
+    echo "$@" 1>&2
 }
 
 
@@ -241,7 +241,7 @@ run_script() {
         "-Dcom.ibm.ws.scripting.exceptionPropagation=thrown" \
         -classpath "${WSADMIN_CLASS_PATH}" \
         com.ibm.ws.scripting.WasxShell \
-        -f "${WDR_SCRIPT}" $*
+        -f "${WDR_SCRIPT}" "$@"
     return $?
 }
 
@@ -250,7 +250,7 @@ run() {
         run_interactive
         return $?
     else
-        run_script $*
+        run_script "$@"
         return $?
     fi
 }
@@ -270,9 +270,9 @@ main() {
         exit 1
     fi
     setup || return 1
-    run $*
+    run "$@"
     return $?
 }
 
-main $*
+main "$@"
 exit $?
