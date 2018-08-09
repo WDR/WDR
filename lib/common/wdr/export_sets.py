@@ -1288,6 +1288,19 @@ def services():
                 d(attribute='properties'),
             ],
         ),
+        HTTPInboundChannelLogging=d(
+            items=[
+                d(attribute='accessLog'),
+                d(attribute='accessLogFormat'),
+                d(attribute='enableAccessLogging'),
+                d(attribute='enableErrorLogging'),
+                d(attribute='enableFRCALogging'),
+                d(attribute='errorLog'),
+                d(attribute='errorLogLevel'),
+                d(attribute='frcaLog'),
+                d(attribute='frcaLogFormat'),
+            ],
+        ),
         LogFile=d(
             items=[
                 d(attribute='filePath'),
