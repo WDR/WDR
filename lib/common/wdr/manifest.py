@@ -210,7 +210,6 @@ def _construct_ClusterMember(
     attributeCache.invalidate(cluster)
     return result
 
-
 def _construct_J2CActivationSpec(
     manifestObject, parentObject, parentAttribute, attributeCache
 ):
@@ -253,12 +252,43 @@ def _construct_J2CActivationSpec(
     )
     attributeCache.invalidate(adapter, 'j2cActivationSpec')
     return result
+	
+def _construct_SIBQueue(
+    manifestObject, parentObject, parentAttribute, attributeCache
+):
+    if parentObject._type != 'SIBus':
+        raise Exception(
+            'SIBQueue objects can be created only in the context'
+            ' of SIBus'
+        )
+    sibus = parentObject
+    args = [
+        '-name',
+        manifestObject.keys.get('identifier')
+        or
+        manifestObject.getAttribute('identifier'),
+		'-bus',
+        sibus.name,
+        '-type', 'Queue',
+        '-cluster',
+        manifestObject.getAttribute('localizationPointRefs')[0].getAttribute('cluster')
+        or
+        ''
+    ]
+    logger.debug(
+        'creating SIB queue in %s with arguments %s', sibus.name, args
+    )
+    result = wdr.config.ConfigObject(
+        AdminTask.createSIBDestination(args)
+    )
+    return result
 
 
 _constructors = {
     'ServerCluster': _construct_ServerCluster,
     'ClusterMember': _construct_ClusterMember,
     'J2CActivationSpec': _construct_J2CActivationSpec,
+	'SIBQueue': _construct_SIBQueue,
 }
 
 
@@ -1618,23 +1648,6 @@ def _add_internal_variables(variables):
         {
             '__wdr__': {
                 'nl': '\n',
-                'md5': wdr.util.md5,
-                'sha1': wdr.util.sha1,
-                'sha256': wdr.util.sha256,
-                'sha384': wdr.util.sha384,
-                'sha512': wdr.util.sha512,
-                'generateMD5': wdr.util.generateMD5,
-                'generateSHA1': wdr.util.generateSHA1,
-                'generateSHA256': wdr.util.generateSHA256,
-                'generateSHA384': wdr.util.generateSHA384,
-                'generateSHA512': wdr.util.generateSHA512,
-                'lower': lambda s: s.lower(),
-                'split': lambda s: s.split(),
-                'splitlines': lambda s: s.striplines(),
-                'strip': lambda s: s.strip(),
-                'upper': lambda s: s.upper(),
-                'encodePassword': wdr.util.encodePassword,
-                'decodePassword': wdr.util.decodePassword,
             },
         }
     )
