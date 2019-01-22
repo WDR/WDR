@@ -273,7 +273,7 @@ def generateEarChecksum(filename):
 
 def _digestJarWarContents(md, byteArray):
     try:
-		jarWarIS = java.util.zip.ZipInputStream(new ByteArrayInputStream(byteArray))
+		jarWarIS = java.util.zip.ZipInputStream(new java.io.ByteArrayInputStream(byteArray))
 	    while 1:
             entry = jarWarIS.nextEntry
             if entry is None:
