@@ -249,6 +249,7 @@ def generateEarChecksum(filename):
 				md.update(entry.name)
             elif entry.name == 'MANIFEST.MF':
 				#For now, completely skip EAR manifest
+				print 'Skipping MANIFEST.MF'
             elif entry.name.endswith('.jar') or entry.name.endswith('.war'):
                 buf = jarray.zeros(1024, 'b')
                 b = 1
