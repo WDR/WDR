@@ -273,16 +273,16 @@ def generateEarChecksum(filename):
 
 def _digestJarWarContents(md, byteArray):
     try:
-		jarWarIS = java.util.zip.ZipInputStream(java.io.ByteArrayInputStream(byteArray))
-	    while 1:
+        jarWarIS = java.util.zip.ZipInputStream(java.io.ByteArrayInputStream(byteArray))
+        while 1:
             entry = jarWarIS.nextEntry
             if entry is None:
                 break
             if entry.directory:
 				md.update(entry.name)
-			elif entry.name == 'MANIFEST.MF':
-				continue #For now, completely skip JAR manifest
-			elif entry.name.endswith('.jar'):
+            elif entry.name == 'MANIFEST.MF':
+                continue #For now, completely skip JAR manifest
+            elif entry.name.endswith('.jar'):
                 buf = jarray.zeros(1024, 'b')
                 b = 1
                 baos = java.io.ByteArrayOutputStream()
@@ -291,7 +291,7 @@ def _digestJarWarContents(md, byteArray):
                     if b > 0:
                         baos.write(buf, 0, b)
                 _digestJarContents(md, baos.toByteArray())				
-			else:
+            else:
                 buf = jarray.zeros(1024, 'b')
                 b = 0
                 while b >= 0:
