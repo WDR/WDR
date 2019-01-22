@@ -247,9 +247,9 @@ def generateEarChecksum(filename):
                 break
             if entry.directory:
 				md.update(entry.name)
-			elif entry.name == 'MANIFEST.MF':
+            elif entry.name == 'MANIFEST.MF':
 				continue #For now, completely skip EAR manifest
-			elif entry.name.endswith('.jar') or entry.name.endswith('.war'):
+            elif entry.name.endswith('.jar') or entry.name.endswith('.war'):
                 buf = jarray.zeros(1024, 'b')
                 b = 1
                 baos = java.io.ByteArrayOutputStream()
@@ -258,7 +258,7 @@ def generateEarChecksum(filename):
                     if b > 0:
                         baos.write(buf, 0, b)
                 _digestJarWarContents(md, baos.toByteArray())				
-			else:
+            else:
                 buf = jarray.zeros(1024, 'b')
                 b = 0
                 while b >= 0:
