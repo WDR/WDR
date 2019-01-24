@@ -1577,7 +1577,7 @@ def _updateApplication(mo, listener):
         deployedChecksum = deployedChecksumProperties[0].value
     else:
         deployedChecksum = ''
-    fileChecksum = wdr.util.generateEarChecksum(mo.archive)
+    fileChecksum = wdr.util.generateSHA512(mo.archive)
     manifestChecksum = mo.checksum()
     calculatedChecksum = fileChecksum + ';' + manifestChecksum
     if deployedChecksum == calculatedChecksum:
@@ -1620,7 +1620,7 @@ def _installApplication(mo, listener):
         action[k] = v or None
     action['appname'] = mo.name
     action(mo.archive)
-    fileChecksum = wdr.util.generateEarChecksum(mo.archive)
+    fileChecksum = wdr.util.generateSHA512(mo.archive)
     manifestChecksum = mo.checksum()
     calculatedChecksum = fileChecksum + ';' + manifestChecksum
     deployedObject = wdr.config.getid1(
