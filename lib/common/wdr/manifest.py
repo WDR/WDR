@@ -253,6 +253,54 @@ def _construct_J2CActivationSpec(
     attributeCache.invalidate(adapter, 'j2cActivationSpec')
     return result
 	
+def _construct_J2CAdminObject(
+    manifestObject, parentObject, parentAttribute, attributeCache
+):
+    if parentObject._type != 'J2CResourceAdapter':
+        raise Exception(
+            'J2CAdminObject objects can be created only in the context'
+            ' of J2CResourceAdapter'
+        )
+    adapter = parentObject
+	
+    adminObjectInterface = None
+    properties = manifestObject.getAttribute('properties')
+    for property in properties:
+        name = property.keys.get('name') or property.getAttribute('name')
+        if name == 'QueueName':
+            adminObjectInterface = "javax.jms.Queue"
+            break
+        elif name == 'TopicName':
+            adminObjectInterface = "javax.jms.Topic"
+            break
+
+    args = [
+        '-adminObjectInterface',
+        adminObjectInterface,
+        '-name',
+        manifestObject.keys.get('name')
+        or
+        manifestObject.getAttribute('name'),
+        '-jndiName',
+        manifestObject.keys.get('jndiName')
+        or
+        manifestObject.getAttribute('jndiName'),
+        '-description',
+        manifestObject.keys.get('description')
+        or
+        manifestObject.getAttribute('description')
+        or
+        ''
+    ]
+    logger.debug(
+        'creating J2C admin object in %s with arguments %s', adapter, args
+    )
+    result = wdr.config.ConfigObject(
+        AdminTask.createJ2CAdminObject(str(adapter), args)
+    )
+    attributeCache.invalidate(adapter, 'j2cAdminObjects')
+    return result
+	
 def _construct_SIBQueue(
     manifestObject, parentObject, parentAttribute, attributeCache
 ):
@@ -288,6 +336,7 @@ _constructors = {
     'ServerCluster': _construct_ServerCluster,
     'ClusterMember': _construct_ClusterMember,
     'J2CActivationSpec': _construct_J2CActivationSpec,
+	'J2CAdminObject': _construct_J2CAdminObject,
 	'SIBQueue': _construct_SIBQueue,
 }
 
