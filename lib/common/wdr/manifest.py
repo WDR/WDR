@@ -300,6 +300,37 @@ def _construct_J2CAdminObject(
     )
     attributeCache.invalidate(adapter, 'j2cAdminObjects')
     return result
+
+def _construct_J2CConnectionFactory(
+    manifestObject, parentObject, parentAttribute, attributeCache
+):
+    if parentObject._type != 'J2CResourceAdapter':
+        raise Exception(
+            'J2CConnectionFactory objects can be created only in the context'
+            ' of J2CResourceAdapter'
+        )
+    adapter = parentObject
+    args = [
+        '-name',
+        manifestObject.keys.get('name')
+        or
+        manifestObject.getAttribute('name'),
+        '-jndiName',
+        manifestObject.keys.get('jndiName')
+        or
+        manifestObject.getAttribute('jndiName')
+        or
+        '',
+        '-connectionFactoryInterface', 'javax.jms.ConnectionFactory'
+    ]
+    logger.debug(
+        'creating connection factory in %s with arguments %s', adapter, args
+    )
+    result = wdr.config.ConfigObject(
+        AdminTask.createJ2CConnectionFactory(str(adapter), args)
+    )
+    attributeCache.invalidate(adapter)
+    return result
 	
 def _construct_SIBQueue(
     manifestObject, parentObject, parentAttribute, attributeCache
@@ -337,6 +368,7 @@ _constructors = {
     'ClusterMember': _construct_ClusterMember,
     'J2CActivationSpec': _construct_J2CActivationSpec,
 	'J2CAdminObject': _construct_J2CAdminObject,
+	'J2CConnectionFactory': _construct_J2CConnectionFactory,
 	'SIBQueue': _construct_SIBQueue,
 }
 
