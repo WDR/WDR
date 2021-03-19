@@ -595,11 +595,31 @@ def exportApplicationManifest(appName, customTaskProcessors={}):
     if clientWSPolicySetAttachments:
         clientWSPolicySetAttachmentList = []
         for att in clientWSPolicySetAttachments:
+            bindingName = att.get('binding', '')
+            policyType = ''
+            attributes = ''
+            if bindingName != '':
+                policyType = AdminTask.listPolicyTypes(
+                    [
+                        '-bindingLocation', '[[application ' + appName + '][attachmentId ' + att['id'] + ']]',
+                        '-attachmentType', 'client'
+                    ]
+                ).splitlines()[0]
+                attributes = AdminTask.getBinding(
+                    [
+                        '-policyType', policyType,
+                        '-bindingLocation', '[[application ' + appName + '][attachmentId ' + att['id'] + ']]',
+                        '-bindingName', bindingName,
+                        '-attachmentType', 'client'
+                    ]
+                )
+
             clientWSPolicySetAttachmentList.append(
                 [
-                    att['name'], att['pattern.0'], att.get('binding', '')
+                    att['name'], att['pattern.0'], bindingName, policyType, attributes
                 ]
             )
+				
         manifest.extras['clientWSPolicySetAttachments'] = (
             clientWSPolicySetAttachmentList
         )

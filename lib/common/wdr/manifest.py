@@ -1083,7 +1083,6 @@ class ApplicationDeploymentListener:
     def skippedUpdate(self, appName, archivePath):
         pass
 
-
 class ApplicationObject:
     def __init__(self, name, archive):
         self.name = name
@@ -1332,7 +1331,7 @@ def _extraOptionProcessor_clientWSPolicySetAttachments(mo, name, value):
                 '-attachmentType', 'client'
             ]
         )
-    for (policySet, resource, binding) in value:
+    for (policySet, resource, binding, policyType, attributes) in value:
         try:
             attId = AdminTask.createPolicySetAttachment(
                 [
@@ -1343,19 +1342,20 @@ def _extraOptionProcessor_clientWSPolicySetAttachments(mo, name, value):
                 ]
             )
             if binding:
-                try:
+                if policyType:
                     AdminTask.setBinding(
                         [
-                            '-bindingScope', 'domain',
+                            '-policyType', policyType,
                             '-bindingName', binding,
                             '-attachmentType', 'client',
+                            '-attributes', attributes,
                             '-bindingLocation', [
                                 ['application', appName],
                                 ['attachmentId', attId]
                             ]
                         ]
                     )
-                except:
+                else:
                     AdminTask.setBinding(
                         [
                             '-bindingName', binding,
