@@ -367,9 +367,9 @@ _constructors = {
     'ServerCluster': _construct_ServerCluster,
     'ClusterMember': _construct_ClusterMember,
     'J2CActivationSpec': _construct_J2CActivationSpec,
-	'J2CAdminObject': _construct_J2CAdminObject,
-	'J2CConnectionFactory': _construct_J2CConnectionFactory,
-	'SIBQueue': _construct_SIBQueue,
+    'J2CAdminObject': _construct_J2CAdminObject,
+    'J2CConnectionFactory': _construct_J2CConnectionFactory,
+    'SIBQueue': _construct_SIBQueue,
 }
 
 
