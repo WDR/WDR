@@ -236,76 +236,7 @@ def generateSHA512(filename):
     _digestFile(md, filename)
     return _toHex(md.digest())
 
-def generateEarChecksum(filename):
-    md = java.security.MessageDigest.getInstance('SHA512')
-    fis = java.io.BufferedInputStream(java.io.FileInputStream(filename))
-    try:
-        zis = java.util.zip.ZipInputStream(fis)
-        while 1:
-            entry = zis.nextEntry
-            if entry is None:
-                break
-            if entry.directory:
-				md.update(entry.name)
-            elif entry.name.endswith('MANIFEST.MF'):
-				#For now, completely skip EAR manifest
-                pass
-            elif entry.name.endswith('.jar') or entry.name.endswith('.war'):
-                buf = jarray.zeros(1024, 'b')
-                b = 1
-                baos = java.io.ByteArrayOutputStream()
-                while b > 0:
-                    b = zis.read(buf)
-                    if b > 0:
-                        baos.write(buf, 0, b)
-                _digestJarWarContents(md, baos.toByteArray())				
-            else:
-                buf = jarray.zeros(1024, 'b')
-                b = 0
-                while b >= 0:
-                    b = zis.read(buf)
-                    if b > 0:
-                        md.update(buf, 0, b)
-            zis.closeEntry()
-    finally:
-        fis.close()
 
-    return _toHex(md.digest())
-
-def _digestJarWarContents(md, byteArray):
-    try:
-        jarWarIS = java.util.zip.ZipInputStream(java.io.ByteArrayInputStream(byteArray))
-        while 1:
-            entry = jarWarIS.nextEntry
-            if entry is None:
-                break
-            if entry.directory:
-				md.update(entry.name)
-            elif entry.name.endswith('MANIFEST.MF'):
-                #For now, completely skip JAR manifest
-                pass
-            elif entry.name.endswith('.jar'):
-                buf = jarray.zeros(1024, 'b')
-                b = 1
-                baos = java.io.ByteArrayOutputStream()
-                while b > 0:
-                    b = jarWarIS.read(buf)
-                    if b > 0:
-                        baos.write(buf, 0, b)
-                _digestJarContents(md, baos.toByteArray())				
-            else:
-                buf = jarray.zeros(1024, 'b')
-                b = 0
-                while b >= 0:
-                    b = jarWarIS.read(buf)
-                    if b > 0:
-                        md.update(buf, 0, b)
-            jarWarIS.closeEntry()
-    finally:
-        jarWarIS.close()
-	return md
-
-	
 def md5(str):
     md = java.security.MessageDigest.getInstance('MD5')
     md.update(java.lang.String(str).getBytes('UTF-8'))
