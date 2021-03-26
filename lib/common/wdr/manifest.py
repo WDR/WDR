@@ -1746,7 +1746,7 @@ def _add_internal_variables(variables):
                 'upper': lambda s: s.upper(),
                 'encodePassword': wdr.util.encodePassword,
                 'decodePassword': wdr.util.decodePassword,
-			},
+            },
         }
     )
     return vars
