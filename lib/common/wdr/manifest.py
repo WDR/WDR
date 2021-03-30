@@ -210,6 +210,7 @@ def _construct_ClusterMember(
     attributeCache.invalidate(cluster)
     return result
 
+
 def _construct_J2CActivationSpec(
     manifestObject, parentObject, parentAttribute, attributeCache
 ):
@@ -252,7 +253,8 @@ def _construct_J2CActivationSpec(
     )
     attributeCache.invalidate(adapter, 'j2cActivationSpec')
     return result
-	
+
+
 def _construct_J2CAdminObject(
     manifestObject, parentObject, parentAttribute, attributeCache
 ):
@@ -262,7 +264,6 @@ def _construct_J2CAdminObject(
             ' of J2CResourceAdapter'
         )
     adapter = parentObject
-	
     adminObjectInterface = None
     properties = manifestObject.getAttribute('properties')
     for property in properties:
@@ -273,7 +274,6 @@ def _construct_J2CAdminObject(
         elif name == 'TopicName':
             adminObjectInterface = "javax.jms.Topic"
             break
-
     args = [
         '-adminObjectInterface',
         adminObjectInterface,
@@ -300,6 +300,7 @@ def _construct_J2CAdminObject(
     )
     attributeCache.invalidate(adapter, 'j2cAdminObjects')
     return result
+
 
 def _construct_J2CConnectionFactory(
     manifestObject, parentObject, parentAttribute, attributeCache
@@ -331,7 +332,8 @@ def _construct_J2CConnectionFactory(
     )
     attributeCache.invalidate(adapter)
     return result
-	
+
+
 def _construct_SIBQueue(
     manifestObject, parentObject, parentAttribute, attributeCache
 ):
@@ -1331,7 +1333,14 @@ def _extraOptionProcessor_clientWSPolicySetAttachments(mo, name, value):
                 '-attachmentType', 'client'
             ]
         )
-    for (policySet, resource, binding, policyType, attributes) in value:
+    for row in value:
+        (policySet, resource, binding) = row[0:3]
+        policyType = None
+        attributes = []
+        if len(row) > 3:
+            policyType = row[3]
+        if len(row) > 4:
+            attributes = row[4]
         try:
             attId = AdminTask.createPolicySetAttachment(
                 [

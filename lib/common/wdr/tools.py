@@ -599,27 +599,33 @@ def exportApplicationManifest(appName, customTaskProcessors={}):
             policyType = ''
             attributes = ''
             if bindingName != '':
-                policyType = AdminTask.listPolicyTypes(
+                policyTypeList = AdminTask.listPolicyTypes(
                     [
-                        '-bindingLocation', '[[application ' + appName + '][attachmentId ' + att['id'] + ']]',
+                        '-bindingLocation', [
+                            ['application', appName],
+                            ['attachmentId', att['id']]
+                        ],
                         '-attachmentType', 'client'
                     ]
-                ).splitlines()[0]
-                attributes = AdminTask.getBinding(
-                    [
-                        '-policyType', policyType,
-                        '-bindingLocation', '[[application ' + appName + '][attachmentId ' + att['id'] + ']]',
-                        '-bindingName', bindingName,
-                        '-attachmentType', 'client'
-                    ]
-                )
-
+                ).splitlines()
+                if policyTypeList:
+                    policyType = policyTypeList[0]
+                    attributes = AdminTask.getBinding(
+                        [
+                            '-policyType', policyType,
+                            '-bindingLocation', [
+                                ['application', appName],
+                                ['attachmentId', att['id']]
+                            ],
+                            '-bindingName', bindingName,
+                            '-attachmentType', 'client'
+                        ]
+                    )
             clientWSPolicySetAttachmentList.append(
                 [
                     att['name'], att['pattern.0'], bindingName, policyType, attributes
                 ]
             )
-				
         manifest.extras['clientWSPolicySetAttachments'] = (
             clientWSPolicySetAttachmentList
         )
