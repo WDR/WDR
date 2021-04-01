@@ -255,10 +255,123 @@ def _construct_J2CActivationSpec(
     return result
 
 
+def _construct_J2CAdminObject(
+    manifestObject, parentObject, parentAttribute, attributeCache
+):
+    if parentObject._type != 'J2CResourceAdapter':
+        raise Exception(
+            'J2CAdminObject objects can be created only in the context'
+            ' of J2CResourceAdapter'
+        )
+    adapter = parentObject
+    adminObjectInterface = None
+    properties = manifestObject.getAttribute('properties')
+    for property in properties:
+        name = property.keys.get('name') or property.getAttribute('name')
+        if name == 'QueueName':
+            adminObjectInterface = "javax.jms.Queue"
+            break
+        elif name == 'TopicName':
+            adminObjectInterface = "javax.jms.Topic"
+            break
+    args = [
+        '-adminObjectInterface',
+        adminObjectInterface,
+        '-name',
+        manifestObject.keys.get('name')
+        or
+        manifestObject.getAttribute('name'),
+        '-jndiName',
+        manifestObject.keys.get('jndiName')
+        or
+        manifestObject.getAttribute('jndiName'),
+        '-description',
+        manifestObject.keys.get('description')
+        or
+        manifestObject.getAttribute('description')
+        or
+        ''
+    ]
+    logger.debug(
+        'creating J2C admin object in %s with arguments %s', adapter, args
+    )
+    result = wdr.config.ConfigObject(
+        AdminTask.createJ2CAdminObject(str(adapter), args)
+    )
+    attributeCache.invalidate(adapter, 'j2cAdminObjects')
+    return result
+
+
+def _construct_J2CConnectionFactory(
+    manifestObject, parentObject, parentAttribute, attributeCache
+):
+    if parentObject._type != 'J2CResourceAdapter':
+        raise Exception(
+            'J2CConnectionFactory objects can be created only in the context'
+            ' of J2CResourceAdapter'
+        )
+    adapter = parentObject
+    args = [
+        '-name',
+        manifestObject.keys.get('name')
+        or
+        manifestObject.getAttribute('name'),
+        '-jndiName',
+        manifestObject.keys.get('jndiName')
+        or
+        manifestObject.getAttribute('jndiName')
+        or
+        '',
+        '-connectionFactoryInterface', 'javax.jms.ConnectionFactory'
+    ]
+    logger.debug(
+        'creating connection factory in %s with arguments %s', adapter, args
+    )
+    result = wdr.config.ConfigObject(
+        AdminTask.createJ2CConnectionFactory(str(adapter), args)
+    )
+    attributeCache.invalidate(adapter)
+    return result
+
+
+def _construct_SIBQueue(
+    manifestObject, parentObject, parentAttribute, attributeCache
+):
+    if parentObject._type != 'SIBus':
+        raise Exception(
+            'SIBQueue objects can be created only in the context'
+            ' of SIBus'
+        )
+    sibus = parentObject
+    args = [
+        '-name',
+        manifestObject.keys.get('identifier')
+        or
+        manifestObject.getAttribute('identifier'),
+		'-bus',
+        sibus.name,
+        '-type', 'Queue',
+        '-cluster',
+        manifestObject.getAttribute('localizationPointRefs')[0].getAttribute('cluster')
+        or
+        ''
+    ]
+    logger.debug(
+        'creating SIB queue in %s with arguments %s', sibus.name, args
+    )
+    result = wdr.config.ConfigObject(
+        AdminTask.createSIBDestination(args)
+    )
+    return result
+
+
 _constructors = {
     'ServerCluster': _construct_ServerCluster,
     'ClusterMember': _construct_ClusterMember,
     'J2CActivationSpec': _construct_J2CActivationSpec,
+    'J2CAdminObject': _construct_J2CAdminObject,
+    'J2CConnectionFactory': _construct_J2CConnectionFactory,
+    'SIBQueue': _construct_SIBQueue,
 }
 
 
@@ -972,7 +1085,6 @@ class ApplicationDeploymentListener:
     def skippedUpdate(self, appName, archivePath):
         pass
 
-
 class ApplicationObject:
     def __init__(self, name, archive):
         self.name = name
@@ -1221,7 +1333,14 @@ def _extraOptionProcessor_clientWSPolicySetAttachments(mo, name, value):
                 '-attachmentType', 'client'
             ]
         )
-    for (policySet, resource, binding) in value:
+    for row in value:
+        (policySet, resource, binding) = row[0:3]
+        policyType = None
+        attributes = []
+        if len(row) > 3:
+            policyType = row[3]
+        if len(row) > 4:
+            attributes = row[4]
         try:
             attId = AdminTask.createPolicySetAttachment(
                 [
@@ -1232,19 +1351,20 @@ def _extraOptionProcessor_clientWSPolicySetAttachments(mo, name, value):
                 ]
             )
             if binding:
-                try:
+                if policyType:
                     AdminTask.setBinding(
                         [
-                            '-bindingScope', 'domain',
+                            '-policyType', policyType,
                             '-bindingName', binding,
                             '-attachmentType', 'client',
+                            '-attributes', attributes,
                             '-bindingLocation', [
                                 ['application', appName],
                                 ['attachmentId', attId]
                             ]
                         ]
                     )
-                except:
+                else:
                     AdminTask.setBinding(
                         [
                             '-bindingName', binding,
